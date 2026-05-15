@@ -207,30 +207,35 @@ public class EmailServiceImpl implements EmailService {
         }
 
         String key = type + ":" + email;
-        VerificationData data = verificationStore.get(key);
-        if (data == null) {
-            throw new BusinessException(400, "验证码已失效，请重新获取");
+        VerificationData data;
+
+        // 同步块保证原子性：先比对，成功则删除并返回true；失败则递增计数
+        synchronized (verificationStore) {
+            data = verificationStore.get(key);
+            if (data == null) {
+                throw new BusinessException(400, "验证码已失效，请重新获取");
+            }
+
+            if (System.currentTimeMillis() > data.expireTime) {
+                verificationStore.remove(key);
+                throw new BusinessException(400, "验证码已过期，请重新获取");
+            }
+
+            // 先比对验证码，再递增尝试次数，防止时序攻击
+            if (Objects.equals(data.code, code)) {
+                verificationStore.remove(key);
+                return true;
+            }
+
+            int currentAttempts = data.attempts.incrementAndGet();
+
+            if (currentAttempts >= maxVerifyAttempts) {
+                verificationStore.remove(key);
+                throw new BusinessException(400, "验证失败次数过多，请重新获取验证码");
+            }
+
+            throw new BusinessException(400, "验证码错误，剩余" + (maxVerifyAttempts - currentAttempts) + "次尝试机会");
         }
-
-        if (System.currentTimeMillis() > data.expireTime) {
-            verificationStore.remove(key);
-            throw new BusinessException(400, "验证码已过期，请重新获取");
-        }
-
-        // 先比对验证码，再递增尝试次数，防止时序攻击
-        if (Objects.equals(data.code, code)) {
-            verificationStore.remove(key);
-            return true;
-        }
-
-        int currentAttempts = data.attempts.incrementAndGet();
-
-        if (currentAttempts >= maxVerifyAttempts) {
-            verificationStore.remove(key);
-            throw new BusinessException(400, "验证失败次数过多，请重新获取验证码");
-        }
-
-        throw new BusinessException(400, "验证码错误，剩余" + (maxVerifyAttempts - currentAttempts) + "次尝试机会");
     }
 
     @Override

@@ -356,8 +356,7 @@ const fetchPosts = async () => {
 const fetchHotPosts = async () => {
   try {
     const response = await trendingApi.getHotPosts({ pageNum: 1, pageSize: 5 })
-    const pageData = response.data || {}
-    hotPosts.value = pageData.records || []
+    hotPosts.value = response?.records || []
   } catch (err) {
     logger.error('Failed to fetch hot posts', { error: err.message })
     hotPosts.value = []
@@ -367,7 +366,7 @@ const fetchHotPosts = async () => {
 const fetchHotTags = async () => {
   try {
     const response = await trendingApi.getHotTags()
-    hotTags.value = response?.data?.records || []
+    hotTags.value = response?.records || []
   } catch (err) {
     logger.error('Failed to fetch hot tags', { error: err.message })
     hotTags.value = []
@@ -377,7 +376,7 @@ const fetchHotTags = async () => {
 const fetchStats = async () => {
   try {
     const response = await statsApi.getCommunityStats()
-    stats.value = response.data || {}
+    stats.value = response || {}
   } catch (err) {
     logger.error('Failed to fetch stats', { error: err.message })
     stats.value = {}
