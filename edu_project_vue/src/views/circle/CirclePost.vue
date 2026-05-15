@@ -43,8 +43,11 @@
             </div>
           </div>
 
-          <div v-if="uploading" class="upload-progress-bar">
-            <div class="progress-fill" :style="{ width: uploadPercent + '%' }"></div>
+          <div v-if="uploading" class="upload-progress-container">
+            <div class="upload-progress-bar">
+              <div class="progress-fill" :style="{ width: uploadPercent + '%' }"></div>
+            </div>
+            <span class="upload-progress-text">上传中 {{ currentUploadIndex }}/{{ totalUploadCount }}... {{ uploadPercent }}%</span>
           </div>
 
           <div class="toolbar">
@@ -93,6 +96,8 @@ const uploadPercent = ref(0)
 const showPicker = ref(false)
 const fileInput = ref(null)
 const videoInput = ref(null)
+const currentUploadIndex = ref(0)
+const totalUploadCount = ref(0)
 
 const visibilityOptions = { 0: '公开', 1: '关注者可见', 2: '仅自己' }
 
@@ -105,19 +110,28 @@ const form = reactive({
 })
 
 const handleUpload = async (e) => {
-  const files = Array.from(e.target.files)
+  const files = Array.from(e.target.files).filter(f => f.size <= MAX_IMAGE_SIZE)
+  if (files.length === 0) return
+  totalUploadCount.value = files.length
+  currentUploadIndex.value = 0
   uploading.value = true
   uploadPercent.value = 0
   try {
-    for (const file of files) {
-      if (file.size > MAX_IMAGE_SIZE) {
-        toast.warning(`图片 ${file.name} 超过10MB限制`)
-        continue
-      }
+    let totalBytes = 0
+    for (const file of files) { totalBytes += file.size }
+    let uploadedBytes = 0
+    for (let i = 0; i < files.length; i++) {
       if (form.images.length >= 9) break
+      currentUploadIndex.value = i + 1
+      const file = files[i]
+      const beforeBytes = uploadedBytes
       const res = await mediaApi.uploadFile(file, 'circle', (pe) => {
-        if (pe.total) uploadPercent.value = Math.round((pe.loaded / pe.total) * 100)
+        if (pe.total) {
+          uploadedBytes = beforeBytes + pe.loaded
+          uploadPercent.value = Math.round((uploadedBytes / totalBytes) * 100)
+        }
       })
+      uploadedBytes = beforeBytes + file.size
       form.images.push(res.data.fileUrl)
     }
     toast.success('上传完成')
@@ -127,6 +141,8 @@ const handleUpload = async (e) => {
   } finally {
     uploading.value = false
     uploadPercent.value = 0
+    currentUploadIndex.value = 0
+    totalUploadCount.value = 0
     if (fileInput.value) fileInput.value.value = ''
   }
 }
@@ -412,8 +428,11 @@ onMounted(() => {
   background: #eee;
   border-radius: 4px;
   overflow: hidden;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
 }
+
+.upload-progress-container { margin-bottom: 12px; }
+.upload-progress-text { display: block; font-size: 12px; color: #666; text-align: center; }
 
 .progress-fill {
   height: 100%;

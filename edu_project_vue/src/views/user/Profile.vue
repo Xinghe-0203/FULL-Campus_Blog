@@ -1,5 +1,9 @@
 <template>
   <div class="profile-page">
+    <button class="back-btn" @click="router.back()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      返回
+    </button>
     <aside class="profile-sidebar">
       <div class="sidebar-card card">
         <h3 class="sidebar-title">个人中心</h3>
@@ -303,6 +307,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/user'
 import { userApi } from '../../api/user'
 import { postApi } from '../../api/post'
@@ -317,6 +322,7 @@ import { toast } from '../../utils/toast'
 import { useConfirm } from '../../composables/useConfirm'
 
 const userStore = useUserStore()
+const router = useRouter()
 const logger = useLogger('Profile')
 
 const pageError = ref('')
@@ -543,6 +549,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.profile-page { grid-column: 1 / -1; }
+.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
+.back-btn:hover { background: var(--border); color: var(--text-primary); }
 .profile-page {
   max-width: 1100px;
   margin: 0 auto;

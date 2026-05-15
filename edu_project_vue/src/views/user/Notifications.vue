@@ -1,6 +1,10 @@
 <template>
   <div class="notifications-page">
     <div class="notifications-container">
+      <button class="back-btn" @click="router.back()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        返回
+      </button>
       <div class="page-header">
         <h1>消息通知</h1>
         <button v-if="notifications.length > 0" class="btn btn-sm btn-ghost" @click="markAllAsRead">
@@ -209,6 +213,8 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
+.back-btn:hover { background: var(--border); color: var(--text-primary); }
 .notifications-page {
   max-width: 700px;
   margin: 0 auto;

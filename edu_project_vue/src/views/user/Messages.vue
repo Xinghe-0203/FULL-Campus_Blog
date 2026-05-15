@@ -1,6 +1,10 @@
 <template>
   <div class="messages-page">
     <div class="messages-container">
+      <button class="back-btn" @click="router.back()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        返回
+      </button>
       <button class="mobile-back-btn" @click="showMobileList = !showMobileList" v-if="activeConversation && !showMobileList">
         ← 会话列表
       </button>
@@ -90,7 +94,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import DOMPurify from 'dompurify'
 import { useUserStore } from '../../stores/user'
 import { messageApi } from '../../api/message'
@@ -99,6 +103,7 @@ import { useLogger } from '../../utils/logger'
 import { toast } from '../../utils/toast'
 
 const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
 const logger = useLogger('Messages')
 
@@ -444,6 +449,8 @@ onUnmounted(() => {
   color: var(--text-muted);
 }
 
+.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
+.back-btn:hover { background: var(--border); color: var(--text-primary); }
 .mobile-back-btn { display: none; }
 
 @media (max-width: 768px) {
