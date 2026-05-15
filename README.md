@@ -83,7 +83,7 @@
 |------|------|------|
 | Java | 21 | LTS 版本 |
 | Spring Boot | 3.3.0 | Web 框架 |
-| MyBatis Plus | 3.5.7 | ORM 框架 |
+| MyBatis Plus | 3.5.8 | ORM 框架 |
 | Spring Security | 6.x | 安全认证 |
 | JWT (JJWT) | 0.12.3 | Token 认证 |
 | Knife4j | 4.5.0 | API 文档 |
@@ -209,7 +209,7 @@ FULL-Campus_Blog/
 └── edu_project_vue/               # 前端 (Vue 3 + Vite)
     ├── src/
     │   ├── api/                  # 17个 API 模块
-    │   ├── views/                # 33个页面组件
+    │   ├── views/                # 30个页面组件
     │   ├── components/          # 通用组件
     │   ├── stores/              # Pinia 状态管理
     │   ├── router/              # 路由配置
@@ -222,7 +222,7 @@ FULL-Campus_Blog/
 
 ## API 接口文档
 
-> 完整API文档（100+端点）已集成到 Knife4j，访问 http://localhost:8825/api/doc.html
+> 完整API文档（115个端点）已集成到 Knife4j，访问 http://localhost:8825/api/doc.html
 
 ### 统一响应格式
 
