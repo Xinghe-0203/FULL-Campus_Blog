@@ -1,5 +1,9 @@
 <template>
   <div class="my-reports-page">
+    <button class="back-btn" @click="router.back()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      返回
+    </button>
     <div class="page-header">
       <h1>我的举报</h1>
     </div>
@@ -41,10 +45,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { reportApi } from '../../api/report'
 import { formatRelativeTime } from '../../utils'
 import { useLogger } from '../../utils/logger'
 
+const router = useRouter()
 const logger = useLogger('MyReports')
 const reports = ref([])
 const loading = ref(false)
@@ -97,4 +103,6 @@ onMounted(() => fetchReports())
 .skeleton-card-text { width: 90%; height: 14px; margin-bottom: 6px; }
 .skeleton-card-meta { width: 120px; height: 14px; }
 @keyframes shimmer { 0% { background-position: -200px 0; } 100% { background-position: calc(200px + 100%) 0; } }
+.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
+.back-btn:hover { background: var(--border); color: var(--text-primary); }
 </style>

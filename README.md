@@ -1,7 +1,7 @@
 # 校园博客论坛系统 / Campus Blog Forum System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-v1.47-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
+[![Version](https://img.shields.io/badge/version-v1.49-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-green)](https://spring.io/projects/spring-boot)
 [![Vue](https://img.shields.io/badge/Vue-3.4.21-brightgreen)](https://vuejs.org/)
@@ -847,6 +847,12 @@ SOFTWARE.
 
 ## 更新日志
 
+### v1.49 (2026-05-16)
+- **修复首页统计数据错误**：修复Home.vue中热门文章/标签/统计数据访问路径（response?.data?.records → response?.data?.records）
+- **完善Markdown编辑器**：新增撤销/重做、字号选择、下划线、高亮、行内代码、居中对齐等按钮，完善快捷键支持
+- **新增返回按钮**：为Collections.vue、Drafts.vue、Followers.vue、Following.vue、MyReports.vue、PostSearch.vue添加返回按钮
+- **编辑器Undos/Redo功能**：为PostEdit.vue添加完整的撤销/重做功能
+
 ### v1.48 (2026-05-15)
 - 修复验证码并发竞态问题（EmailServiceImpl添加synchronized同步块）
 - 修复前端Home.vue热门标签/文章/统计数据访问方式
@@ -870,8 +876,8 @@ SOFTWARE.
 
 ## 项目信息
 
-- **版本**: v1.48
-- **最后更新**: 2026-05-15
+- **版本**: v1.49
+- **最后更新**: 2026-05-16
 - **开发者**: 刘畅
 - **GitHub**: https://github.com/Xinghe-0203/FULL-Campus_Blog
 - **API文档**: http://localhost:8825/api/doc.html (Knife4j)

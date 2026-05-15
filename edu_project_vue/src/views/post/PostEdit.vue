@@ -27,31 +27,69 @@
       <div class="editor-body card">
         <div v-if="!showPreview" class="editor-main">
           <div class="toolbar">
-            <button class="tool-btn" title="粗体 (Ctrl+B)" @click="insertMarkdown('**', '**')"><b>B</b></button>
-            <button class="tool-btn" title="斜体 (Ctrl+I)" @click="insertMarkdown('*', '*')"><i>I</i></button>
-            <button class="tool-btn" title="删除线" @click="insertMarkdown('~~', '~~')"><s>S</s></button>
-            <button class="tool-btn" title="行内代码" @click="insertMarkdown('`', '`)"><code>&lt;&gt;</code></button>
+            <div class="toolbar-group">
+              <button class="tool-btn" title="撤销 (Ctrl+Z)" @click="undoAction" :disabled="!canUndo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
+              <button class="tool-btn" title="重做 (Ctrl+Y)" @click="redoAction" :disabled="!canRedo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 14 20 9 15 4"/><path d="M4 20v-7a4 4 0 0 0 4-4h12"/></svg></button>
+            </div>
             <span class="toolbar-divider"></span>
-            <button class="tool-btn" title="标题" @click="insertMarkdown('## ', '')"><span class="h-icon">H</span></button>
-            <button class="tool-btn" title="引用" @click="insertMarkdown('> ', '')">❝</button>
+            <div class="toolbar-group">
+              <select class="font-size-select" title="字号" @change="insertHeading($event.target.value)" :value="currentHeading">
+                <option value="">正文</option>
+                <option value="1">标题1</option>
+                <option value="2">标题2</option>
+                <option value="3">标题3</option>
+                <option value="4">标题4</option>
+              </select>
+            </div>
             <span class="toolbar-divider"></span>
-            <button class="tool-btn" title="无序列表" @click="insertMarkdown('- ', '')">•</button>
-            <button class="tool-btn" title="有序列表" @click="insertMarkdown('1. ', '')">1.</button>
-            <button class="tool-btn" title="任务列表" @click="insertMarkdown('- [ ] ', '')">☐</button>
-            <button class="tool-btn" title="表格" @click="insertMarkdown('\n| 列1 | 列2 |\n| --- | --- |\n| 内容 | 内容 |\n', '')">⊞</button>
+            <div class="toolbar-group">
+              <button class="tool-btn" title="粗体 (Ctrl+B)" @click="insertMarkdown('**', '**')"><b>B</b></button>
+              <button class="tool-btn" title="斜体 (Ctrl+I)" @click="insertMarkdown('*', '*')"><i>I</i></button>
+              <button class="tool-btn" title="删除线" @click="insertMarkdown('~~', '~~')"><s>S</s></button>
+              <button class="tool-btn" title="下划线 (Ctrl+U)" @click="insertMarkdown('<u>', '</u>')"><span style="text-decoration:underline">U</span></button>
+              <button class="tool-btn" title="高亮" @click="insertMarkdown('<mark>', '</mark>')"><span style="background:yellow;color:black;padding:0 2px;border-radius:2px">H</span></button>
+            </div>
             <span class="toolbar-divider"></span>
-            <button class="tool-btn" title="链接" @click="insertLink">🔗</button>
-            <button class="tool-btn" title="上传图片" @click="$refs.imageInput.click()">🖼️</button>
-            <button class="tool-btn" title="代码块" @click="insertMarkdown('```\n', '\n```')">&lt;/&gt;</button>
+            <div class="toolbar-group">
+              <button class="tool-btn" title="行内代码" @click="insertMarkdown('`', '`)"><code style="font-size:10px">&lt;&gt;</code></button>
+              <button class="tool-btn" title="代码块" @click="insertMarkdown('```\n', '\n```')"><code style="font-size:10px">&lt;/&gt;</code></button>
+            </div>
             <span class="toolbar-divider"></span>
-            <button class="tool-btn" title="分割线" @click="insertMarkdown('\n---\n', '')">—</button>
+            <div class="toolbar-group">
+              <button class="tool-btn" title="标题2" @click="insertMarkdown('## ', '')"><span style="font-size:11px;font-weight:700">H2</span></button>
+              <button class="tool-btn" title="标题3" @click="insertMarkdown('### ', '')"><span style="font-size:10px;font-weight:700">H3</span></button>
+              <button class="tool-btn" title="引用" @click="insertMarkdown('> ', '')"><span style="font-size:12px">❝</span></button>
+            </div>
+            <span class="toolbar-divider"></span>
+            <div class="toolbar-group">
+              <button class="tool-btn" title="无序列表" @click="insertMarkdown('- ', '')"><span style="font-size:14px">•</span></button>
+              <button class="tool-btn" title="有序列表" @click="insertMarkdown('1. ', '')"><span style="font-size:12px">1.</span></button>
+              <button class="tool-btn" title="任务列表" @click="insertMarkdown('- [ ] ', '')"><span style="font-size:12px">☐</span></button>
+            </div>
+            <span class="toolbar-divider"></span>
+            <div class="toolbar-group">
+              <button class="tool-btn" title="居左" @click="insertMarkdown('<div style="text-align:left">', '</div>')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg></button>
+              <button class="tool-btn" title="居中" @click="insertMarkdown('<div style="text-align:center">', '</div>')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg></button>
+              <button class="tool-btn" title="居右" @click="insertMarkdown('<div style="text-align:right">', '</div>')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/></svg></button>
+            </div>
+            <span class="toolbar-divider"></span>
+            <div class="toolbar-group">
+              <button class="tool-btn" title="链接" @click="insertLink"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+              <button class="tool-btn" title="上传图片" @click="$refs.imageInput.click()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
+              <button class="tool-btn" title="表格" @click="insertMarkdown('\n| 列1 | 列2 | 列3 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |\n', '')"><span style="font-size:11px">⊞</span></button>
+            </div>
+            <span class="toolbar-divider"></span>
+            <div class="toolbar-group">
+              <button class="tool-btn" title="分割线" @click="insertMarkdown('\n---\n', '')"><span style="font-size:14px">—</span></button>
+              <button class="tool-btn" title="清除格式" @click="clearFormat"><span style="font-size:10px">⌫</span></button>
+            </div>
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" ref="imageInput" hidden @change="uploadContentImage" />
             <div v-if="uploadingImage" class="upload-progress">
               <div class="upload-progress-bar" :style="{ width: uploadProgress + '%' }"></div>
               <span class="upload-progress-text">上传中... {{ uploadProgress }}%</span>
             </div>
           </div>
-          <textarea v-model="form.content" class="content-input" placeholder="请输入文章内容（支持Markdown语法）..." @keydown.tab.prevent="insertTab" @keydown.ctrl.b.prevent="insertMarkdown('**', '**')" @keydown.ctrl.i.prevent="insertMarkdown('*', '*')" ref="contentTextarea" maxlength="50000"></textarea>
+          <textarea v-model="form.content" class="content-input" placeholder="请输入文章内容（支持Markdown语法）..." @keydown.tab.prevent="insertTab" @keydown.ctrl.z.prevent="undoAction" @keydown.ctrl.y.prevent="redoAction" @keydown.ctrl.b.prevent="insertMarkdown('**', '**')" @keydown.ctrl.i.prevent="insertMarkdown('*', '*')" @keydown.ctrl.u.prevent="insertMarkdown('<u>', '</u>')" @keydown.shift.space.prevent="insertMarkdown('<mark>', '</mark>')" ref="contentTextarea" maxlength="50000"></textarea>
         </div>
         <div v-else class="editor-preview">
           <div v-if="form.content" class="markdown-body" v-html="renderedContent"></div>
@@ -188,6 +226,7 @@ function insertMarkdown(before, after) {
   const text = form.content
   const selected = text.substring(start, end)
   form.content = text.substring(0, start) + before + selected + after + text.substring(end)
+  saveHistory()
   nextTick(() => { ta.focus(); ta.setSelectionRange(start + before.length, start + before.length + selected.length) })
 }
 
@@ -198,13 +237,81 @@ function insertLink() {
   const selected = form.content.substring(start, end) || '链接文字'
   const linkText = `[${selected}](url)`
   form.content = form.content.substring(0, start) + linkText + form.content.substring(end)
+  saveHistory()
 }
 
 function insertTab(e) {
   const ta = e.target
   const start = ta.selectionStart, end = ta.selectionEnd
   form.content = form.content.substring(0, start) + '  ' + form.content.substring(end)
+  saveHistory()
   nextTick(() => ta.setSelectionRange(start + 2, start + 2))
+}
+
+// Undo/Redo functionality
+const history = ref([''])
+const historyIndex = ref(0)
+const currentHeading = ref('')
+
+const canUndo = computed(() => historyIndex.value > 0)
+const canRedo = computed(() => historyIndex.value < history.value.length - 1)
+
+function saveHistory() {
+  // Remove any redo history when new action is taken
+  if (historyIndex.value < history.value.length - 1) {
+    history.value = history.value.slice(0, historyIndex.value + 1)
+  }
+  history.value.push(form.content)
+  historyIndex.value = history.value.length - 1
+  // Limit history to 50 items
+  if (history.value.length > 50) {
+    history.value.shift()
+    historyIndex.value--
+  }
+}
+
+function undoAction() {
+  if (canUndo.value) {
+    historyIndex.value--
+    form.content = history.value[historyIndex.value]
+  }
+}
+
+function redoAction() {
+  if (canRedo.value) {
+    historyIndex.value++
+    form.content = history.value[historyIndex.value]
+  }
+}
+
+function insertHeading(level) {
+  if (!level) return
+  const prefix = '#'.repeat(parseInt(level) + 1) + ' '
+  const ta = contentTextarea.value
+  if (!ta) return
+  const start = ta.selectionStart
+  const lineStart = form.content.lastIndexOf('\n', start - 1) + 1
+  form.content = form.content.substring(0, lineStart) + prefix + form.content.substring(lineStart)
+  saveHistory()
+  currentHeading.value = ''
+}
+
+function clearFormat() {
+  const ta = contentTextarea.value
+  if (!ta) return
+  const start = ta.selectionStart, end = ta.selectionEnd
+  if (start === end) return
+  const selected = form.content.substring(start, end)
+  // Remove common formatting
+  let cleaned = selected
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/~~(.+?)~~/g, '$1')
+    .replace(/`(.+?)`/g, '$1')
+    .replace(/<u>(.+?)<\/u>/g, '$1')
+    .replace(/<mark>(.+?)<\/mark>/g, '$1')
+  form.content = form.content.substring(0, start) + cleaned + form.content.substring(end)
+  saveHistory()
 }
 
 async function uploadContentImage(e) {
@@ -457,15 +564,19 @@ onBeforeRouteLeave((to, from) => {
 
 .editor-body { grid-column: 1; min-height: 500px; padding: 0; overflow: hidden; }
 .toolbar { display: flex; align-items: center; gap: 2px; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--bg-secondary, #f8f9fa); flex-wrap: wrap; }
-.tool-btn { width: 32px; height: 32px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 0.875rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-.tool-btn:hover { background: var(--border); }
+.toolbar-group { display: flex; align-items: center; gap: 2px; }
+.tool-btn { width: 32px; height: 32px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 0.875rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; transition: background 0.2s; flex-shrink: 0; }
+.tool-btn:hover:not(:disabled) { background: var(--border); color: var(--text-primary); }
+.tool-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .tool-btn b { font-size: 0.875rem; }
 .tool-btn i { font-size: 0.875rem; }
 .tool-btn s { font-size: 0.75rem; }
 .tool-btn code { font-size: 0.625rem; }
-.toolbar-divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+.toolbar-divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
 .h-icon { font-size: 0.75rem; font-weight: 700; }
-.upload-progress { position: relative; width: 100px; height: 20px; background: var(--border); border-radius: 4px; overflow: hidden; margin-left: 8px; }
+.font-size-select { width: auto; height: 28px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: transparent; font-size: 0.75rem; color: var(--text-secondary); cursor: pointer; }
+.font-size-select:focus { outline: none; border-color: var(--primary); }
+.upload-progress { position: relative; width: 100px; height: 20px; background: var(--border); border-radius: 4px; overflow: hidden; margin-left: 8px; flex-shrink: 0; }
 .upload-progress-bar { position: absolute; left: 0; top: 0; height: 100%; background: var(--primary); transition: width 0.3s; }
 .upload-progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 .content-input { width: 100%; min-height: 460px; padding: 20px; border: none; font-size: 1rem; line-height: 1.8; color: var(--text-primary); background: transparent; resize: vertical; }
