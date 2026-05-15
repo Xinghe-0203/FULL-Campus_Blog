@@ -151,7 +151,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         post.setLikeCount(0);
         post.setCommentCount(0);
         post.setCollectCount(0);
-        // 普通用户发布设置status=1（直接发布），管理员也设置status=1（直接发布）
+        // 管理员和普通用户均可直接发布，无需审核
         post.setStatus(1);
         post.setCoverUrl(request.getCoverImage());
 
@@ -327,6 +327,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         response.setStatus(post.getStatus());
         response.setCreateTime(post.getCreateTime());
         response.setUpdateTime(post.getUpdateTime());
+        response.setCoverImage(post.getCoverUrl());
 
         // 获取作者信息
         SysUser user = sysUserMapper.selectById(post.getUserId());
@@ -1120,6 +1121,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         response.setRejectReason(post.getRejectReason());
         response.setCreateTime(post.getCreateTime());
         response.setUpdateTime(post.getUpdateTime());
+        response.setCoverImage(post.getCoverUrl());
 
         if (user != null) {
             response.setUsername(user.getUsername());

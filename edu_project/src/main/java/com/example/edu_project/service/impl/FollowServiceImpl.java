@@ -222,13 +222,14 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
             return new ArrayList<>();
         }
 
-        // 获取粉丝用户信息
+        // 获取粉丝用户信息，排除已封禁用户
         List<Long> followerIds = follows.stream()
                 .map(BlogFollow::getFollowerId)
                 .collect(java.util.stream.Collectors.toList());
         List<SysUser> followers = sysUserMapper.selectBatchIds(followerIds);
 
         return followers.stream()
+                .filter(u -> u.getStatus() == null || u.getStatus() != 0)
                 .map(UserConverter::toUserVO)
                 .collect(java.util.stream.Collectors.toList());
     }
@@ -253,13 +254,14 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
             return new ArrayList<>();
         }
 
-        // 获取关注用户信息
+        // 获取关注用户信息，排除已封禁用户
         List<Long> followingIds = follows.stream()
                 .map(BlogFollow::getFollowingId)
                 .collect(java.util.stream.Collectors.toList());
         List<SysUser> followings = sysUserMapper.selectBatchIds(followingIds);
 
         return followings.stream()
+                .filter(u -> u.getStatus() == null || u.getStatus() != 0)
                 .map(UserConverter::toUserVO)
                 .collect(java.util.stream.Collectors.toList());
     }
@@ -307,11 +309,16 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
         Map<Long, SysUser> userMap = followers.stream()
                 .collect(java.util.stream.Collectors.toMap(SysUser::getId, u -> u, (a, b) -> a));
 
-        // 转换
-        return followPage.convert(follow -> {
+        // 转换，过滤掉已封禁用户
+        IPage<UserVO> resultPage = followPage.convert(follow -> {
             SysUser follower = userMap.get(follow.getFollowerId());
-            return follower != null ? UserConverter.toUserVO(follower) : null;
+            if (follower != null && (follower.getStatus() == null || follower.getStatus() != 0)) {
+                return UserConverter.toUserVO(follower);
+            }
+            return null;
         });
+        resultPage.setRecords(resultPage.getRecords().stream().filter(Objects::nonNull).toList());
+        return resultPage;
     }
 
     @Override
@@ -342,11 +349,16 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
         Map<Long, SysUser> userMap = followings.stream()
                 .collect(java.util.stream.Collectors.toMap(SysUser::getId, u -> u, (a, b) -> a));
 
-        // 转换
-        return followPage.convert(follow -> {
+        // 转换，过滤掉已封禁用户
+        IPage<UserVO> resultPage = followPage.convert(follow -> {
             SysUser following = userMap.get(follow.getFollowingId());
-            return following != null ? UserConverter.toUserVO(following) : null;
+            if (following != null && (following.getStatus() == null || following.getStatus() != 0)) {
+                return UserConverter.toUserVO(following);
+            }
+            return null;
         });
+        resultPage.setRecords(resultPage.getRecords().stream().filter(Objects::nonNull).toList());
+        return resultPage;
     }
 
 }

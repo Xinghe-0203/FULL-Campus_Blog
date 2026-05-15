@@ -217,3 +217,5 @@ logging:
     org.springframework.security: INFO
     # Web请求日志
     org.springframework.web: INFO
+    # 审计日志单独配置
+    com.example.edu_project.audit: INFO

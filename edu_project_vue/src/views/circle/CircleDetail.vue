@@ -262,7 +262,7 @@ const fetchPost = async () => {
   if (userStore.isLoggedIn) {
     try {
       const likeRes = await circleApi.checkLikeStatus(route.params.id)
-      isLiked.value = likeRes.data?.liked ?? false
+      isLiked.value = likeRes.data ?? false
     } catch (err) {
       logger.warn('checkLikeStatus failed', { error: err.message })
     }

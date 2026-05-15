@@ -82,12 +82,12 @@ public class CircleController {
     @Operation(summary = "获取推荐流")
     @GetMapping("/feed/recommend")
     public Result<List<CirclePostVO>> getRecommendFeed(
-            @RequestParam(defaultValue = "1") String pageStr,
-            @RequestParam(defaultValue = "20") String pageSizeStr) {
-        int page = parsePage(pageStr);
-        int pageSize = parsePageSize(pageSizeStr);
+            @RequestParam(defaultValue = "1") String pageNum,
+            @RequestParam(defaultValue = "20") String pageSize) {
+        int page = parsePage(pageNum);
+        int parsedPageSize = parsePageSize(pageSize);
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
-        List<CirclePostVO> feed = circleService.getRecommendFeed(page, pageSize, userId);
+        List<CirclePostVO> feed = circleService.getRecommendFeed(page, parsedPageSize, userId);
         return Result.success(feed);
     }
 
@@ -97,15 +97,15 @@ public class CircleController {
     @Operation(summary = "获取关注流")
     @GetMapping("/feed/following")
     public Result<List<CirclePostVO>> getFollowingFeed(
-            @RequestParam(defaultValue = "1") String pageStr,
-            @RequestParam(defaultValue = "20") String pageSizeStr) {
+            @RequestParam(defaultValue = "1") String pageNum,
+            @RequestParam(defaultValue = "20") String pageSize) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {
             throw new BusinessException(401, "请先登录");
         }
-        int page = parsePage(pageStr);
-        int pageSize = parsePageSize(pageSizeStr);
-        List<CirclePostVO> feed = circleService.getFollowingFeed(page, pageSize, userId);
+        int page = parsePage(pageNum);
+        int parsedPageSize = parsePageSize(pageSize);
+        List<CirclePostVO> feed = circleService.getFollowingFeed(page, parsedPageSize, userId);
         return Result.success(feed);
     }
 
@@ -210,12 +210,12 @@ public class CircleController {
     @GetMapping("/search")
     public Result<List<CirclePostVO>> searchPosts(
             @RequestParam @NotBlank String keyword,
-            @RequestParam(defaultValue = "1") String pageStr,
-            @RequestParam(defaultValue = "20") String pageSizeStr) {
-        int page = parsePage(pageStr);
-        int pageSize = parsePageSize(pageSizeStr);
+            @RequestParam(defaultValue = "1") String pageNum,
+            @RequestParam(defaultValue = "20") String pageSize) {
+        int page = parsePage(pageNum);
+        int parsedPageSize = parsePageSize(pageSize);
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
-        List<CirclePostVO> results = circleService.searchPosts(keyword, page, pageSize, userId);
+        List<CirclePostVO> results = circleService.searchPosts(keyword, page, parsedPageSize, userId);
         return Result.success(results);
     }
 
@@ -226,12 +226,12 @@ public class CircleController {
     @GetMapping("/user/{userId}")
     public Result<IPage<CirclePostVO>> getUserPosts(
             @PathVariable Long userId,
-            @RequestParam(defaultValue = "1") String pageStr,
-            @RequestParam(defaultValue = "20") String pageSizeStr) {
-        int page = parsePage(pageStr);
-        int pageSize = parsePageSize(pageSizeStr);
+            @RequestParam(defaultValue = "1") String pageNum,
+            @RequestParam(defaultValue = "20") String pageSize) {
+        int page = parsePage(pageNum);
+        int parsedPageSize = parsePageSize(pageSize);
         Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
-        IPage<CirclePostVO> results = circleService.getUserPosts(userId, page, pageSize, currentUserId);
+        IPage<CirclePostVO> results = circleService.getUserPosts(userId, page, parsedPageSize, currentUserId);
         return Result.success(results);
     }
 

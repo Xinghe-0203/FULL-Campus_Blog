@@ -37,7 +37,7 @@ public class BlogPost implements Serializable {
     private String category;
 
     @Schema(description = "封面图URL")
-    // NOTE: 字段名为 coverUrl，但 DTO/VO 中使用 coverImage。重命名会影响 SQL 列名，暂时保持不一致。
+    @TableField("cover_url")
     private String coverUrl;
 
     @Schema(description = "阅读量")

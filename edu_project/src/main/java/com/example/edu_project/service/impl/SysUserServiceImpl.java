@@ -216,7 +216,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 user.getNickname(),
                 user.getAvatar(),
                 token,
-                refreshToken
+                refreshToken,
+                user.getRole()
         );
     }
 
@@ -276,7 +277,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     @Transactional(readOnly = true)
     public IPage<UserVO> searchUsers(UserSearchRequest request) {
-        Page<SysUser> page = new Page<>(request.getPage(), request.getPageSize());
+        Page<SysUser> page = new Page<>(request.getPageNum(), request.getPageSize());
 
         LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysUser::getStatus, 1);
@@ -305,7 +306,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     @Transactional(readOnly = true)
     public IPage<AdminUserVO> getAdminUserList(AdminUserQueryRequest request) {
-        Page<SysUser> page = new Page<>(request.getPage(), request.getPageSize());
+        Page<SysUser> page = new Page<>(request.getPageNum(), request.getPageSize());
 
         LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
         wrapper.ne(SysUser::getIsDeleted, 1);

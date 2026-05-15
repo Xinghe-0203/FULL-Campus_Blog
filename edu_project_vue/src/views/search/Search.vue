@@ -185,7 +185,7 @@ const doSearch = async () => {
     if (activeFilter.value === 'users') {
       response = await userApi.searchUsers({
         keyword: searchQuery.value,
-        page: currentPage.value,
+        pageNum: currentPage.value,
         pageSize: pageSize
       })
     } else {

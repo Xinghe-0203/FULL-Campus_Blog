@@ -347,7 +347,7 @@ const fetchPosts = async () => {
     logger.error('Failed to fetch posts', { error: err.message })
     error.value = true
     errorMessage.value = err.response?.data?.message || err.message || '加载文章失败'
-    toast.error('加载文章列表失败')
+    toast.error(err.response?.data?.message || '加载文章列表失败')
   } finally {
     loading.value = false
   }

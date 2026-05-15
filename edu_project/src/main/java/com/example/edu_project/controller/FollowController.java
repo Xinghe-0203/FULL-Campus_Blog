@@ -92,7 +92,7 @@ public class FollowController {
     @GetMapping("/followers/{userId}")
     public Result<IPage<UserVO>> getFollowers(
             @Parameter(description = "用户ID") @PathVariable Long userId,
-            @Parameter(description = "页码，默认1") @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @Parameter(description = "页码，默认1") @RequestParam(defaultValue = "1", name = "pageNum") @Min(1) Integer page,
             @Parameter(description = "每页数量，默认10") @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer pageSize) {
         IPage<UserVO> followers = followService.getFollowers(userId, page, pageSize);
         return Result.success(followers);
@@ -105,7 +105,7 @@ public class FollowController {
     @GetMapping("/following/{userId}")
     public Result<IPage<UserVO>> getFollowing(
             @Parameter(description = "用户ID") @PathVariable Long userId,
-            @Parameter(description = "页码，默认1") @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @Parameter(description = "页码，默认1") @RequestParam(defaultValue = "1", name = "pageNum") @Min(1) Integer page,
             @Parameter(description = "每页数量，默认10") @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer pageSize) {
         IPage<UserVO> following = followService.getFollowing(userId, page, pageSize);
         return Result.success(following);

@@ -31,4 +31,7 @@ public class UserLoginResponse {
 
     @Schema(description = "刷新Token（7天有效期）")
     private String refreshToken;
+
+    @Schema(description = "角色")
+    private String role;
 }

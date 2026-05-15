@@ -188,7 +188,7 @@ const fetchReports = async () => {
   error.value = ''
   try {
     const response = await adminApi.getPendingReports({
-      page: currentPage.value,
+      pageNum: currentPage.value,
       pageSize: 20
     })
     reports.value = response.data?.records || []

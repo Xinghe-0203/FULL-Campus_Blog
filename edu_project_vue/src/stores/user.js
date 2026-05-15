@@ -9,6 +9,26 @@ const logger = useLogger('UserStore')
 
 const STORAGE_KEY_PREFIX = 'edu_'
 
+/**
+ * 用户认证状态管理 Store
+ *
+ * @typedef {Object} UserState
+ * @property {import('vue').Ref<Object|null>} user - 当前用户信息
+ * @property {import('vue').Ref<string|null>} token - JWT Token
+ * @property {import('vue').Ref<string|null>} refreshToken - 刷新 Token
+ * @property {import('vue').Ref<number>} unreadNotifications - 未读通知数
+ * @property {import('vue').Ref<number>} unreadMessages - 未读私信数
+ * @property {import('vue').Ref<boolean>} loading - 是否正在加载
+ * @property {import('vue').Ref<boolean>} remember - 是否记住登录
+ * @property {import('vue').ComputedRef<boolean>} isLoggedIn - 是否已登录
+ * @property {import('vue').ComputedRef<boolean>} isAdmin - 是否为管理员
+ * @property {import('vue').ComputedRef<number|undefined>} userId - 用户ID
+ * @property {import('vue').ComputedRef<string|undefined>} username - 用户名
+ * @property {import('vue').ComputedRef<string|undefined>} avatar - 头像 URL
+ * @property {import('vue').ComputedRef<string>} nickname - 昵称
+ * @property {import('vue').ComputedRef<number>} totalUnread - 总未读数
+ */
+
 export const useUserStore = defineStore('user', () => {
   // 状态
   const user = ref(null)
@@ -31,6 +51,11 @@ export const useUserStore = defineStore('user', () => {
   const nickname = computed(() => user.value?.nickname || user.value?.username)
   const totalUnread = computed(() => unreadNotifications.value + unreadMessages.value)
   
+  /**
+   * 编码数据为 Base64 字符串
+   * @param {Object} data - 要编码的数据
+   * @returns {string|null}
+   */
   function encodeData(data) {
     if (!data) return null
     try {
@@ -40,6 +65,11 @@ export const useUserStore = defineStore('user', () => {
     }
   }
   
+  /**
+   * 解码 Base64 字符串为对象
+   * @param {string|null} encoded - 编码后的字符串
+   * @returns {Object|null}
+   */
   function decodeData(encoded) {
     if (!encoded) return null
     try {
@@ -49,7 +79,10 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 从本地存储恢复状态
+  /**
+   * 从本地存储恢复用户状态
+   * @returns {void}
+   */
   function restoreFromStorage() {
     try {
       const savedToken = localStorage.getItem(STORAGE_KEY_PREFIX + 'token') || sessionStorage.getItem(STORAGE_KEY_PREFIX + 'token')
@@ -96,7 +129,10 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 重置所有状态
+  /**
+   * 重置所有状态并清除存储
+   * @returns {void}
+   */
   function resetState() {
     user.value = null
     token.value = null
@@ -106,7 +142,10 @@ export const useUserStore = defineStore('user', () => {
     clearStorage()
   }
 
-  // 清除本地存储
+  /**
+   * 清除所有本地存储中的认证数据
+   * @returns {void}
+   */
   function clearStorage() {
     try {
       localStorage.removeItem(STORAGE_KEY_PREFIX + 'token')
@@ -123,8 +162,11 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 验证Token是否有效（检查JWT过期时间，避免每次验证都刷新Token）
-  // 注意：不在此处调用 resetState()，让 api/index.js 的响应拦截器处理刷新
+  /**
+   * 验证Token是否有效（检查JWT过期时间，避免每次验证都刷新Token）
+   * 注意：不在此处调用 resetState()，让 api/index.js 的响应拦截器处理刷新
+   * @returns {Promise<boolean>}
+   */
   async function validateToken() {
     if (!token.value) {
       return false
@@ -151,7 +193,10 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 检查Token是否可能已被窃取（异常检测）
+  /**
+   * 检查Token是否可能已被窃取（异常检测）
+   * @returns {boolean}
+   */
   function detectTokenTheft() {
     try {
       const savedToken = localStorage.getItem(STORAGE_KEY_PREFIX + 'token')
@@ -169,7 +214,11 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 登录
+  /**
+   * 用户登录
+   * @param {{username: string, password: string, remember?: boolean}} credentials - 登录凭证
+   * @returns {Promise<{success: boolean, message?: string}>}
+   */
   async function login(credentials) {
     loading.value = true
     try {
@@ -177,7 +226,7 @@ export const useUserStore = defineStore('user', () => {
       // Handle both flat and nested response structures
       const loginData = response.data || response
 
-      let { token: newToken, refreshToken: newRefreshToken, id, username, nickname, avatar } = loginData
+      let { token: newToken, refreshToken: newRefreshToken, id, username, nickname, avatar, role } = loginData
 
       // Fallback to nested data if backend returns { data: { user, token, refreshToken } }
       if (!id && loginData.data) {
@@ -188,6 +237,7 @@ export const useUserStore = defineStore('user', () => {
         username = nestedData.username
         nickname = nestedData.nickname
         avatar = nestedData.avatar
+        role = nestedData.role
       }
 
       // Validate required fields
@@ -198,13 +248,14 @@ export const useUserStore = defineStore('user', () => {
 
       token.value = newToken
       refreshToken.value = newRefreshToken
-      user.value = {
+    user.value = {
         id,
         username: username || loginData.username || loginData.data?.username,
         nickname: nickname || loginData.nickname || loginData.data?.nickname,
         avatar: avatar || loginData.avatar || loginData.data?.avatar,
-        email: loginData.email || loginData.data?.email
-      }
+        email: loginData.email || loginData.data?.email,
+        role: role || loginData.role || loginData.data?.role
+    }
 
       if (credentials.remember) {
         try {
@@ -234,7 +285,11 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 注册
+  /**
+   * 用户注册
+   * @param {{username: string, password: string, email?: string}} data - 注册信息
+   * @returns {Promise<{success: boolean, message?: string}>}
+   */
   async function register(data) {
     loading.value = true
     try {
@@ -249,7 +304,10 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 登出
+  /**
+   * 用户登出
+   * @returns {Promise<void>}
+   */
   async function logout() {
     const userId = user.value?.id
     try {
@@ -267,21 +325,34 @@ export const useUserStore = defineStore('user', () => {
     logger.info('User logged out', { userId })
   }
 
-  // 更新Token
+  /**
+   * 更新Token和刷新Token
+   * @param {string} newToken - 新的JWT Token
+   * @param {string} newRefreshToken - 新的刷新Token
+   * @returns {void}
+   */
   function updateTokens(newToken, newRefreshToken) {
     token.value = newToken
     refreshToken.value = newRefreshToken
     saveToStorage()
   }
 
-  // 更新用户信息
+  /**
+   * 更新用户信息
+   * @param {Object} userData - 用户信息更新数据
+   * @returns {void}
+   */
   function updateUserInfo(userData) {
     user.value = { ...user.value, ...userData }
     saveToStorage()
     logger.info('User info updated', { userId: user.value?.id })
   }
 
-  // 更新头像
+  /**
+   * 更新用户头像
+   * @param {string} avatarUrl - 新头像URL
+   * @returns {void}
+   */
   function updateAvatar(avatarUrl) {
     if (user.value) {
       user.value.avatar = avatarUrl
@@ -289,7 +360,11 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 更新封面图
+  /**
+   * 更新用户封面图
+   * @param {string} coverImageUrl - 新封面图URL
+   * @returns {void}
+   */
   function updateCoverImage(coverImageUrl) {
     if (user.value) {
       user.value.coverImage = coverImageUrl
@@ -297,7 +372,10 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 获取未读消息数
+  /**
+   * 获取未读通知和私信数量
+   * @returns {Promise<void>}
+   */
   async function fetchUnreadCounts() {
     if (!isLoggedIn.value) return
     
@@ -314,7 +392,11 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 更新个人资料
+  /**
+   * 更新个人资料
+   * @param {Object} profileData - 个人资料更新数据
+   * @returns {Promise<{success: boolean, message?: string}>}
+   */
   async function updateProfile(profileData) {
     loading.value = true
     try {
@@ -329,7 +411,11 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 修改密码
+  /**
+   * 修改密码
+   * @param {{oldPassword: string, newPassword: string}} passwordData - 密码数据
+   * @returns {Promise<{success: boolean, message?: string}>}
+   */
   async function changePassword(passwordData) {
     loading.value = true
     try {

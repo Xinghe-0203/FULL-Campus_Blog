@@ -200,7 +200,7 @@ public class BlogPostController {
     @Operation(summary = "获取我的草稿列表")
     @GetMapping("/draft/my")
     public Result<IPage<SaveDraftRequest>> getMyDrafts(
-            @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @RequestParam(defaultValue = "1", name = "pageNum") @Min(1) Integer page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer pageSize) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {
@@ -237,7 +237,7 @@ public class BlogPostController {
     @Operation(summary = "获取我的文章列表")
     @GetMapping("/my")
     public Result<IPage<PostListResponse>> getMyPosts(
-            @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @RequestParam(defaultValue = "1", name = "pageNum") @Min(1) Integer page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer pageSize) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {

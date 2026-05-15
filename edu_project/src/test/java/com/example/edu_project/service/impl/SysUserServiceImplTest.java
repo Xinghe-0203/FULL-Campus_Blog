@@ -465,11 +465,11 @@ public class SysUserServiceImplTest {
         UserRegisterResponse registerResponse = sysUserService.register(registerRequest);
 
         BusinessException exception = assertThrows(BusinessException.class, () -> {
-            sysUserService.changePassword(registerResponse.getId(), TEST_PASSWORD, "newpass");
+            sysUserService.changePassword(registerResponse.getId(), TEST_PASSWORD, "newpass123");
         });
 
         assertEquals(400, exception.getCode());
-        assertTrue(exception.getMessage().contains("新密码必须包含大小写字母、数字或特殊字符中的至少3种"));
+        assertTrue(exception.getMessage().contains("密码必须包含大小写字母、数字或特殊字符中的至少3种"));
     }
 
     @Test

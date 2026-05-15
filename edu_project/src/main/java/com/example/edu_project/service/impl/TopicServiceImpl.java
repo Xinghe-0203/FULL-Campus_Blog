@@ -8,7 +8,6 @@ import com.example.edu_project.entity.Topic;
 import com.example.edu_project.mapper.TopicMapper;
 import com.example.edu_project.service.TopicService;
 import com.example.edu_project.utils.HtmlSanitizer;
-import com.example.edu_project.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -28,11 +27,6 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createTopic(String name, String description) {
-        // 校验是否管理员
-        if (!SecurityUtils.isCurrentUserAdmin()) {
-            throw new BusinessException(403, "仅管理员可创建话题");
-        }
-
         // 校验话题名称
         if (name == null || name.trim().isEmpty()) {
             throw new BusinessException(400, "话题名称不能为空");

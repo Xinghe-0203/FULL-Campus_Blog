@@ -1,7 +1,14 @@
 import api from './index'
 
+/**
+ * 热搜/热门接口
+ */
 export const trendingApi = {
-  // 获取热门文章
+  /**
+   * 获取热门文章
+   * @param {{pageNum?: number, pageSize?: number}} params - 分页参数
+   * @returns {Promise<{code: number, message: string, data: Object}>}
+   */
   getHotPosts(params) {
     return api.get('/trending/posts', {
       params: {
@@ -11,12 +18,19 @@ export const trendingApi = {
     })
   },
 
-  // 获取热门标签
+  /**
+   * 获取热门标签
+   * @returns {Promise<{code: number, message: string, data: Object}>}
+   */
   getHotTags() {
     return api.get('/trending/hot-tags')
   },
 
-  // 更新热门状态
+  /**
+   * 更新热门状态
+   * @param {number|string} postId - 文章ID
+   * @returns {Promise<{code: number, message: string, data: Object}>}
+   */
   updateTrending(postId) {
     return api.put(`/trending/update/${postId}`)
   }

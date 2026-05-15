@@ -484,7 +484,7 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
     @Override
     @Transactional(readOnly = true)
     public List<MediaVO> getUserMedia(MediaQueryRequest request, Long userId) {
-        Integer pageNum = request.getPage() != null ? request.getPage() : 1;
+        Integer pageNum = request.getPageNum() != null ? request.getPageNum() : 1;
         Integer pageSize = request.getPageSize() != null ? request.getPageSize() : 10;
 
         Page<Media> page = new Page<>(pageNum, pageSize);

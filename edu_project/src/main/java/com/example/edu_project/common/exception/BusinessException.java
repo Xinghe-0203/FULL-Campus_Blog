@@ -1,5 +1,6 @@
 package com.example.edu_project.common.exception;
 
+import com.example.edu_project.common.enums.BaseErrorCode;
 import lombok.Getter;
 
 /**
@@ -12,11 +13,21 @@ public class BusinessException extends RuntimeException {
 
     public BusinessException(String message) {
         super(message);
-        this.code = 500;
+        this.code = BaseErrorCode.FAILURE.getCode();
     }
 
     public BusinessException(Integer code, String message) {
         super(message);
         this.code = code;
+    }
+
+    /**
+     * 使用枚举构造业务异常
+     *
+     * @param errorCode 错误码枚举
+     */
+    public BusinessException(BaseErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.code = errorCode.getCode();
     }
 }

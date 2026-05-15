@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Map;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -37,8 +40,12 @@ public class JwtUtilsTest {
         ReflectionTestUtils.setField(jwtUtils, "secret", TEST_SECRET);
         ReflectionTestUtils.setField(jwtUtils, "expiration", TEST_EXPIRATION);
         ReflectionTestUtils.setField(jwtUtils, "refreshExpiration", TEST_REFRESH_EXPIRATION);
-        // 清理黑名单
         jwtUtils.cleanExpiredTokens();
+        // 清理共享的 tokenBlacklist 和 userDeviceTokens（JwtUtils 是单例，跨测试污染）
+        Set<String> blacklist = (Set<String>) ReflectionTestUtils.getField(jwtUtils, "tokenBlacklist");
+        if (blacklist != null) blacklist.clear();
+        Map<Long, Set<String>> devices = (Map<Long, Set<String>>) ReflectionTestUtils.getField(jwtUtils, "userDeviceTokens");
+        if (devices != null) devices.clear();
     }
 
     // ==================== Token生成测试 ====================

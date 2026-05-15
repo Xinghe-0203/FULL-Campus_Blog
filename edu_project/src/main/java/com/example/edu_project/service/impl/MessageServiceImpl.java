@@ -61,10 +61,13 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             throw new BusinessException(400, "消息内容不能超过2000字符");
         }
 
-        // 校验接收者是否存在，同时获取发送者信息（避免后续重复查询）
+        // 校验接收者是否存在且未被封禁
         SysUser receiver = sysUserMapper.selectById(receiverId);
         if (receiver == null) {
             throw new BusinessException(404, "用户不存在");
+        }
+        if (receiver.getStatus() != null && receiver.getStatus() == 0) {
+            throw new BusinessException(400, "该用户已被封禁，无法发送私信");
         }
         SysUser sender = sysUserMapper.selectById(senderId);
 

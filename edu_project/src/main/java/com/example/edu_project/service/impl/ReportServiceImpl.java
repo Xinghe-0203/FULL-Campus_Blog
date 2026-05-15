@@ -1,6 +1,7 @@
 package com.example.edu_project.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -9,11 +10,13 @@ import com.example.edu_project.dto.HandleReportRequest;
 import com.example.edu_project.dto.ReportRequest;
 import com.example.edu_project.entity.BlogCollect;
 import com.example.edu_project.entity.BlogComment;
+import com.example.edu_project.entity.BlogLike;
 import com.example.edu_project.entity.BlogPost;
 import com.example.edu_project.entity.BlogReport;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.mapper.BlogCollectMapper;
 import com.example.edu_project.mapper.BlogCommentMapper;
+import com.example.edu_project.mapper.BlogLikeMapper;
 import com.example.edu_project.mapper.BlogPostMapper;
 import com.example.edu_project.mapper.BlogReportMapper;
 import com.example.edu_project.mapper.SysUserMapper;
@@ -58,6 +61,9 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
 
     @Autowired
     private BlogCollectMapper blogCollectMapper;
+
+    @Autowired
+    private BlogLikeMapper blogLikeMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -206,12 +212,14 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
                     if (post != null) {
                         post.setIsDeleted(1);
                         blogPostMapper.updateById(post);
-                        if (post.getCollectCount() != null && post.getCollectCount() > 0) {
-                            blogPostMapper.update(null,
-                                new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<BlogPost>()
-                                    .setSql("collect_count = 0")
-                                    .eq(BlogPost::getId, targetId));
-                        }
+                        // 级联清理点赞记录
+                        blogLikeMapper.update(null, new LambdaUpdateWrapper<BlogLike>()
+                                .eq(BlogLike::getPostId, targetId)
+                                .set(BlogLike::getIsDeleted, 1));
+                        // 级联清理收藏记录
+                        blogCollectMapper.update(null, new LambdaUpdateWrapper<BlogCollect>()
+                                .eq(BlogCollect::getPostId, targetId)
+                                .set(BlogCollect::getIsDeleted, 1));
                     }
                     break;
                 case "comment":

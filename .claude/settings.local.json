@@ -6,7 +6,8 @@
       "Bash(mvn dependency:tree -DoutputType=text -q)",
       "Bash(mvn help:effective-pom -q)",
       "Bash(mvn compile *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(git add *)"
     ]
   }
 }

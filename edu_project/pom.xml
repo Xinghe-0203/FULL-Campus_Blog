@@ -25,7 +25,8 @@
         <mybatis-plus.version>3.5.8</mybatis-plus.version>
         <knife4j.version>4.5.0</knife4j.version>
         <hutool.version>5.8.40</hutool.version>
-        <jjwt.version>0.12.3</jjwt.version>
+        <jjwt.version>0.12.6</jjwt.version>
+        <jsoup.version>1.18.3</jsoup.version>
     </properties>
 
     <!-- 项目依赖 -->
@@ -105,7 +106,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.17.2</version>
+            <version>${jsoup.version}</version>
         </dependency>
 
         <!-- Thumbnailator：图片压缩工具 -->
@@ -158,7 +159,7 @@
             <version>${knife4j.version}</version>
         </dependency>
 
-                <!-- ==================== 测试模块 ==================== -->
+        <!-- ==================== 测试模块 ==================== -->
         <!-- Spring Boot Test：提供单元测试和集成测试支持 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

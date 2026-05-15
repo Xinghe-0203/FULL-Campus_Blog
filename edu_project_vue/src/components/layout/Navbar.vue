@@ -281,15 +281,24 @@ const handleClickOutside = (event) => {
   }
 }
 
+// 点击外部关闭移动端菜单
+const handleDocumentClick = (event) => {
+  if (isMobileMenuOpen.value && !event.target.closest('.navbar') && !event.target.closest('.mobile-menu')) {
+    closeMobileMenu()
+  }
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
   document.addEventListener('click', handleClickOutside)
+  document.addEventListener('click', handleDocumentClick)
 })
 
 onUnmounted(() => {
   if (scrollTimer) clearTimeout(scrollTimer)
   window.removeEventListener('scroll', handleScroll)
   document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('click', handleDocumentClick)
 })
 </script>
 

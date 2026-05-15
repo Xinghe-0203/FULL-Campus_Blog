@@ -87,8 +87,12 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
         }
 
         // 创建评论
-        // XSS 防护：评论使用严格策略，只保留纯文本，移除所有 HTML 标签
+        // 限制评论长度
         String content = request.getContent();
+        if (content != null && content.length() > 2000) {
+            throw new BusinessException(400, "评论内容不能超过2000字符");
+        }
+        // XSS 防护：评论使用严格策略，只保留纯文本，移除所有 HTML 标签
         String sanitizedContent = content != null ? htmlSanitizer.sanitizePlainText(content) : null;
 
         BlogComment comment = new BlogComment();

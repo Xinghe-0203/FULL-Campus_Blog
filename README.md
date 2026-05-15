@@ -340,7 +340,11 @@ POST /api/post
 {
   "title": "Spring Boot 最佳实践",
   "summary": "本文介绍Spring Boot开发中的最佳实践...",
-  "content": "# Spring Boot 最佳实践\n\n## 1. 配置管理\n\n...",
+  "content": "# Spring Boot 最佳实践
+
+## 1. 配置管理
+
+...",
   "coverUrl": "https://example.com/cover.jpg",
   "category": "技术",
   "tagIds": [1, 2, 3]
@@ -825,9 +829,25 @@ SOFTWARE.
 
 ---
 
+## 更新日志
+
+### v1.47 (2026-05-15)
+- 完善后端服务实现，新增多个Controller和Service
+- 优化JWT认证机制，新增Token黑名单功能
+- 新增配置类和工具类（HtmlSanitizer、FineGrainedLockManager等）
+- 完善异常处理（BaseErrorCode、GlobalExceptionHandler）
+- 新增单元测试覆盖（GlobalExceptionHandlerTest、JwtUtilsTest等）
+- 更新前端API模块，优化用户状态管理
+- 修复文档完整性问题
+
+### v1.46 (2026-05-14)
+- 初始化项目版本
+
+---
+
 ## 项目信息
 
-- **版本**: v1.46
+- **版本**: v1.47
 - **最后更新**: 2026-05-15
 - **开发者**: 刘畅
 - **GitHub**: https://github.com/Xinghe-0203/FULL-Campus_Blog

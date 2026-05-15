@@ -17,7 +17,7 @@ public class UserSearchRequest {
 
     @Schema(description = "页码", example = "1")
     @Min(value = 1, message = "页码最小值为1")
-    private Integer page = 1;
+    private Integer pageNum = 1;
 
     @Schema(description = "每页数量", example = "10")
     @Min(value = 1, message = "每页数量最小值为1")

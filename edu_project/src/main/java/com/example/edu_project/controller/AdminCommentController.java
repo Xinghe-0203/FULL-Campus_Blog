@@ -31,7 +31,7 @@ public class AdminCommentController {
     @GetMapping("/list")
     @PreAuthorize("hasRole('admin')")
     public Result<IPage<CommentWithPostVO>> getCommentList(@Validated PageRequest request) {
-        IPage<CommentWithPostVO> result = blogCommentService.getAllComments(request.getPage(), request.getPageSize());
+        IPage<CommentWithPostVO> result = blogCommentService.getAllComments(request.getPageNum(), request.getPageSize());
         return Result.success(result);
     }
 

@@ -399,7 +399,7 @@ const handleCoverUpload = async (e) => {
     }
   } catch (err) {
     logger.error('cover upload error', { error: err.message })
-    toast.error('封面上传失败')
+    toast.error(err.response?.data?.message || '封面上传失败')
   } finally {
     coverUploading.value = false
     if (coverInputRef.value) coverInputRef.value.value = ''
@@ -448,14 +448,14 @@ async function fetchPosts() {
   loading.posts = true
   postsError.value = ''
   try {
-    const response = await postApi.getMyPosts({ page: postsPage.value, pageSize })
+    const response = await postApi.getMyPosts({ pageNum: postsPage.value, pageSize })
     const data = response.data || {}
     posts.value = data.records || []
     postsTotal.value = data.total || 0
     postsTotalPages.value = data.pages || 1
   } catch (error) {
     logger.error('Failed to fetch posts', { error: error.message })
-    postsError.value = '加载文章列表失败'
+    postsError.value = error.response?.data?.message || '加载文章列表失败'
   } finally {
     loading.posts = false
   }
@@ -465,14 +465,14 @@ async function fetchLikes() {
   loading.likes = true
   likesError.value = ''
   try {
-    const response = await likeApi.getMyLikes({ page: likesPage.value, pageSize })
+    const response = await likeApi.getMyLikes({ pageNum: likesPage.value, pageSize })
     const data = response.data || {}
     likes.value = data.records || []
     likesTotal.value = data.total || 0
     likesTotalPages.value = data.pages || 1
   } catch (error) {
     logger.error('Failed to fetch likes', { error: error.message })
-    likesError.value = '加载点赞列表失败'
+    likesError.value = error.response?.data?.message || '加载点赞列表失败'
   } finally {
     loading.likes = false
   }
@@ -482,14 +482,14 @@ async function fetchComments() {
   loading.comments = true
   commentsError.value = ''
   try {
-    const response = await commentApi.getMyComments({ page: commentsPage.value, pageSize })
+    const response = await commentApi.getMyComments({ pageNum: commentsPage.value, pageSize })
     const data = response.data || {}
     comments.value = data.records || []
     commentsTotal.value = data.total || 0
     commentsTotalPages.value = data.pages || 1
   } catch (error) {
     logger.error('Failed to fetch comments', { error: error.message })
-    commentsError.value = '加载评论列表失败'
+    commentsError.value = error.response?.data?.message || '加载评论列表失败'
   } finally {
     loading.comments = false
   }
@@ -500,7 +500,7 @@ const fetchCircles = async () => {
   loading.circles = true
   circlesError.value = ''
   try {
-    const res = await circleApi.getUserPosts(user.value.id, { page: circlesPage.value, pageSize })
+    const res = await circleApi.getUserPosts(user.value.id, { pageNum: circlesPage.value, pageSize })
     const data = res.data || {}
     if (Array.isArray(data)) {
       circles.value = data
@@ -532,7 +532,7 @@ async function deletePost(postId) {
     toast.success('删除成功')
   } catch (error) {
     logger.error('Failed to delete post', { error: error.message })
-    toast.error('删除失败')
+    toast.error(error.response?.data?.message || '删除失败')
   }
 }
 

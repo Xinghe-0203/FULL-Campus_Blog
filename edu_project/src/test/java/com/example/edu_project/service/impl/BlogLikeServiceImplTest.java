@@ -55,7 +55,7 @@ public class BlogLikeServiceImplTest {
         testPost.setSummary("测试摘要");
         testPost.setContent("测试内容");
         testPost.setStatus(1);
-        testPost.setViewCount(0);
+        testPost.setViewCount(0L);
         testPost.setLikeCount(0);
         testPost.setCommentCount(0);
         testPost.setCollectCount(0);

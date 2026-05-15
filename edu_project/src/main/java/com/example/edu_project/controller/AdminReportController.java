@@ -35,7 +35,7 @@ public class AdminReportController {
     @GetMapping("/pending")
     @PreAuthorize("hasRole('admin')")
     public Result<IPage<ReportVO>> getPendingReports(
-            @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @RequestParam(defaultValue = "1", name = "pageNum") @Min(1) Integer page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer pageSize) {
         IPage<ReportVO> reports = reportService.getPendingReports(page, pageSize);
         return Result.success(reports);

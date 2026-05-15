@@ -318,15 +318,8 @@ const fetchPosts = async (reset = false) => {
   loading.value = true
   try {
     const fn = activeTab.value === 'following' ? circleApi.getFollowingFeed : circleApi.getRecommendFeed
-    const res = await fn({ page: currentPage.value, pageSize: 20 })
-    let list = []
-    if (Array.isArray(res.data)) {
-      list = res.data
-    } else if (res.data?.records) {
-      list = res.data.records
-    } else if (res.data?.data && Array.isArray(res.data.data)) {
-      list = res.data.data
-    }
+    const res = await fn({ pageNum: currentPage.value, pageSize: 20 })
+    const list = Array.isArray(res.data) ? res.data : (res.data?.records || [])
     const mapped = list.map(p => ({ ...p, isLiked: p.isLiked || false, likeAnim: false }))
     posts.value = reset ? mapped : [...posts.value, ...mapped]
     hasMore.value = list.length >= 20
@@ -412,7 +405,7 @@ const confirmRepost = async () => {
     fetchPosts(true)
   } catch (err) {
     logger.error('repost error', { error: err.message })
-    toast.error('转发失败')
+    toast.error(err.response?.data?.message || '转发失败')
   } finally {
     reposting.value = false
   }
@@ -460,7 +453,7 @@ const handleImageUpload = async (e) => {
     if (uploadedCount > 0) toast.success('上传完成')
   } catch (err) {
     logger.error('upload image error', { error: err.message })
-    toast.error('图片上传失败')
+    toast.error(err.response?.data?.message || '图片上传失败')
   } finally {
     uploading.value = false
     uploadPercent.value = 0
@@ -485,7 +478,7 @@ const handleVideoUpload = async (e) => {
     toast.success('视频上传成功')
   } catch (err) {
     logger.error('upload video error', { error: err.message })
-    toast.error('视频上传失败')
+    toast.error(err.response?.data?.message || '视频上传失败')
   } finally {
     uploading.value = false
     uploadPercent.value = 0

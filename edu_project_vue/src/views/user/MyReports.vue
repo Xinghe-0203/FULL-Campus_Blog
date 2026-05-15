@@ -57,7 +57,7 @@ const fetchReports = async () => {
   loading.value = true
   error.value = ''
   try {
-    const response = await reportApi.getMyReports({ page: page.value, pageSize })
+    const response = await reportApi.getMyReports({ pageNum: page.value, pageSize })
     const data = response.data || {}
     reports.value = data.records || []
     totalPages.value = data.pages || 1

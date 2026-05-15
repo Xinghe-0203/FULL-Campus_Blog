@@ -155,7 +155,7 @@ const fetchUsers = async () => {
   error.value = ''
   try {
     const response = await adminApi.getUserList({
-      page: currentPage.value,
+      pageNum: currentPage.value,
       pageSize: 20,
       keyword: searchQuery.value
     })
@@ -191,8 +191,9 @@ const resetPassword = async (user) => {
   if (!ok) return
   
   try {
-    await adminApi.resetUserPassword(user.id)
-    toast.success('密码已重置')
+    const res = await adminApi.resetUserPassword(user.id)
+    const newPassword = res.data
+    toast.success(`密码已重置成功，新密码为: ${newPassword}`)
   } catch (err) {
     logger.error('Failed to reset password', { error: err.message })
     toast.error('操作失败')

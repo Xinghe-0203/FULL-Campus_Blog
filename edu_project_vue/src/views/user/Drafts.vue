@@ -92,7 +92,7 @@ async function fetchDrafts() {
   loading.value = true
   error.value = ''
   try {
-    const response = await postApi.getMyDrafts({ page: page.value, pageSize })
+    const response = await postApi.getMyDrafts({ pageNum: page.value, pageSize })
     const data = response.data || {}
     drafts.value = data.records || []
     total.value = data.total || 0

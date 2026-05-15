@@ -2,6 +2,7 @@ package com.example.edu_project.config;
 
 import com.example.edu_project.config.JwtAuthenticationFilter;
 import com.example.edu_project.utils.LogUtils;
+import com.example.edu_project.utils.SecurityUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,6 +93,19 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    /**
+     * 记录管理员操作审计日志
+     */
+    private void logAdminOperation(String action, HttpServletRequest request) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        String clientIp = LogUtils.getClientIp(request);
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
+        LogUtils.logSecurityEvent("ADMIN_OPERATION",
+                "action=" + action + ", uri=" + uri + ", method=" + method + ", userId=" + (userId != null ? userId : "anonymous"),
+                clientIp);
     }
 
     @Bean

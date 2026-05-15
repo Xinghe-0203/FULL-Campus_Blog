@@ -66,7 +66,7 @@ public class AdminPostController {
     @PreAuthorize("hasRole('admin')")
     public Result<IPage<PostDetailResponse>> getReviewList(
             @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @RequestParam(defaultValue = "1", name = "pageNum") @Min(1) Integer page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer pageSize) {
         IPage<PostDetailResponse> result = blogPostService.getReviewList(keyword, page, pageSize);
         return Result.success(result);

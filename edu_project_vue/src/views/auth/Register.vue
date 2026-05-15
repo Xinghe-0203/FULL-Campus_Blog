@@ -179,7 +179,7 @@ const sendCode = async () => {
     toast.success('验证码已发送')
   } catch (error) {
     logger.error('Failed to send code', { error: error.message })
-    toast.error('发送验证码失败')
+    toast.error(error.response?.data?.message || '发送验证码失败')
   } finally {
     sendingCode.value = false
   }

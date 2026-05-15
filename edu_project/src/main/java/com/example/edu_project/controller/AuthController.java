@@ -1,5 +1,6 @@
 package com.example.edu_project.controller;
 
+import com.example.edu_project.common.enums.BaseErrorCode;
 import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.common.result.Result;
 import com.example.edu_project.dto.RegisterVerifyRequest;
@@ -41,7 +42,7 @@ public class AuthController {
     @PostMapping("/verify")
     public Result<Void> verifyAndRegister(@Valid @RequestBody RegisterVerifyRequest request) {
         if (!emailService.verifyCode(request.getEmail(), request.getCode(), EmailService.VerificationType.REGISTER)) {
-            throw new BusinessException(400, "验证码验证失败");
+            throw new BusinessException(BaseErrorCode.VERIFICATION_CODE_ERROR);
         }
         sysUserService.registerWithVerifiedEmail(request);
         log.info("用户注册成功: username={}, email={}", request.getUsername(), request.getEmail());

@@ -63,7 +63,7 @@ public class BlogCollectController {
     @Operation(summary = "获取我的收藏列表")
     @GetMapping("/my")
     public Result<IPage<CollectItemVO>> getMyCollections(
-            @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @RequestParam(defaultValue = "1", name = "pageNum") @Min(1) Integer page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer pageSize) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {

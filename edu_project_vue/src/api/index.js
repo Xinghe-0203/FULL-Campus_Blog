@@ -196,6 +196,34 @@ api.interceptors.response.use(
       message: error.response?.data?.message || error.message
     })
     
+    // 400 - 请求参数错误
+    if (error.response?.status === 400) {
+      const message = error.response?.data?.message || '请求参数错误'
+      logger.warn('Bad request', { url: originalRequest?.url, message })
+      return Promise.reject(error)
+    }
+
+    // 403 - 无权限
+    if (error.response?.status === 403) {
+      const message = error.response?.data?.message || '没有访问权限'
+      logger.warn('Forbidden', { url: originalRequest?.url, message })
+      return Promise.reject(error)
+    }
+
+    // 404 - 资源不存在
+    if (error.response?.status === 404) {
+      const message = error.response?.data?.message || '请求的资源不存在'
+      logger.warn('Not found', { url: originalRequest?.url, message })
+      return Promise.reject(error)
+    }
+
+    // 500 - 服务器错误
+    if (error.response?.status === 500) {
+      const message = error.response?.data?.message || '服务器内部错误，请稍后再试'
+      logger.error('Server error', { url: originalRequest?.url, message })
+      return Promise.reject(error)
+    }
+
     // 401错误处理（Token过期）
     if (error.response?.status === 401 && !originalRequest._retry) {
       // 如果是刷新Token的请求失败，直接跳转登录

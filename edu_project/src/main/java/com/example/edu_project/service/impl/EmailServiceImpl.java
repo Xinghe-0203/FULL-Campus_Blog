@@ -217,17 +217,13 @@ public class EmailServiceImpl implements EmailService {
             throw new BusinessException(400, "验证码已过期，请重新获取");
         }
 
-        int currentAttempts = data.attempts.incrementAndGet();
-
-        if (currentAttempts > maxVerifyAttempts) {
-            verificationStore.remove(key);
-            throw new BusinessException(400, "验证失败次数过多，请重新获取验证码");
-        }
-
+        // 先比对验证码，再递增尝试次数，防止时序攻击
         if (Objects.equals(data.code, code)) {
             verificationStore.remove(key);
             return true;
         }
+
+        int currentAttempts = data.attempts.incrementAndGet();
 
         if (currentAttempts >= maxVerifyAttempts) {
             verificationStore.remove(key);

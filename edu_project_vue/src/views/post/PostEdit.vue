@@ -210,7 +210,7 @@ async function uploadContentImage(e) {
     toast.success('图片已插入')
   } catch (err) {
     logger.error('upload content image error', { error: err.message })
-    toast.error('图片上传失败')
+    toast.error(err.response?.data?.message || '图片上传失败')
   } finally {
     uploadingImage.value = false
     e.target.value = ''
@@ -269,7 +269,7 @@ async function createTagAndAdd() {
     toast.success('标签已创建')
   } catch (err) {
     logger.error('create tag error', { error: err.message })
-    toast.error('创建标签失败')
+    toast.error(err.response?.data?.message || '创建标签失败')
   }
 }
 
@@ -284,7 +284,7 @@ async function handleCoverUpload(e) {
     toast.success('封面图上传成功')
   } catch (err) {
     logger.error('cover upload error', { error: err.message })
-    toast.error('上传封面图失败')
+    toast.error(err.response?.data?.message || '上传封面图失败')
   }
   if (coverInput.value) coverInput.value.value = ''
 }
@@ -309,7 +309,7 @@ const fetchPost = async () => {
     postInfo.likeCount = post.likeCount || 0
   } catch (err) {
     logger.error('fetch post error', { error: err.message })
-    toast.error('加载文章失败')
+    toast.error(err.response?.data?.message || '加载文章失败')
   }
 }
 
@@ -325,7 +325,7 @@ const fetchDraft = async () => {
     }
   } catch (err) {
     logger.error('fetch draft error', { error: err.message })
-    toast.error('加载草稿失败')
+    toast.error(err.response?.data?.message || '加载草稿失败')
   }
 }
 
@@ -345,7 +345,7 @@ const saveDraft = async () => {
   } catch (err) {
     logger.error('save draft error', { error: err.message })
     saveStatus.value = ''
-    toast.error('保存草稿失败')
+    toast.error(err.response?.data?.message || '保存草稿失败')
   } finally { saving.value = false }
 }
 

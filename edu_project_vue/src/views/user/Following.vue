@@ -85,7 +85,7 @@ async function fetchData() {
   loading.value = true
   error.value = ''
   try {
-    const response = await followApi.getFollowing(userStore.userId, { page: page.value, pageSize })
+    const response = await followApi.getFollowing(userStore.userId, { pageNum: page.value, pageSize })
     const data = response.data || {}
     following.value = data.records || []
     total.value = data.total || 0

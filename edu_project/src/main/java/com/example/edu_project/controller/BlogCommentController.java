@@ -85,7 +85,7 @@ public class BlogCommentController {
     @Operation(summary = "获取我的评论列表")
     @GetMapping("/my")
     public Result<IPage<CommentWithPostVO>> getMyComments(
-            @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @RequestParam(defaultValue = "1", name = "pageNum") @Min(1) Integer page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer pageSize) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {

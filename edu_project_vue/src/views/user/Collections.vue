@@ -84,7 +84,7 @@ async function fetchCollections() {
   loading.value = true
   error.value = ''
   try {
-    const response = await collectApi.getMyCollections({ page: page.value, pageSize })
+    const response = await collectApi.getMyCollections({ pageNum: page.value, pageSize })
     const data = response.data || {}
     collections.value = data.records || []
     total.value = data.total || 0

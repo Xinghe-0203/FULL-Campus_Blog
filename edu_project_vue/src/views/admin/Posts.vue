@@ -161,7 +161,7 @@ const fetchPosts = async () => {
   error.value = ''
   try {
     const response = activeTab.value === 'pending'
-      ? await adminApi.getReviewList({ page: currentPage.value, pageSize: 20 })
+      ? await adminApi.getReviewList({ pageNum: currentPage.value, pageSize: 20 })
       : await adminApi.getPostList({ pageNum: currentPage.value, pageSize: 20 })
     posts.value = response.data?.records || []
     totalPages.value = response.data?.pages || 1

@@ -74,7 +74,7 @@ public class TopicController {
     @Operation(summary = "鑾峰彇璇濋鍒楄〃")
     @GetMapping("/list")
     public Result<List<Map<String, Object>>> getTopicList(
-            @RequestParam(defaultValue = "1") @Min(1) int page,
+            @RequestParam(defaultValue = "1", name = "pageNum") @Min(1) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int pageSize) {
         List<Map<String, Object>> result = topicService.getTopicList(page, pageSize).getRecords()
                 .stream().map(this::toTopicMap).collect(Collectors.toList());
@@ -113,7 +113,7 @@ public class TopicController {
     @GetMapping("/{topicId}/posts")
     public Result<List<CirclePostVO>> getTopicPosts(
             @PathVariable Long topicId,
-            @RequestParam(defaultValue = "1") @Min(1) int page,
+            @RequestParam(defaultValue = "1", name = "pageNum") @Min(1) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int pageSize) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         List<CirclePostVO> posts = circleService.getPostsByTopic(topicId, page, pageSize, userId);

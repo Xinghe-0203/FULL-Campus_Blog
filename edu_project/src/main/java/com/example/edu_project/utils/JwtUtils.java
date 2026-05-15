@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
 
 /**
  * JWT 工具类
@@ -86,7 +87,8 @@ public class JwtUtils {
         claims.put("userId", userId);
         claims.put("username", username);
         claims.put("role", role);
-        claims.put("type", "refresh"); // 标记为刷新Token
+        claims.put("type", "refresh");
+        claims.put("jti", java.util.UUID.randomUUID().toString());
         return createToken(claims, username, refreshExpiration);
     }
 
@@ -214,6 +216,36 @@ public class JwtUtils {
      */
     public boolean isTokenRevoked(String token) {
         return tokenBlacklist.contains(token);
+    }
+
+    /**
+     * Refresh Token轮换：使用旧refresh token获取新的refresh token
+     * 旧refresh token会被标记为已使用，防止重放攻击
+     */
+    public String rotateRefreshToken(String oldRefreshToken) {
+        if (oldRefreshToken == null) {
+            throw new BusinessException(401, "Refresh token不能为空");
+        }
+        try {
+            Claims claims = parseToken(oldRefreshToken);
+            if (!"refresh".equals(claims.get("type", String.class))) {
+                throw new BusinessException(401, "无效的refresh token类型");
+            }
+            String tokenId = claims.getId();
+            if (tokenId != null) {
+                // 无Redis时的兜底：将旧refresh token加入黑名单
+                revokeToken(oldRefreshToken);
+            }
+            Long userId = claims.get("userId", Long.class);
+            String username = claims.getSubject();
+            String role = claims.get("role", String.class);
+            return generateRefreshToken(userId, username, role);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("Refresh token轮换失败: {}", e.getMessage());
+            throw new BusinessException(401, "Refresh token无效或已过期");
+        }
     }
 
     /**

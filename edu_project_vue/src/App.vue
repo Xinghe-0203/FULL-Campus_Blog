@@ -123,4 +123,16 @@ onUnmounted(() => {
   min-height: calc(100vh - 60px);
   padding-top: 60px;
 }
+
+@media (min-width: 1024px) {
+  .main-content {
+    padding-top: 64px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .main-content {
+    padding-top: 68px;
+  }
+}
 </style>

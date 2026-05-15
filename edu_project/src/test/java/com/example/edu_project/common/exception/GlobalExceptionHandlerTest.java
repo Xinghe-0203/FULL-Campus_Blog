@@ -1,12 +1,15 @@
 package com.example.edu_project.common.exception;
 
 import com.example.edu_project.common.result.Result;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
@@ -32,15 +36,45 @@ import jakarta.validation.constraints.Size;
 import javax.crypto.BadPaddingException;
 import java.util.Set;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.example.edu_project.config.RateLimitProperties;
+import com.example.edu_project.utils.JwtUtils;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
 /**
  * GlobalExceptionHandler 单元测试
  * 使用MockMvc测试异常处理
  */
-@WebMvcTest(GlobalExceptionHandlerTest.TestController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+@WithMockUser
+@Import({GlobalExceptionHandlerTest.TestController.class, RateLimitProperties.class})
 public class GlobalExceptionHandlerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private JwtUtils jwtUtils;
+
+    @BeforeEach
+    void setUpMock() {
+        when(jwtUtils.extractTokenFromRequest(any())).thenReturn("mock-jwt-token");
+        when(jwtUtils.isRefreshToken(anyString())).thenReturn(false);
+        when(jwtUtils.isTokenExpired(anyString())).thenReturn(false);
+        when(jwtUtils.isTokenRevoked(anyString())).thenReturn(false);
+        when(jwtUtils.getUsernameFromToken(anyString())).thenReturn("testuser");
+        when(jwtUtils.getUserIdFromToken(anyString())).thenReturn(1L);
+        when(jwtUtils.getRoleFromToken(anyString())).thenReturn("user");
+    }
 
     @TestConfiguration
     static class Config {
@@ -51,6 +85,7 @@ public class GlobalExceptionHandlerTest {
     }
 
     @RestController
+    @Validated
     static class TestController {
 
         // BusinessException 测试
@@ -93,7 +128,7 @@ public class GlobalExceptionHandlerTest {
 
         // 404测试
         @GetMapping("/test/notfound/{id}")
-        public Result<String> testNotFound(@PathVariable Long id) {
+        public Result<String> testNotFound(@PathVariable Long id) throws NoHandlerFoundException {
             throw new NoHandlerFoundException("GET", "/test/notfound/" + id, null);
         }
 
@@ -176,7 +211,7 @@ public class GlobalExceptionHandlerTest {
     @DisplayName("处理业务异常 - 400错误")
     void testHandleBusinessException_400() throws Exception {
         mockMvc.perform(get("/test/business"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(400))
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("业务错误测试"));
     }
@@ -185,7 +220,7 @@ public class GlobalExceptionHandlerTest {
     @DisplayName("处理业务异常 - 401错误")
     void testHandleBusinessException_401() throws Exception {
         mockMvc.perform(get("/test/business/401"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(401))
                 .andExpect(jsonPath("$.code").value(401))
                 .andExpect(jsonPath("$.message").value("未授权访问"));
     }
@@ -194,7 +229,7 @@ public class GlobalExceptionHandlerTest {
     @DisplayName("处理业务异常 - 403错误")
     void testHandleBusinessException_403() throws Exception {
         mockMvc.perform(get("/test/business/403"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(403))
                 .andExpect(jsonPath("$.code").value(403))
                 .andExpect(jsonPath("$.message").value("权限不足"));
     }
@@ -203,7 +238,7 @@ public class GlobalExceptionHandlerTest {
     @DisplayName("处理业务异常 - 404错误")
     void testHandleBusinessException_404() throws Exception {
         mockMvc.perform(get("/test/business/404"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(404))
                 .andExpect(jsonPath("$.code").value(404))
                 .andExpect(jsonPath("$.message").value("资源不存在"));
     }
@@ -212,7 +247,7 @@ public class GlobalExceptionHandlerTest {
     @DisplayName("处理业务异常 - 500错误")
     void testHandleBusinessException_500() throws Exception {
         mockMvc.perform(get("/test/business/500"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(500))
                 .andExpect(jsonPath("$.code").value(500))
                 .andExpect(jsonPath("$.message").value("服务器内部错误"));
     }
@@ -224,7 +259,7 @@ public class GlobalExceptionHandlerTest {
     void testHandleValidationException_RequestParam() throws Exception {
         // 传入空参数触发校验失败
         mockMvc.perform(get("/test/validation").param("param", ""))
-                .andExpect(status().isOk())
+                .andExpect(status().is(400))
                 .andExpect(jsonPath("$.code").value(400));
     }
 
@@ -233,7 +268,7 @@ public class GlobalExceptionHandlerTest {
     void testHandleValidationException_RequestParamTooShort() throws Exception {
         // 传入过短的参数
         mockMvc.perform(get("/test/validation").param("param", "ab"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(400))
                 .andExpect(jsonPath("$.code").value(400));
     }
 
@@ -241,10 +276,10 @@ public class GlobalExceptionHandlerTest {
     @DisplayName("处理参数校验异常 - @Valid + @RequestBody空内容")
     void testHandleValidationException_RequestBody() throws Exception {
         // 传入空的JSON对象
-        mockMvc.perform(get("/test/validation/body")
+        mockMvc.perform(post("/test/validation/body")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(400))
                 .andExpect(jsonPath("$.code").value(400));
     }
 
@@ -252,10 +287,10 @@ public class GlobalExceptionHandlerTest {
     @DisplayName("处理参数校验异常 - @Valid + @RequestBody部分字段为空")
     void testHandleValidationException_RequestBodyPartial() throws Exception {
         // 只提供content，缺少count
-        mockMvc.perform(get("/test/validation/body")
+        mockMvc.perform(post("/test/validation/body")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"content\":\"test content\"}"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(400))
                 .andExpect(jsonPath("$.code").value(400));
     }
 
@@ -263,10 +298,10 @@ public class GlobalExceptionHandlerTest {
     @DisplayName("处理参数校验异常 - @Valid + @RequestBody内容过短")
     void testHandleValidationException_RequestBodyTooShort() throws Exception {
         // content长度不足
-        mockMvc.perform(get("/test/validation/body")
+        mockMvc.perform(post("/test/validation/body")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"content\":\"ab\",\"count\":1}"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(400))
                 .andExpect(jsonPath("$.code").value(400));
     }
 
@@ -285,7 +320,7 @@ public class GlobalExceptionHandlerTest {
     @DisplayName("处理404资源不存在")
     void testHandleNotFound() throws Exception {
         mockMvc.perform(get("/test/notfound/999"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(404))
                 .andExpect(jsonPath("$.code").value(404))
                 .andExpect(jsonPath("$.message").value("资源不存在"));
     }
@@ -296,7 +331,7 @@ public class GlobalExceptionHandlerTest {
     @DisplayName("处理权限不足异常 - AccessDeniedException")
     void testHandleAccessDenied() throws Exception {
         mockMvc.perform(get("/test/accessdenied"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(403))
                 .andExpect(jsonPath("$.code").value(403))
                 .andExpect(jsonPath("$.message").value("权限不足，拒绝访问"));
     }
@@ -305,18 +340,18 @@ public class GlobalExceptionHandlerTest {
     @DisplayName("处理认证失败异常 - AuthenticationException")
     void testHandleAuthenticationException() throws Exception {
         mockMvc.perform(get("/test/auth"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(401))
                 .andExpect(jsonPath("$.code").value(401))
-                .andExpect(jsonPath("$.message").value("认证失败"));
+                .andExpect(jsonPath("$.message").value("认证失败，请先登录"));
     }
 
     @Test
     @DisplayName("处理认证失败异常 - BadCredentialsException")
     void testHandleBadCredentialsException() throws Exception {
         mockMvc.perform(get("/test/badcredentials"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(401))
                 .andExpect(jsonPath("$.code").value(401))
-                .andExpect(jsonPath("$.message").value("用户名或密码错误"));
+                .andExpect(jsonPath("$.message").value("认证失败，请先登录"));
     }
 
     // ==================== 数据相关异常测试 ====================
@@ -325,9 +360,9 @@ public class GlobalExceptionHandlerTest {
     @DisplayName("处理数据完整性违反异常")
     void testHandleDataIntegrityViolation() throws Exception {
         mockMvc.perform(get("/test/dataintegrity"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500))
-                .andExpect(jsonPath("$.message").value("数据操作失败"));
+                .andExpect(status().is(409))
+                .andExpect(jsonPath("$.code").value(409))
+                .andExpect(jsonPath("$.message").value("数据完整性冲突"));
     }
 
     // ==================== 通用异常测试 ====================
@@ -336,26 +371,26 @@ public class GlobalExceptionHandlerTest {
     @DisplayName("处理运行时异常 - RuntimeException")
     void testHandleRuntimeException() throws Exception {
         mockMvc.perform(get("/test/runtime"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(500))
                 .andExpect(jsonPath("$.code").value(500))
-                .andExpect(jsonPath("$.message").value("操作失败"));
+                .andExpect(jsonPath("$.message").value("服务器内部错误"));
     }
 
     @Test
     @DisplayName("处理空指针异常")
     void testHandleNullPointerException() throws Exception {
         mockMvc.perform(get("/test/nullpointer"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(500))
                 .andExpect(jsonPath("$.code").value(500))
-                .andExpect(jsonPath("$.message").value("操作失败"));
+                .andExpect(jsonPath("$.message").value("服务器内部错误"));
     }
 
     @Test
     @DisplayName("处理非法参数异常 - IllegalArgumentException")
     void testHandleIllegalArgumentException() throws Exception {
         mockMvc.perform(get("/test/illegalargument"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("参数不能为空"));
+                .andExpect(status().is(500))
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value("服务器内部错误"));
     }
 }

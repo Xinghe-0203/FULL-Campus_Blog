@@ -84,7 +84,7 @@ async function fetchData() {
   loading.value = true
   error.value = ''
   try {
-    const response = await followApi.getFollowers(userStore.userId, { page: page.value, pageSize })
+    const response = await followApi.getFollowers(userStore.userId, { pageNum: page.value, pageSize })
     const data = response.data || {}
     followers.value = (data.records || []).map(u => ({ ...u, isFollowing: u.isFollowing ?? false }))
     total.value = data.total || 0
