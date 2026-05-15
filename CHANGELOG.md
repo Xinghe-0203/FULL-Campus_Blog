@@ -1,6 +1,26 @@
 # 变更日志
 
-## v1.44 - 2026-05-13
+## v1.48 - 2026-05-15
+
+### 🔒 安全修复
+- **验证码并发竞态** - `EmailServiceImpl.verifyCode()` 添加 synchronized 同步块，防止同一验证码被多次使用
+
+### 🐛 Bug 修复
+- **前端数据显示** - `Home.vue` 修复热门标签/文章/统计数据访问方式
+  - `getHotTags`: `response?.records`（原 `response?.data?.records`）
+  - `getHotPosts`: `response?.records`（原 `response.data.records`）
+  - `getCommunityStats`: `response`（原 `response.data`）
+
+### 📝 架构设计固化
+- **不使用Redis** - 确认使用 Caffeine 本地缓存，文档明确标注
+- **内容直接发布** - 用户发布文章 `status=1` 直接可见，无需审核流程
+
+### 📝 文档更新
+- README.md - 新增"核心设计"章节，固化两条设计要求
+- CLAUDE.md - 更新缓存策略说明
+- 版本号统一更新至 v1.48
+
+## v1.47 - 2026-05-15
 
 ### 🐛 Bug 修复
 

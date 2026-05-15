@@ -1,7 +1,7 @@
 # 校园博客论坛系统 / Campus Blog Forum System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-v1.46-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
+[![Version](https://img.shields.io/badge/version-v1.47-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-green)](https://spring.io/projects/spring-boot)
 [![Vue](https://img.shields.io/badge/Vue-3.4.21-brightgreen)](https://vuejs.org/)
@@ -713,6 +713,22 @@ blog_circle_post (校友圈动态)
 | **限流保护** | 23个接口速率限制（本地Caffeine缓存） |
 | **资源权限** | 文章删除/更新在Service层检查所有权 |
 | **敏感信息** | 环境变量管理，禁止硬编码 |
+| **并发安全** | 验证码验证使用synchronized同步，防止竞态攻击 |
+
+---
+
+## 核心设计
+
+### 缓存策略
+
+- **Caffeine 本地缓存**: 1000条记录，5分钟过期
+- 用于速率限制、热门内容缓存
+- **不使用 Redis**（保持轻量级架构，生产环境可按需引入）
+
+### 内容发布策略
+
+- **用户发布内容不需要审核**：文章发布时 `status=1`（已发布），直接可见
+- 管理员保留审核功能（`status=0` 待审核），但默认不启用
 
 ---
 
@@ -831,6 +847,14 @@ SOFTWARE.
 
 ## 更新日志
 
+### v1.48 (2026-05-15)
+- 修复验证码并发竞态问题（EmailServiceImpl添加synchronized同步块）
+- 修复前端Home.vue热门标签/文章/统计数据访问方式
+- **写入稳定设计要求**：
+  - 不使用Redis（保持Caffeine本地缓存）
+  - 用户发布内容不需要审核（status=1直接发布）
+- 更新全部md文档，版本统一为v1.47
+
 ### v1.47 (2026-05-15)
 - 完善后端服务实现，新增多个Controller和Service
 - 优化JWT认证机制，新增Token黑名单功能
@@ -838,7 +862,6 @@ SOFTWARE.
 - 完善异常处理（BaseErrorCode、GlobalExceptionHandler）
 - 新增单元测试覆盖（GlobalExceptionHandlerTest、JwtUtilsTest等）
 - 更新前端API模块，优化用户状态管理
-- 修复文档完整性问题
 
 ### v1.46 (2026-05-14)
 - 初始化项目版本
@@ -847,7 +870,7 @@ SOFTWARE.
 
 ## 项目信息
 
-- **版本**: v1.47
+- **版本**: v1.48
 - **最后更新**: 2026-05-15
 - **开发者**: 刘畅
 - **GitHub**: https://github.com/Xinghe-0203/FULL-Campus_Blog
