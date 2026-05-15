@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.md$|\\\\.sql$|\\\\.sh$|\\\\.env\")",
+      "Bash(mvn dependency:tree -DoutputType=text)",
+      "Bash(mvn dependency:tree -DoutputType=text -q)",
+      "Bash(mvn help:effective-pom -q)",
+      "Bash(mvn compile *)",
+      "Bash(npm run *)"
+    ]
+  }
+}

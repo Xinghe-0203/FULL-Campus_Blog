@@ -1,0 +1,312 @@
+<template>
+  <div class="notifications-page">
+    <div class="notifications-container">
+      <div class="page-header">
+        <h1>消息通知</h1>
+        <button v-if="notifications.length > 0" class="btn btn-sm btn-ghost" @click="markAllAsRead">
+          全部已读
+        </button>
+      </div>
+      
+      <div v-if="error" class="empty-state">
+        <p class="error-text">{{ error }}</p>
+        <button class="btn btn-primary" @click="fetchNotifications">重试</button>
+      </div>
+      
+      <div v-if="loading && notifications.length === 0" class="empty-state">
+        <p>加载中...</p>
+      </div>
+      
+      <div v-else-if="notifications.length > 0" class="notification-list">
+        <div 
+          v-for="notification in notifications" 
+          :key="notification.id"
+          class="notification-item card"
+          :class="{ unread: !notification.isRead }"
+          @click="handleNotification(notification)"
+        >
+          <img :src="notification.fromUser?.avatar || '/default-avatar.png'" :alt="notification.fromUser?.nickname || notification.fromUser?.username" class="sender-avatar" />
+          <div class="notification-body">
+            <p class="notification-content">
+              <strong>{{ notification.fromUser?.nickname || notification.fromUser?.username }}</strong>
+              {{ getNotificationText(notification.type) }}
+              <span v-if="notification.content" class="target-title">「{{ notification.content }}」</span>
+            </p>
+            <span class="notification-time">{{ notification.timeAgo || formatRelativeTime(notification.createTime) }}</span>
+          </div>
+          <button class="delete-btn" @click.stop="deleteNotification(notification.id)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <div v-if="hasMore" class="load-more">
+        <button class="btn btn-ghost" @click="loadMore" :disabled="loading">
+          {{ loading ? '加载中...' : '加载更多' }}
+        </button>
+      </div>
+      
+      <div v-else-if="notifications.length === 0" class="empty-state">
+        <p>暂无通知</p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { notificationApi } from '../../api/notification'
+import { commentApi } from '../../api/comment'
+import { formatRelativeTime } from '../../utils'
+import { useLogger } from '../../utils/logger'
+
+const router = useRouter()
+const logger = useLogger('Notifications')
+const notifications = ref([])
+const loading = ref(false)
+const error = ref('')
+const currentPage = ref(1)
+const totalPages = ref(1)
+const hasMore = ref(false)
+const pageSize = 20
+let pollingInterval = null
+
+const fetchNotifications = async (silent = false) => {
+  if (!silent) loading.value = true
+  error.value = ''
+  try {
+    const response = await notificationApi.getNotifications({ pageNum: currentPage.value, pageSize: pageSize })
+    const pageData = response.data || {}
+    if (currentPage.value === 1) {
+      notifications.value = pageData.records || []
+    } else {
+      // 加载更多时追加
+      notifications.value = [...notifications.value, ...(pageData.records || [])]
+    }
+    totalPages.value = pageData.pages || 1
+    hasMore.value = currentPage.value < totalPages.value
+  } catch (err) {
+    logger.error('Failed to fetch notifications', { error: err.message })
+    if (!silent) error.value = '加载通知失败'
+  } finally {
+    if (!silent) loading.value = false
+  }
+}
+
+const loadMore = () => {
+  if (currentPage.value < totalPages.value && !loading.value) {
+    currentPage.value++
+    fetchNotifications()
+  }
+}
+
+const startPolling = () => {
+  pollingInterval = setInterval(async () => {
+    try {
+      const response = await notificationApi.getNotifications({ pageNum: 1, pageSize: pageSize })
+      const pageData = response.data || {}
+      const newRecords = pageData.records || []
+
+      // 只追加真正的新通知，不替换已有的（避免丢失已加载的历史分页）
+      const existingIds = new Set(notifications.value.map(n => n.id))
+      const trulyNew = newRecords.filter(n => !existingIds.has(n.id))
+      if (trulyNew.length > 0) {
+        notifications.value = [...trulyNew, ...notifications.value]
+      }
+      // 不重置 currentPage —— 保持用户当前翻页位置
+      totalPages.value = pageData.pages || 1
+      hasMore.value = currentPage.value < totalPages.value
+    } catch (err) {
+      // 静默失败
+    }
+  }, 30000)
+}
+
+const getNotificationText = (type) => {
+  const texts = {
+    LIKE: '赞了你的文章',
+    COMMENT: '评论了你的文章',
+    REPLY: '回复了你的评论',
+    FOLLOW: '关注了你',
+    MENTION: '在评论中提到了你',
+    SYSTEM: '系统通知',
+    MESSAGE: '给你发了私信'
+  }
+  return texts[type] || '有新通知'
+}
+
+const stopPolling = () => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval)
+    pollingInterval = null
+  }
+}
+
+const handleNotification = async (notification) => {
+  if (!notification.isRead) {
+    try {
+      await notificationApi.markAsRead(notification.id)
+      notification.isRead = true
+    } catch (error) {
+      logger.error('Failed to mark as read', { error: error.message })
+    }
+  }
+  
+  // 跳转到相关页面
+  if (notification.type === 'LIKE' || notification.type === 'COMMENT') {
+    router.push(`/post/${notification.targetId}`)
+  } else if (notification.type === 'FOLLOW' && notification.fromUser?.id) {
+    router.push(`/user/${notification.fromUser.id}`)
+  } else if (notification.type === 'MESSAGE') {
+    router.push('/messages')
+  } else if (notification.type === 'REPLY' || notification.type === 'MENTION') {
+    // 回复和提及跳转到评论所在文章
+    if (notification.targetType === 'COMMENT' && notification.targetId) {
+      try {
+        const res = await commentApi.getCommentById(notification.targetId)
+        const postId = res.data?.postId
+        if (postId) router.push(`/post/${postId}`)
+        else router.push('/')
+      } catch {
+        router.push('/')
+      }
+    } else if (notification.targetId) {
+      router.push(`/post/${notification.targetId}`)
+    }
+  }
+}
+
+const markAllAsRead = async () => {
+  try {
+    await notificationApi.markAllAsRead()
+    notifications.value.forEach(n => n.isRead = true)
+  } catch (error) {
+    logger.error('Failed to mark all as read', { error: error.message })
+  }
+}
+
+const deleteNotification = async (id) => {
+  try {
+    await notificationApi.deleteNotification(id)
+    notifications.value = notifications.value.filter(n => n.id !== id)
+  } catch (error) {
+    logger.error('Failed to delete notification', { error: error.message })
+  }
+}
+
+onMounted(() => {
+  fetchNotifications()
+  startPolling()
+})
+
+onUnmounted(() => {
+  stopPolling()
+})
+</script>
+
+<style scoped>
+.notifications-page {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.page-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.notification-item:hover {
+  background: var(--background);
+}
+
+.notification-item.unread {
+  background: var(--primary-light);
+}
+
+.sender-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+.notification-body {
+  flex: 1;
+}
+
+.notification-content {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.target-title {
+  color: var(--primary);
+}
+
+.notification-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius);
+  opacity: 0;
+  transition: all var(--transition);
+}
+
+.notification-item:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  color: var(--error);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-2xl);
+}
+
+.empty-state p {
+  color: var(--text-muted);
+}
+
+.load-more {
+  text-align: center;
+  padding: var(--spacing-lg);
+}
+</style>

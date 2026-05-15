@@ -1,0 +1,56 @@
+package com.example.edu_project.service.impl;
+
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.edu_project.common.exception.BusinessException;
+import com.example.edu_project.entity.BlogShare;
+import com.example.edu_project.mapper.ShareMapper;
+import com.example.edu_project.service.BlogPostService;
+import com.example.edu_project.service.ShareService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * 分享服务实现类
+ */
+@Service
+public class ShareServiceImpl extends ServiceImpl<ShareMapper, BlogShare> implements ShareService {
+
+    @Autowired
+    private BlogPostService blogPostService;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void recordShare(Long postId, Long userId, String platform) {
+        if (postId == null) {
+            throw new BusinessException(400, "文章ID不能为空");
+        }
+
+        if (blogPostService.getById(postId) == null) {
+            throw new BusinessException(404, "文章不存在");
+        }
+
+        // 记录分享
+        BlogShare share = new BlogShare();
+        share.setPostId(postId);
+        share.setUserId(userId);
+        share.setPlatform(platform != null ? platform : "web");
+        this.save(share);
+
+        // 增加文章分享数
+        baseMapper.incrementShareCount(postId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public int getShareCount(Long postId) {
+        if (postId == null) {
+            return 0;
+        }
+        Long count = this.lambdaQuery()
+                .eq(BlogShare::getPostId, postId)
+                .eq(BlogShare::getIsDeleted, 0)
+                .count();
+        return count != null ? count.intValue() : 0;
+    }
+}
