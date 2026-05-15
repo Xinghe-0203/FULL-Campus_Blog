@@ -84,6 +84,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         vo.setPostCount(postStats.getTotalPosts());
         vo.setCommentCount(postStats.getTotalComments());
         vo.setPendingReportCount(reportStats.getPendingReports());
+        vo.setTagCount(blogTagMapper.countTags());
 
         return vo;
     }
@@ -100,6 +101,13 @@ public class StatisticsServiceImpl implements StatisticsService {
         vo.setReportStats(getReportStats());
         vo.setStatsTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         vo.setTagCount(blogTagMapper.countTags());
+
+        // Set flat fields for frontend compatibility
+        vo.setUserCount(vo.getUserStats().getTotalUsers());
+        vo.setPostCount(vo.getPostStats().getTotalPosts());
+        vo.setCommentCount(vo.getPostStats().getTotalComments());
+        vo.setPendingReportCount(vo.getReportStats().getPendingReports());
+
         return vo;
     }
 

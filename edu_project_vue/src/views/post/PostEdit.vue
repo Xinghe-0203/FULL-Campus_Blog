@@ -27,19 +27,31 @@
       <div class="editor-body card">
         <div v-if="!showPreview" class="editor-main">
           <div class="toolbar">
-            <button class="tool-btn" title="粗体" @click="insertMarkdown('**', '**')"><b>B</b></button>
-            <button class="tool-btn" title="斜体" @click="insertMarkdown('*', '*')"><i>I</i></button>
+            <button class="tool-btn" title="粗体 (Ctrl+B)" @click="insertMarkdown('**', '**')"><b>B</b></button>
+            <button class="tool-btn" title="斜体 (Ctrl+I)" @click="insertMarkdown('*', '*')"><i>I</i></button>
+            <button class="tool-btn" title="删除线" @click="insertMarkdown('~~', '~~')"><s>S</s></button>
+            <button class="tool-btn" title="行内代码" @click="insertMarkdown('`', '`)"><code>&lt;&gt;</code></button>
+            <span class="toolbar-divider"></span>
             <button class="tool-btn" title="标题" @click="insertMarkdown('## ', '')"><span class="h-icon">H</span></button>
+            <button class="tool-btn" title="引用" @click="insertMarkdown('> ', '')">❝</button>
+            <span class="toolbar-divider"></span>
+            <button class="tool-btn" title="无序列表" @click="insertMarkdown('- ', '')">•</button>
+            <button class="tool-btn" title="有序列表" @click="insertMarkdown('1. ', '')">1.</button>
+            <button class="tool-btn" title="任务列表" @click="insertMarkdown('- [ ] ', '')">☐</button>
+            <button class="tool-btn" title="表格" @click="insertMarkdown('\n| 列1 | 列2 |\n| --- | --- |\n| 内容 | 内容 |\n', '')">⊞</button>
+            <span class="toolbar-divider"></span>
             <button class="tool-btn" title="链接" @click="insertLink">🔗</button>
             <button class="tool-btn" title="上传图片" @click="$refs.imageInput.click()">🖼️</button>
             <button class="tool-btn" title="代码块" @click="insertMarkdown('```\n', '\n```')">&lt;/&gt;</button>
-            <button class="tool-btn" title="无序列表" @click="insertMarkdown('- ', '')">•</button>
-            <button class="tool-btn" title="引用" @click="insertMarkdown('> ', '')">❝</button>
+            <span class="toolbar-divider"></span>
             <button class="tool-btn" title="分割线" @click="insertMarkdown('\n---\n', '')">—</button>
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" ref="imageInput" hidden @change="uploadContentImage" />
-            <span v-if="uploadingImage" class="uploading-hint">上传中...</span>
+            <div v-if="uploadingImage" class="upload-progress">
+              <div class="upload-progress-bar" :style="{ width: uploadProgress + '%' }"></div>
+              <span class="upload-progress-text">上传中... {{ uploadProgress }}%</span>
+            </div>
           </div>
-          <textarea v-model="form.content" class="content-input" placeholder="请输入文章内容（支持Markdown语法）..." @keydown.tab.prevent="insertTab" ref="contentTextarea" maxlength="50000"></textarea>
+          <textarea v-model="form.content" class="content-input" placeholder="请输入文章内容（支持Markdown语法）..." @keydown.tab.prevent="insertTab" @keydown.ctrl.b.prevent="insertMarkdown('**', '**')" @keydown.ctrl.i.prevent="insertMarkdown('*', '*')" ref="contentTextarea" maxlength="50000"></textarea>
         </div>
         <div v-else class="editor-preview">
           <div v-if="form.content" class="markdown-body" v-html="renderedContent"></div>
@@ -136,6 +148,7 @@ const contentTextarea = ref(null)
 const coverInput = ref(null)
 const saveStatus = ref('') // '' | 'saving' | 'saved'
 const uploadingImage = ref(false)
+const uploadProgress = ref(0)
 const isLoading = ref(false)
 const dirty = ref(false)
 
@@ -448,8 +461,13 @@ onBeforeRouteLeave((to, from) => {
 .tool-btn:hover { background: var(--border); }
 .tool-btn b { font-size: 0.875rem; }
 .tool-btn i { font-size: 0.875rem; }
+.tool-btn s { font-size: 0.75rem; }
+.tool-btn code { font-size: 0.625rem; }
+.toolbar-divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
 .h-icon { font-size: 0.75rem; font-weight: 700; }
-.uploading-hint { font-size: 0.75rem; color: var(--primary); margin-left: 8px; }
+.upload-progress { position: relative; width: 100px; height: 20px; background: var(--border); border-radius: 4px; overflow: hidden; margin-left: 8px; }
+.upload-progress-bar { position: absolute; left: 0; top: 0; height: 100%; background: var(--primary); transition: width 0.3s; }
+.upload-progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 .content-input { width: 100%; min-height: 460px; padding: 20px; border: none; font-size: 1rem; line-height: 1.8; color: var(--text-primary); background: transparent; resize: vertical; }
 .content-input:focus { outline: none; }
 .editor-preview { padding: 20px; min-height: 460px; }

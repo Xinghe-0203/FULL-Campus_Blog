@@ -1,5 +1,9 @@
 <template>
   <div class="user-profile-page">
+    <button class="back-btn" @click="$router.back()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      返回
+    </button>
     <div v-if="pageError" class="error-card card">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="error-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <p>{{ pageError }}</p>
@@ -64,58 +68,110 @@
       </div>
 
       <div class="section-card card">
-        <div class="section-header">
-          <h2 class="section-title">TA的文章</h2>
+        <div class="section-tabs">
+          <button class="section-tab" :class="{ active: activeTab === 'posts' }" @click="activeTab = 'posts'; fetchPosts()">文章</button>
+          <button class="section-tab" :class="{ active: activeTab === 'circle' }" @click="activeTab = 'circle'; fetchCircles()">校友圈</button>
         </div>
-        <div v-if="loading.posts" class="skeleton-list">
-          <div v-for="n in 3" :key="n" class="skeleton-card-item">
-            <div class="skeleton skeleton-card-title"></div>
-            <div class="skeleton skeleton-card-text"></div>
-            <div class="skeleton skeleton-card-text short"></div>
-            <div class="skeleton skeleton-card-meta"></div>
+        <div v-if="activeTab === 'posts'">
+          <div v-if="loading.posts" class="skeleton-list">
+            <div v-for="n in 3" :key="n" class="skeleton-card-item">
+              <div class="skeleton skeleton-card-title"></div>
+              <div class="skeleton skeleton-card-text"></div>
+              <div class="skeleton skeleton-card-text short"></div>
+              <div class="skeleton skeleton-card-meta"></div>
+            </div>
           </div>
-        </div>
-        <div v-else-if="postsError" class="tab-error">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <p>{{ postsError }}</p>
-          <button class="btn btn-sm btn-primary" @click="fetchPosts">重试</button>
-        </div>
-        <div v-else-if="posts.length === 0" class="empty-state">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-          <p class="empty-title">TA还没有发表文章</p>
+          <div v-else-if="postsError" class="tab-error">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <p>{{ postsError }}</p>
+            <button class="btn btn-sm btn-primary" @click="fetchPosts">重试</button>
+          </div>
+          <div v-else-if="posts.length === 0" class="empty-state">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <p class="empty-title">TA还没有发表文章</p>
+          </div>
+          <div v-else>
+            <div v-for="post in posts" :key="post.id" class="post-card">
+              <h3 class="post-card-title">
+                <router-link :to="`/post/${post.id}`">{{ post.title }}</router-link>
+              </h3>
+              <p class="post-card-excerpt">{{ truncateText(post.summary, 120) }}</p>
+              <div class="post-card-meta">
+                <span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  {{ formatRelativeTime(post.createTime) }}
+                </span>
+                <span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  {{ post.viewCount || 0 }}
+                </span>
+                <span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                  {{ post.likeCount || 0 }}
+                </span>
+                <span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  {{ post.commentCount || 0 }}
+                </span>
+              </div>
+            </div>
+            <div v-if="postsTotalPages > 1" class="pagination-section">
+              <div class="pagination">
+                <button class="pagination-btn" :disabled="postsPage <= 1" @click="postsPage--; fetchPosts()">上一页</button>
+                <button v-for="p in postsTotalPages" :key="p" class="pagination-btn" :class="{ active: p === postsPage }" @click="postsPage = p; fetchPosts()">{{ p }}</button>
+                <button class="pagination-btn" :disabled="postsPage >= postsTotalPages" @click="postsPage++; fetchPosts()">下一页</button>
+              </div>
+              <span class="pagination-info">共 {{ postsTotal }} 篇</span>
+            </div>
+          </div>
         </div>
         <div v-else>
-          <div v-for="post in posts" :key="post.id" class="post-card">
-            <h3 class="post-card-title">
-              <router-link :to="`/post/${post.id}`">{{ post.title }}</router-link>
-            </h3>
-            <p class="post-card-excerpt">{{ truncateText(post.summary, 120) }}</p>
-            <div class="post-card-meta">
-              <span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                {{ formatRelativeTime(post.createTime) }}
-              </span>
-              <span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                {{ post.viewCount || 0 }}
-              </span>
-              <span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-                {{ post.likeCount || 0 }}
-              </span>
-              <span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                {{ post.commentCount || 0 }}
-              </span>
+          <div v-if="loading.circles" class="skeleton-list">
+            <div v-for="n in 3" :key="n" class="skeleton-card-item">
+              <div class="skeleton skeleton-card-title"></div>
+              <div class="skeleton skeleton-card-text"></div>
+              <div class="skeleton skeleton-card-meta"></div>
             </div>
           </div>
-          <div v-if="postsTotalPages > 1" class="pagination-section">
-            <div class="pagination">
-              <button class="pagination-btn" :disabled="postsPage <= 1" @click="postsPage--; fetchPosts()">上一页</button>
-              <button v-for="p in postsTotalPages" :key="p" class="pagination-btn" :class="{ active: p === postsPage }" @click="postsPage = p; fetchPosts()">{{ p }}</button>
-              <button class="pagination-btn" :disabled="postsPage >= postsTotalPages" @click="postsPage++; fetchPosts()">下一页</button>
+          <div v-else-if="circlesError" class="tab-error">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <p>{{ circlesError }}</p>
+            <button class="btn btn-sm btn-primary" @click="fetchCircles">重试</button>
+          </div>
+          <div v-else-if="circles.length === 0" class="empty-state">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <p class="empty-title">TA还没有发布校友圈动态</p>
+          </div>
+          <div v-else>
+            <div v-for="post in circles" :key="post.id" class="post-card">
+              <p class="post-card-excerpt">{{ truncateText(post.content, 120) }}</p>
+              <div v-if="post.mediaUrls && post.mediaUrls.length > 0" class="post-media-grid">
+                <img v-for="(url, idx) in post.mediaUrls" :key="idx" :src="url" class="post-media-thumb" @click="previewImage(url)" />
+              </div>
+              <div class="post-card-meta">
+                <span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  {{ formatRelativeTime(post.createTime) }}
+                </span>
+                <span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                  {{ post.likeCount || 0 }}
+                </span>
+                <span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  {{ post.commentCount || 0 }}
+                </span>
+                <router-link :to="`/circle/${post.id}`" class="post-action-link">查看详情</router-link>
+              </div>
             </div>
-            <span class="pagination-info">共 {{ postsTotal }} 篇</span>
+            <div v-if="circlesTotalPages > 1" class="pagination-section">
+              <div class="pagination">
+                <button class="pagination-btn" :disabled="circlesPage <= 1" @click="circlesPage--; fetchCircles()">上一页</button>
+                <button v-for="p in circlesTotalPages" :key="p" class="pagination-btn" :class="{ active: p === circlesPage }" @click="circlesPage = p; fetchCircles()">{{ p }}</button>
+                <button class="pagination-btn" :disabled="circlesPage >= circlesTotalPages" @click="circlesPage++; fetchCircles()">下一页</button>
+              </div>
+              <span class="pagination-info">共 {{ circlesTotal }} 条</span>
+            </div>
           </div>
         </div>
       </div>
@@ -131,6 +187,7 @@ import { useUserStore } from '../../stores/user'
 import { userApi } from '../../api/user'
 import { postApi } from '../../api/post'
 import { followApi } from '../../api/follow'
+import { circleApi } from '../../api/circle'
 import { formatRelativeTime, truncateText, getSafeImageUrl } from '../../utils'
 import { useLogger } from '../../utils/logger'
 import { toast } from '../../utils/toast'
@@ -152,13 +209,21 @@ const stats = ref({})
 const isFollowing = ref(false)
 const followLoading = ref(false)
 
-const loading = reactive({ user: false, posts: false })
+const loading = reactive({ user: false, posts: false, circles: false })
+const activeTab = ref('posts')
 
 const posts = ref([])
 const postsPage = ref(1)
 const postsTotal = ref(0)
 const postsTotalPages = ref(1)
 const postsError = ref('')
+
+const circles = ref([])
+const circlesPage = ref(1)
+const circlesTotal = ref(0)
+const circlesTotalPages = ref(1)
+const circlesError = ref('')
+
 const pageSize = 10
 
 function onAvatarError(e) {
@@ -218,6 +283,31 @@ async function fetchPosts() {
   }
 }
 
+async function fetchCircles() {
+  if (!user.value?.id) return
+  loading.circles = true
+  circlesError.value = ''
+  try {
+    const res = await circleApi.getUserPosts(user.value.id, { pageNum: circlesPage.value, pageSize })
+    const data = res.data || {}
+    if (Array.isArray(data)) {
+      circles.value = data
+      circlesTotal.value = data.length
+      circlesTotalPages.value = 1
+    } else {
+      circles.value = data.records || []
+      circlesTotal.value = data.total || 0
+      circlesTotalPages.value = data.pages || 1
+    }
+  } catch (err) {
+    logger.error('fetch circles error', { error: err.message })
+    circlesError.value = err.response?.data?.message || '加载失败'
+    circles.value = []
+  } finally {
+    loading.circles = false
+  }
+}
+
 async function toggleFollow() {
   if (!userStore.isLoggedIn) {
     router.push('/login')
@@ -264,6 +354,9 @@ onMounted(() => {
   flex-direction: column;
   gap: 24px;
 }
+
+.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; }
+.back-btn:hover { background: var(--border); color: var(--text-primary); }
 
 .hero-section {
   overflow: visible;
@@ -378,16 +471,15 @@ onMounted(() => {
   padding: 20px;
 }
 
-.section-header {
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 4px;
-}
-
-.section-title {
-  font-size: 1.0625rem;
-  font-weight: 600;
-}
+.section-tabs { display: flex; gap: 8px; padding-bottom: 16px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.section-tab { padding: 8px 16px; border: none; background: transparent; color: var(--text-secondary); font-size: 0.875rem; cursor: pointer; border-radius: 8px; transition: all 0.2s; }
+.section-tab:hover { background: var(--border); }
+.section-tab.active { background: var(--primary); color: #fff; }
+.section-header { display: none; }
+.post-media-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0; }
+.post-media-thumb { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; cursor: pointer; }
+.post-action-link { color: var(--primary); text-decoration: none; font-size: 0.75rem; margin-left: auto; }
+.post-action-link:hover { text-decoration: underline; }
 
 .skeleton-list {
   display: flex;
