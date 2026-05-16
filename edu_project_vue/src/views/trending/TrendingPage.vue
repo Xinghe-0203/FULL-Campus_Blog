@@ -262,11 +262,11 @@ const handleContentClick = (item) => {
 
 const switchTab = (tab) => {
   activeTab.value = tab
-  if (tab === 'content' && hotContent.value.length === 0 && !contentLoading.value && !loading.value) {
+  if (tab === 'content' && hotContent.value.length === 0 && !contentLoading.value) {
     fetchHotContent(true)
-  } else if (tab === 'tags' && hotTags.value.length === 0 && !tagsLoading.value && !loading.value) {
+  } else if (tab === 'tags' && hotTags.value.length === 0 && !tagsLoading.value) {
     fetchHotTags()
-  } else if (tab === 'topics' && hotTopics.value.length === 0 && !topicsLoading.value && !loading.value) {
+  } else if (tab === 'topics' && hotTopics.value.length === 0 && !topicsLoading.value) {
     fetchHotTopics()
   }
 }

@@ -105,17 +105,20 @@ async function fetchData() {
 
 async function toggleFollow(user) {
   followLoadingId.value = user.id
+  const prevFollowing = user.isFollowing
   try {
     if (user.isFollowing) {
       await followApi.unfollow(user.id)
+      user.isFollowing = false
     } else {
       await followApi.toggleFollow(user.id)
+      user.isFollowing = true
     }
-    user.isFollowing = !user.isFollowing
     toast.success(user.isFollowing ? '已关注' : '已取消关注')
   } catch (err) {
+    user.isFollowing = prevFollowing
     logger.error('Failed to toggle follow', { error: err.message })
-    toast.error('操作失败')
+    toast.error(err.response?.data?.message || '操作失败')
   } finally {
     followLoadingId.value = null
   }

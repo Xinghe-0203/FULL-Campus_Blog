@@ -84,7 +84,7 @@ const pageSize = 10
 async function confirmUnfollow(user) {
   const name = user.nickname || user.username
   const ok = await confirm(`确定要取消关注「${name}」吗？`, '取消关注')
-  if (ok) unfollow(user.id)
+  if (ok) unfollow(user)
 }
 
 async function fetchData() {
@@ -104,19 +104,26 @@ async function fetchData() {
   }
 }
 
-async function unfollow(userId) {
+async function unfollow(user) {
+  const item = following.value.find(f => f.id === user.id)
+  const idx = following.value.indexOf(item)
+  if (idx === -1) return
+
+  following.value.splice(idx, 1)
+  total.value = Math.max(0, total.value - 1)
+
   try {
-    await followApi.unfollow(userId)
-    following.value = following.value.filter(u => u.id !== userId)
-    total.value = Math.max(0, total.value - 1)
-    toast.success('已取消关注')
+    await followApi.unfollow(user.id)
+    toast.success(`已取消关注 @${user.nickname || user.username}`)
     if (following.value.length === 0 && page.value > 1) {
       page.value--
       fetchData()
     }
   } catch (err) {
+    following.value.splice(idx, 0, item)
+    total.value++
     logger.error('Failed to unfollow', { error: err.message })
-    toast.error('操作失败')
+    toast.error(err.response?.data?.message || '操作失败')
   }
 }
 

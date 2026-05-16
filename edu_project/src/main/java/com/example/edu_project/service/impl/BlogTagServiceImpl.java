@@ -9,6 +9,7 @@ import com.example.edu_project.service.BlogTagService;
 import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,7 +54,12 @@ public class BlogTagServiceImpl extends ServiceImpl<BlogTagMapper, BlogTag> impl
         }
         BlogTag tag = new BlogTag();
         tag.setName(trimmedName);
-        this.save(tag);
+        try {
+            this.save(tag);
+        } catch (DuplicateKeyException e) {
+            BlogTag existing = this.getOne(wrapper);
+            return existing;
+        }
         return tag;
     }
 
@@ -75,7 +81,12 @@ public class BlogTagServiceImpl extends ServiceImpl<BlogTagMapper, BlogTag> impl
         }
         BlogTag tag = new BlogTag();
         tag.setName(sanitizedName);
-        this.save(tag);
+        try {
+            this.save(tag);
+        } catch (DuplicateKeyException e) {
+            BlogTag existing = this.getOne(wrapper);
+            return existing.getId();
+        }
         return tag.getId();
     }
 

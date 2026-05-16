@@ -3,6 +3,7 @@ package com.example.edu_project.utils;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.HtmlUtils;
 
 /**
  * HTML 内容 sanititizer 工具类
@@ -58,10 +59,6 @@ public class HtmlSanitizer {
         if (markdown == null || markdown.isEmpty()) {
             return markdown;
         }
-        // 只转义 HTML 特殊字符，不破坏换行和 Markdown 语法
-        return markdown
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;");
+        return HtmlUtils.htmlEscape(markdown);
     }
 }

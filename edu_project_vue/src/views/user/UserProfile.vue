@@ -146,7 +146,7 @@
             <div v-for="post in circles" :key="post.id" class="post-card">
               <p class="post-card-excerpt">{{ truncateText(post.content, 120) }}</p>
               <div v-if="post.mediaUrls && post.mediaUrls.length > 0" class="post-media-grid">
-                <img v-for="(url, idx) in post.mediaUrls" :key="idx" :src="url" class="post-media-thumb" @click="previewImage(url)" />
+                <img v-for="(url, idx) in post.mediaUrls" :key="idx" :src="url" class="post-media-thumb" />
               </div>
               <div class="post-card-meta">
                 <span>

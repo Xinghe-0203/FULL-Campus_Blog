@@ -72,7 +72,7 @@
           </button>
 
           <!-- 用户下拉菜单 -->
-          <div class="user-dropdown" @click="toggleDropdown">
+          <div class="user-dropdown" @click.self="toggleDropdown">
             <img 
               :src="userStore.avatar || '/default-avatar.png'" 
               :alt="userStore.nickname"
