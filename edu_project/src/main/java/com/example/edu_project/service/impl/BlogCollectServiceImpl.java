@@ -264,6 +264,9 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
                         }
 
                         item.setTags(postTagsMap.getOrDefault(post.getId(), List.of()));
+                    } else {
+                        item.setPostId(collect.getPostId());
+                        item.setTitle("文章已删除");
                     }
                     return item;
                 })

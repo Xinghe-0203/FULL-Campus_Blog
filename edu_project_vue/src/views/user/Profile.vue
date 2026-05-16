@@ -446,9 +446,9 @@ async function initLoad() {
 
     const countsData = statsResponse.data || {}
     stats.value = {
-      ...countsData,
       postCount: 0,
-      likeCount: 0
+      likeCount: 0,
+      ...countsData
     }
   } catch (error) {
     logger.error('Failed to fetch user', { error: error.message })

@@ -388,14 +388,22 @@ const checkUserInteractionStatus = async () => {
   const postIds = posts.value.map(p => p.id)
   if (postIds.length === 0) return
   try {
-    const [likedResult, collectedResult] = await Promise.all([
+    const results = await Promise.allSettled([
       likeApi.checkLikeStatusBatch(postIds),
       collectApi.checkCollectStatusBatch(postIds)
     ])
-    const likedList = likedResult?.data || []
-    const collectedList = collectedResult?.data || []
-    likedPosts.value = new Set(postIds.filter((_, i) => likedList[i]))
-    collectedPosts.value = new Set(postIds.filter((_, i) => collectedList[i]))
+    if (results[0].status === 'fulfilled') {
+      const likedList = results[0].value?.data || []
+      likedPosts.value = new Set(postIds.filter((_, i) => likedList[i]))
+    } else {
+      logger.error('Failed to check like status batch', { error: results[0].reason?.message })
+    }
+    if (results[1].status === 'fulfilled') {
+      const collectedList = results[1].value?.data || []
+      collectedPosts.value = new Set(postIds.filter((_, i) => collectedList[i]))
+    } else {
+      logger.error('Failed to check collect status batch', { error: results[1].reason?.message })
+    }
   } catch (err) {
     logger.error('Failed to check interaction status', { error: err.message })
   }

@@ -88,8 +88,7 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
             // 检查是否存在非删除的点赞记录
             LambdaQueryWrapper<BlogLike> activeWrapper = new LambdaQueryWrapper<>();
             activeWrapper.eq(BlogLike::getUserId, userId)
-                  .eq(BlogLike::getPostId, postId)
-                  .ne(BlogLike::getIsDeleted, 1);
+                  .eq(BlogLike::getPostId, postId);
             BlogLike activeLike = this.getOne(activeWrapper);
 
             if (activeLike != null) {
@@ -123,6 +122,7 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
                     BlogLike newLike = new BlogLike();
                     newLike.setUserId(userId);
                     newLike.setPostId(postId);
+                    newLike.setIsDeleted(0);
                     try {
                         this.save(newLike);
                         blogPostService.incrementLikeCount(postId);
@@ -135,16 +135,29 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
                             }
                         });
                     } catch (DuplicateKeyException e) {
-                        LambdaQueryWrapper<BlogLike> concurrentWrapper = new LambdaQueryWrapper<>();
-                        concurrentWrapper.eq(BlogLike::getUserId, userId)
-                              .eq(BlogLike::getPostId, postId)
-                              .ne(BlogLike::getIsDeleted, 1);
-                        BlogLike concurrentLike = this.getOne(concurrentWrapper);
-                        if (concurrentLike != null) {
-                            blogLikeMapper.logicalDeleteById(concurrentLike.getId());
-                            blogPostService.decrementLikeCount(postId);
-                            trendingService.updatePostTrending(postId);
-                            result.setAction("unlike");
+                        // 绕过 @TableLogic 查找已有记录（兼容 is_deleted IS NULL 的历史数据）
+                        BlogLike existingLike = blogLikeMapper.selectRawByUserAndPost(userId, postId);
+                        if (existingLike != null) {
+                            if (existingLike.getIsDeleted() != null && existingLike.getIsDeleted() == 1) {
+                                // 已软删除 → 恢复点赞
+                                existingLike.setIsDeleted(0);
+                                this.updateById(existingLike);
+                                blogPostService.incrementLikeCount(postId);
+                                trendingService.updatePostTrending(postId);
+                                result.setAction("like");
+                            } else if (existingLike.getIsDeleted() == null) {
+                                // 历史遗留 NULL → 修复为 0，不修改点赞数（已计入）
+                                existingLike.setIsDeleted(0);
+                                this.updateById(existingLike);
+                                trendingService.updatePostTrending(postId);
+                                result.setAction("like");
+                            } else {
+                                // 正常活跃状态 → 取消点赞
+                                blogLikeMapper.logicalDeleteById(existingLike.getId());
+                                blogPostService.decrementLikeCount(postId);
+                                trendingService.updatePostTrending(postId);
+                                result.setAction("unlike");
+                            }
                         } else {
                             blogPostService.incrementLikeCount(postId);
                             trendingService.updatePostTrending(postId);
@@ -190,8 +203,7 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
         }
         LambdaQueryWrapper<BlogLike> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogLike::getUserId, userId)
-              .eq(BlogLike::getPostId, postId)
-              .ne(BlogLike::getIsDeleted, 1);
+              .eq(BlogLike::getPostId, postId);
         return this.count(wrapper) > 0;
     }
 
@@ -202,7 +214,6 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
 
         LambdaQueryWrapper<BlogLike> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogLike::getUserId, userId)
-                .ne(BlogLike::getIsDeleted, 1)
                 .orderByDesc(BlogLike::getCreateTime);
 
         IPage<BlogLike> likeResult = this.page(likePage, wrapper);
@@ -258,12 +269,6 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
                 ));
 
         // 构建返回结果
-        IPage<LikeItemVO> resultPage = new Page<>(
-                likeResult.getCurrent(),
-                likeResult.getSize(),
-                likeResult.getTotal()
-        );
-
         List<LikeItemVO> items = likeResult.getRecords().stream()
                 .map(like -> {
                     LikeItemVO item = new LikeItemVO();
@@ -287,11 +292,18 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
                             item.setAuthorNickname(author.getNickname());
                             item.setAuthorAvatar(author.getAvatar());
                         }
+                    } else {
+                        item.setTitle("文章已删除");
                     }
                     return item;
                 })
                 .collect(Collectors.toList());
 
+        IPage<LikeItemVO> resultPage = new Page<>(
+                likeResult.getCurrent(),
+                likeResult.getSize(),
+                likeResult.getTotal()
+        );
         resultPage.setRecords(items);
         return resultPage;
     }
@@ -304,8 +316,7 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
         }
         LambdaQueryWrapper<BlogLike> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogLike::getUserId, userId)
-               .in(BlogLike::getPostId, postIds)
-               .ne(BlogLike::getIsDeleted, 1);
+               .in(BlogLike::getPostId, postIds);
         List<BlogLike> likedList = this.list(wrapper);
         List<Long> likedPostIds = likedList.stream()
                 .map(BlogLike::getPostId)

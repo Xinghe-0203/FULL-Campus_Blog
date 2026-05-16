@@ -1,6 +1,6 @@
 <template>
   <div class="messages-page">
-    <div class="messages-container">
+    <div class="messages-toolbar">
       <button class="back-btn" @click="goBack">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
         返回
@@ -8,6 +8,8 @@
       <button class="mobile-back-btn" @click="showMobileList = !showMobileList" v-if="activeConversation && !showMobileList">
         ← 会话列表
       </button>
+    </div>
+    <div class="messages-container">
       <div class="conversation-list card" :class="{ show: showMobileList }">
         <div class="list-header">
           <h2>私信</h2>
@@ -197,9 +199,7 @@ const selectConversation = async (conv) => {
   loadingMessages.value = true
   try {
     const response = await messageApi.getConversationMessages(conv.conversationId)
-    const records = response.data?.records || []
-    records.reverse()
-    messages.value = records
+    messages.value = response.data?.records || []
 
     if (conv.unreadCount > 0) {
       conv.unreadCount = 0
@@ -272,7 +272,6 @@ const startPolling = () => {
       try {
         const response = await messageApi.getConversationMessages(activeConversation.value.conversationId)
         const records = response.data?.records || []
-        records.reverse()
         const wasAtBottom = messageList.value && (messageList.value.scrollTop + messageList.value.clientHeight >= messageList.value.scrollHeight - 50)
         messages.value = records
         if (wasAtBottom) {
@@ -306,12 +305,25 @@ onUnmounted(() => {
 .messages-page {
   height: calc(100vh - 80px);
   padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.messages-toolbar {
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto var(--spacing-md);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .messages-container {
   max-width: 1000px;
   margin: 0 auto;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: 300px 1fr;
   gap: var(--spacing-md);
@@ -512,9 +524,9 @@ onUnmounted(() => {
   color: var(--text-muted);
 }
 
-.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
+.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; flex-shrink: 0; }
 .back-btn:hover { background: var(--border); color: var(--text-primary); }
-.mobile-back-btn { display: none; }
+.mobile-back-btn { display: none; flex-shrink: 0; }
 
 @media (max-width: 768px) {
   .messages-container {

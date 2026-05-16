@@ -163,9 +163,21 @@
 ### 🔧 后端验证
 - **MessageController/MessageServiceImpl** - 验证所有字段与前端匹配（ConversationVO.conversationId = partner userId，MessageVO.sender，顺序反转等）
 
+### 🐛 私信页面布局修复
+- **Messages.vue** - 修复返回按钮在 grid 布局中导致的显示异常，移入独立 toolbar 容器
+
+### 🐛 点赞状态修复
+- **BlogLike.java** - `isDeleted` 字段添加 `= 0` 默认值（原为 null，与 `@TableLogic` 不兼容导致所有点赞不可见）
+- **BlogLikeMapper.java** - 添加 `selectRawByUserAndPost` 原生 SQL 查询，修复 DuplicateKeyException 处理
+- **BlogLikeServiceImpl.java** - `toggleLike` 三路判断修复（is_deleted=1 恢复 / null 修复 / 0 取消）；移除与 `@TableLogic` 冲突的冗余 `.ne()` 条件
+- **Home.vue** - `checkUserInteractionStatus` 改用 `Promise.allSettled`，单个 API 失败不影响另一个状态
+
+### 🐛 个人主页"我的点赞"修复
+- **Profile.vue** - 修复统计数字中 `postCount`/`likeCount` 被 `0` 覆盖的问题（对象展开顺序错误）
+- **BlogLikeServiceImpl.java** - `getMyLikes` 中已删除文章显示"文章已删除"而非空白
+
 ### 📝 文档更新
-- CHANGELOG.md - 追加 v1.50 完整变更记录
-- 版本号同步更新至 v1.50
+- CHANGELOG.md - 追加 v1.50 补充变更记录
 
 ## v1.48 - 2026-05-15
 
