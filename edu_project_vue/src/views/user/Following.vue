@@ -71,8 +71,6 @@ import { toast } from '../../utils/toast'
 
 const router = useRouter()
 const userStore = useUserStore()
-
-const userStore = useUserStore()
 const logger = useLogger('Following')
 const { confirm, ConfirmDialog } = useConfirm()
 const following = ref([])
