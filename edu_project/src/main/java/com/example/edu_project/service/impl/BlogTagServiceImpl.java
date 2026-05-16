@@ -84,7 +84,7 @@ public class BlogTagServiceImpl extends ServiceImpl<BlogTagMapper, BlogTag> impl
         try {
             this.save(tag);
         } catch (DuplicateKeyException e) {
-            BlogTag existing = this.getOne(wrapper);
+            existing = this.getOne(wrapper);
             return existing.getId();
         }
         return tag.getId();
