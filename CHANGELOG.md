@@ -1,5 +1,27 @@
 # 变更日志
 
+## v1.54 - 2026-05-16
+
+### 🔒 安全修复
+- **api/index.js** - 修复 `ERR_CANCELED` 错误被重试的问题，已取消的请求不再重试
+- **api/index.js** - 修复 Token 刷新后 `token_fingerprint` 未更新导致指纹校验失败和被强制登出的问题
+- **admin/Users.vue** - 重置密码不再在 toast 中显示明文密码，改用一次性弹窗查看
+
+### 🐛 Bug 修复
+- **PostEdit.vue** - 修复 `historyTimer` 未在 `onUnmounted` 中清理导致的内存泄漏
+- **Home.vue** - 修复 `checkUserInteractionStatus` 中 `filter((_, i) => likedList[i])` 可能包含 undefined 导致 Set 含 NaN 的问题
+- **PostDetail.vue** - 修复 `shareCount` 在 API 失败时不回滚的问题，改为先复制后记录
+- **PostDetail.vue** - 添加 `Math.max(0, ...)` 防止 likeCount/collectCount 快速点击时变为负数
+- **CircleDetail.vue** - 添加路由参数 watch，解决从动态A导航到动态B数据不刷新的问题
+- **Circle.vue** - 添加 `_likeLoading` 防抖锁，防止快速连续点击点赞导致状态不一致
+- **Notifications.vue** - 已删除评论的通知跳转提示"该评论已被删除"而非静默跳首页
+
+### 🎨 暗色模式完善
+- **main.css** - 新增 `--success-light`、`--warning-light`、`--error-light`、`--text-on-primary` CSS 变量
+- **admin/Reports.vue** - 状态徽章硬编码颜色 → CSS 变量
+- **admin/Posts.vue** - 状态徽章和标签页硬编码颜色 → CSS 变量
+- **admin/Users.vue** - 管理员徽章硬编码颜色 → CSS 变量
+
 ## v1.53 - 2026-05-16
 
 ### 🐛 HIGH 修复

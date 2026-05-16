@@ -298,12 +298,12 @@ onMounted(() => {
 }
 
 .status.pending {
-  background: rgba(245, 158, 11, 0.1);
+  background: var(--warning-light);
   color: var(--warning);
 }
 
 .status.handled {
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--success-light);
   color: var(--success);
 }
 

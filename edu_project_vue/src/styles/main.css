@@ -15,14 +15,18 @@
   
   /* 语义色 */
   --success: #10B981;
+  --success-light: rgba(16, 185, 129, 0.1);
   --warning: #F59E0B;
+  --warning-light: rgba(245, 158, 11, 0.1);
   --error: #EF4444;
+  --error-light: rgba(239, 68, 68, 0.1);
   --info: #3B82F6;
   
   /* 中性色 */
   --text-primary: #1F2937;
   --text-secondary: #6B7280;
   --text-muted: #9CA3AF;
+  --text-on-primary: #FFFFFF;
   --background: #F8FAFC;
   --surface: #FFFFFF;
   --border: #E5E7EB;
@@ -79,10 +83,19 @@
   
   --accent: #A78BFA;
   --accent-hover: #8B5CF6;
+
+  --success: #34D399;
+  --success-light: rgba(52, 211, 153, 0.15);
+  --warning: #FBBF24;
+  --warning-light: rgba(251, 191, 36, 0.15);
+  --error: #F87171;
+  --error-light: rgba(248, 113, 113, 0.15);
+  --info: #60A5FA;
   
   --text-primary: #F9FAFB;
   --text-secondary: #D1D5DB;
   --text-muted: #9CA3AF;
+  --text-on-primary: #FFFFFF;
   --background: #0F172A;
   --surface: #1E293B;
   --border: #334155;

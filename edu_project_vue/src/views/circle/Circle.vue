@@ -411,6 +411,8 @@ watch(() => posts.value.length, () => {
 
 const toggleLike = async (post) => {
   if (!userStore.isLoggedIn) { toast.warning('请先登录'); return }
+  if (post._likeLoading) return
+  post._likeLoading = true
   const prev = post.isLiked
   post.isLiked = !post.isLiked
   post.likeCount += post.isLiked ? 1 : -1
@@ -422,6 +424,8 @@ const toggleLike = async (post) => {
     post.isLiked = prev
     post.likeCount += post.isLiked ? 1 : -1
     logger.error('toggleLike error', { error: err.message })
+  } finally {
+    post._likeLoading = false
   }
 }
 

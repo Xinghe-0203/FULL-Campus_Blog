@@ -460,7 +460,7 @@ const toggleLike = async () => {
   try {
     const likeResult = await likeApi.toggleLike(route.params.id)
     isLiked.value = !isLiked.value
-    post.value.likeCount = (post.value.likeCount || 0) + (isLiked.value ? 1 : -1)
+    post.value.likeCount = Math.max(0, (post.value.likeCount || 0) + (isLiked.value ? 1 : -1))
   } catch (err) {
     logger.error('Failed to toggle like', { error: err.message })
     toast.error('操作失败')
@@ -477,7 +477,7 @@ const toggleCollect = async () => {
   try {
     await collectApi.toggleCollect(route.params.id)
     isCollected.value = !isCollected.value
-    post.value.collectCount = (post.value.collectCount || 0) + (isCollected.value ? 1 : -1)
+    post.value.collectCount = Math.max(0, (post.value.collectCount || 0) + (isCollected.value ? 1 : -1))
   } catch (err) {
     logger.error('Failed to toggle collect', { error: err.message })
     toast.error('操作失败')
@@ -562,28 +562,28 @@ const cancelReply = () => {
 const sharePost = async () => {
   const url = window.location.href
   try {
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(url)
-      } else {
-        const textarea = document.createElement('textarea')
-        textarea.value = url
-        textarea.style.position = 'fixed'
-        textarea.style.opacity = '0'
-        document.body.appendChild(textarea)
-        textarea.select()
-        document.execCommand('copy')
-        document.body.removeChild(textarea)
-      }
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(url)
       toast.success('链接已复制到剪贴板')
-    } catch {
-      toast.success('分享成功')
+    } else {
+      const textarea = document.createElement('textarea')
+      textarea.value = url
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+      toast.success('链接已复制到剪贴板')
     }
-    await shareApi.recordShare(route.params.id, 'web')
-    post.value.shareCount = (post.value.shareCount || 0) + 1
-  } catch (err) {
-    logger.error('Failed to share post', { error: err.message })
-    toast.error('分享失败')
+    try {
+      await shareApi.recordShare(route.params.id, 'web')
+      post.value.shareCount = (post.value.shareCount || 0) + 1
+    } catch (err) {
+      logger.warn('Failed to record share', { error: err.message })
+    }
+  } catch {
+    toast.error('复制失败，请手动复制链接')
   }
 }
 

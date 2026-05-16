@@ -200,13 +200,14 @@ const toggleUserStatus = async (user) => {
 }
 
 const resetPassword = async (user) => {
-  const ok = await confirm('确定重置该用户密码吗？', '重置密码')
+  const ok = await confirm('确定重置该用户密码吗？重置后的密码将显示一次，请注意保管。', '重置密码')
   if (!ok) return
   
   try {
     const res = await adminApi.resetUserPassword(user.id)
     const newPassword = res.data
-    toast.success(`密码已重置成功，新密码为: ${newPassword}`)
+    toast.success('密码已重置成功，请告知用户尽快登录修改密码')
+    alert(`用户 ${user.nickname || user.username} 的新密码为: ${newPassword}\n\n请妥善保管此密码，关闭后将无法再次查看。`)
   } catch (err) {
     logger.error('Failed to reset password', { error: err.message })
     toast.error('操作失败')
@@ -314,8 +315,8 @@ onMounted(() => {
 }
 
 .badge-warning {
-  background: rgba(245, 158, 11, 0.1);
-  color: #F59E0B;
+  background: var(--warning-light);
+  color: var(--warning);
 }
 
 .status {

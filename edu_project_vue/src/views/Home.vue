@@ -394,13 +394,13 @@ const checkUserInteractionStatus = async () => {
     ])
     if (results[0].status === 'fulfilled') {
       const likedList = results[0].value?.data || []
-      likedPosts.value = new Set(postIds.filter((_, i) => likedList[i]))
+      likedPosts.value = new Set(postIds.filter((_, i) => likedList[i] === true))
     } else {
       logger.error('Failed to check like status batch', { error: results[0].reason?.message })
     }
     if (results[1].status === 'fulfilled') {
       const collectedList = results[1].value?.data || []
-      collectedPosts.value = new Set(postIds.filter((_, i) => collectedList[i]))
+      collectedPosts.value = new Set(postIds.filter((_, i) => collectedList[i] === true))
     } else {
       logger.error('Failed to check collect status batch', { error: results[1].reason?.message })
     }

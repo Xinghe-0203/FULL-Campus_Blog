@@ -124,10 +124,10 @@ const RETRY_DELAY = 1000
 const RETRYABLE_CODES = ['ECONNABORTED', 'ERR_NETWORK', 'ERR_CONNECTION_REFUSED', 'ERR_CONNECTION_RESET']
 
 function isRetryableError(error) {
+  if (error.code === 'ERR_CANCELED') return false
   return !error.response && (
     RETRYABLE_CODES.includes(error.code) ||
-    error.message === 'Network Error' ||
-    error.code === 'ERR_CANCELED'
+    error.message === 'Network Error'
   )
 }
 
@@ -313,6 +313,11 @@ api.interceptors.response.use(
           // storage unavailable
         }
         userStore.updateTokens(newToken, newRefreshToken)
+        
+        const fingerprint = getTokenFingerprint(newToken)
+        if (fingerprint) {
+          safeSetItem(STORAGE_KEY_PREFIX + 'token_fingerprint', fingerprint)
+        }
         
         processQueue(null, newToken)
         

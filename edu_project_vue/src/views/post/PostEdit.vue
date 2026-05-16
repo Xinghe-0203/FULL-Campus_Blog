@@ -620,6 +620,7 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener('beforeunload', handleBeforeUnload)
   if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null }
+  if (historyTimer) { clearTimeout(historyTimer); historyTimer = null }
 })
 
 onBeforeRouteLeave((to, from) => {

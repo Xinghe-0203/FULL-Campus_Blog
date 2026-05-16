@@ -215,7 +215,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ImagePreview from '../../components/common/ImagePreview.vue'
 import { circleApi } from '../../api/circle'
@@ -408,6 +408,13 @@ const autoResizeComment = (e) => {
 onMounted(() => {
   fetchPost()
   fetchComments()
+})
+
+watch(() => route.params.id, () => {
+  if (route.params.id) {
+    fetchPost()
+    fetchComments()
+  }
 })
 </script>
 

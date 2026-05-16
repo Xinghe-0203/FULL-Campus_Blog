@@ -290,7 +290,7 @@ onMounted(() => {
 .tab-btn.active {
   background: var(--primary);
   border-color: var(--primary);
-  color: white;
+  color: var(--text-on-primary);
 }
 
 .table-container {
@@ -331,17 +331,17 @@ onMounted(() => {
 }
 
 .status.active {
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--success-light);
   color: var(--success);
 }
 
 .status.warning {
-  background: rgba(245, 158, 11, 0.1);
+  background: var(--warning-light);
   color: var(--warning);
 }
 
 .status.danger {
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--error-light);
   color: var(--error);
 }
 

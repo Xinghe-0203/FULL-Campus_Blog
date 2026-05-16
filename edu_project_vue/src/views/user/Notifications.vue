@@ -172,8 +172,7 @@ const handleNotification = async (notification) => {
     router.push(`/user/${notification.fromUser.id}`)
   } else if (notification.type === 'MESSAGE') {
     router.push('/messages')
-  } else if (notification.type === 'REPLY' || notification.type === 'MENTION') {
-    // 回复和提及跳转到评论所在文章
+} else if (notification.type === 'REPLY' || notification.type === 'MENTION') {
     if (notification.targetType === 'COMMENT' && notification.targetId) {
       try {
         const res = await commentApi.getCommentById(notification.targetId)
@@ -181,6 +180,7 @@ const handleNotification = async (notification) => {
         if (postId) router.push(`/post/${postId}`)
         else router.push('/')
       } catch {
+        toast.info('该评论已被删除')
         router.push('/')
       }
     } else if (notification.targetId) {
