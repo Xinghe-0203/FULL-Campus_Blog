@@ -69,7 +69,8 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
     @Transactional(rollbackFor = Exception.class)
     public Long createPost(String content, List<String> images, List<String> videos, String location, Long repostId,
                            List<String> tags, Long userId,
-                           Integer visibility, Integer allowComment, Integer allowRepost) {
+                           Integer visibility, Integer allowComment, Integer allowRepost,
+                           Long topicId) {
         // 参数校验
         if (StrUtil.isBlank(content) && (images == null || images.isEmpty()) && (videos == null || videos.isEmpty()) && repostId == null) {
             throw new BusinessException(400, "动态内容不能为空");
@@ -125,11 +126,19 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         if (tags != null && !tags.isEmpty()) {
             for (String tag : tags) {
                 if (tag != null && tag.startsWith("#")) {
-                    Long topicId = topicService.getOrCreateTopic(tag);
-                    if (topicId != null && !topicIds.contains(topicId)) {
-                        topicIds.add(topicId);
+                    Long tid = topicService.getOrCreateTopic(tag);
+                    if (tid != null && !topicIds.contains(tid)) {
+                        topicIds.add(tid);
                     }
                 }
+            }
+        }
+
+        // 显式指定的话题ID
+        if (topicId != null && !topicIds.contains(topicId)) {
+            Topic topic = topicService.getById(topicId);
+            if (topic != null && topic.getStatus() == 1) {
+                topicIds.add(topic.getId());
             }
         }
 
@@ -495,6 +504,19 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
 
         final Map<Long, CirclePost> finalRepostPostMap = repostPostMap;
 
+        // 批量查询所有话题名称
+        Map<Long, String> topicNameMap = new HashMap<>();
+        Set<Long> allTopicIds = posts.stream()
+                .map(CirclePost::getTopicIds)
+                .filter(Objects::nonNull)
+                .flatMap(s -> cn.hutool.json.JSONUtil.toList(s, Long.class).stream())
+                .collect(Collectors.toSet());
+        if (!allTopicIds.isEmpty()) {
+            topicService.listByIds(allTopicIds).stream()
+                    .filter(t -> t.getStatus() == 1)
+                    .forEach(t -> topicNameMap.put(t.getId(), t.getName()));
+        }
+
         return posts.stream().map(post -> {
             CirclePostVO vo = new CirclePostVO();
             vo.setId(post.getId());
@@ -582,6 +604,18 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                         vo.setOriginalPostHidden(true);
                     }
                 }
+            }
+
+            // 话题名称列表
+            if (StrUtil.isNotBlank(post.getTopicIds())) {
+                List<Long> ids = cn.hutool.json.JSONUtil.toList(post.getTopicIds(), Long.class);
+                List<String> names = ids.stream()
+                        .map(topicNameMap::get)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+                vo.setTopicNames(names);
+            } else {
+                vo.setTopicNames(new ArrayList<>());
             }
 
             return vo;

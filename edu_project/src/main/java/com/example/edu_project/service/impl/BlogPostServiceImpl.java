@@ -27,8 +27,11 @@ import com.example.edu_project.mapper.BlogPostMapper;
 import com.example.edu_project.mapper.BlogPostTagMapper;
 import com.example.edu_project.mapper.BlogTagMapper;
 import com.example.edu_project.mapper.SysUserMapper;
+import com.example.edu_project.entity.Topic;
 import com.example.edu_project.service.BlogPostService;
+import com.example.edu_project.service.BlogTagService;
 import com.example.edu_project.service.NotificationService;
+import com.example.edu_project.service.TopicService;
 import com.example.edu_project.service.TrendingService;
 import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.SecurityUtils;
@@ -42,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -86,6 +90,12 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
 
     @Autowired
     private TrendingService trendingService;
+
+    @Autowired
+    private BlogTagService blogTagService;
+
+    @Autowired
+    private TopicService topicService;
 
     private static final int MAX_VIEW_COUNT_CACHE_SIZE = 10000;
     private final ConcurrentMap<String, AtomicLong> viewCountCache = new ConcurrentHashMap<>();
@@ -154,6 +164,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         // 管理员和普通用户均可直接发布，无需审核
         post.setStatus(1);
         post.setCoverUrl(request.getCoverImage());
+        post.setTopicId(request.getTopicId());
 
         this.save(post);
 
@@ -223,6 +234,9 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
             post.setCategory(htmlSanitizer.sanitizePlainText(request.getCategory()));
         }
         post.setCoverUrl(request.getCoverImage());
+        if (request.getTopicId() != null) {
+            post.setTopicId(request.getTopicId());
+        }
 
         // 编辑文章后保持已发布状态（无需重新审核）
         if (post.getStatus() == null) {
@@ -340,6 +354,17 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         // 获取标签列表
         response.setTags(getTagsByPostId(post.getId()));
 
+        // 获取话题信息
+        response.setTopicId(post.getTopicId());
+        if (post.getTopicId() != null) {
+            try {
+                Topic topic = topicService.getTopicById(post.getTopicId());
+                response.setTopicName(topic.getName());
+            } catch (BusinessException e) {
+                response.setTopicName(null);
+            }
+        }
+
         return response;
     }
 
@@ -428,10 +453,13 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         // 批量查询标签信息
         Map<Long, List<PostDetailResponse.TagVO>> postTagsMap = getTagsMapByPostIds(postIds);
 
+        // 批量查询话题名称
+        Map<Long, String> topicNameMap = getTopicNamesMapByPostIds(postIds, posts);
+
         // 转换为列表响应
         IPage<PostListResponse> result = new Page<>(postPage.getCurrent(), postPage.getSize(), postPage.getTotal());
         result.setRecords(posts.stream()
-                .map(post -> convertToListResponse(post, userMap.get(post.getUserId()), postTagsMap.get(post.getId())))
+                .map(post -> convertToListResponse(post, userMap.get(post.getUserId()), postTagsMap.get(post.getId()), topicNameMap.get(post.getTopicId())))
                 .collect(Collectors.toList()));
 
         return result;
@@ -524,10 +552,24 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         if (tagNames == null || tagNames.isEmpty()) {
             return null;
         }
-        LambdaQueryWrapper<BlogTag> wrapper = new LambdaQueryWrapper<>();
-        wrapper.in(BlogTag::getName, tagNames);
-        List<BlogTag> tags = blogTagMapper.selectList(wrapper);
-        return tags.stream().map(BlogTag::getId).collect(Collectors.toList());
+        return tagNames.stream()
+                .map(name -> blogTagService.getOrCreateTag(name))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private Map<Long, String> getTopicNamesMapByPostIds(List<Long> postIds, List<BlogPost> posts) {
+        Map<Long, String> map = new HashMap<>();
+        List<Long> topicIds = posts.stream()
+                .map(BlogPost::getTopicId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+        if (topicIds.isEmpty()) {
+            return map;
+        }
+        List<Topic> topics = topicService.listByIds(topicIds);
+        return topics.stream().collect(Collectors.toMap(Topic::getId, Topic::getName, (a, b) -> a));
     }
 
     private Map<Long, List<PostDetailResponse.TagVO>> getTagsMapByPostIds(List<Long> postIds) {
@@ -568,7 +610,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
                 ));
     }
 
-    private PostListResponse convertToListResponse(BlogPost post, SysUser user, List<PostDetailResponse.TagVO> tags) {
+    private PostListResponse convertToListResponse(BlogPost post, SysUser user, List<PostDetailResponse.TagVO> tags, String topicName) {
         PostListResponse response = new PostListResponse();
         response.setId(post.getId());
         response.setUserId(post.getUserId());
@@ -582,6 +624,8 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         response.setShareCount(post.getShareCount());
         response.setCreateTime(post.getCreateTime());
         response.setCoverImage(post.getCoverUrl());
+        response.setTopicId(post.getTopicId());
+        response.setTopicName(topicName);
 
         // 使用预获取的作者信息
         if (user != null) {
@@ -672,6 +716,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
             targetDraft.setTagIds(tagIdsStr);
             targetDraft.setCoverImage(sanitizedCoverImage);
             targetDraft.setPostId(request.getPostId());
+            targetDraft.setTopicId(request.getTopicId());
             blogDraftMapper.updateById(targetDraft);
             return targetDraft.getId();
         }
@@ -690,6 +735,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
                 existingByPost.setTagIds(tagIdsStr);
                 existingByPost.setCoverImage(sanitizedCoverImage);
                 existingByPost.setPostId(request.getPostId());
+                existingByPost.setTopicId(request.getTopicId());
                 blogDraftMapper.updateById(existingByPost);
                 return existingByPost.getId();
             }
@@ -705,6 +751,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         draft.setTagIds(tagIdsStr);
         draft.setCoverImage(sanitizedCoverImage);
         draft.setPostId(request.getPostId());
+        draft.setTopicId(request.getTopicId());
         blogDraftMapper.insert(draft);
         return draft.getId();
     }
@@ -829,10 +876,11 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         Map<Long, SysUser> userMap = sysUserMapper.selectBatchIds(userIds).stream()
                 .collect(Collectors.toMap(SysUser::getId, u -> u, (a, b) -> a));
         Map<Long, List<PostDetailResponse.TagVO>> postTagsMap = getTagsMapByPostIds(postIds);
+        Map<Long, String> topicNameMap = getTopicNamesMapByPostIds(postIds, posts);
 
         IPage<PostListResponse> result = new Page<>(pageNum, pageSize, total != null ? total : 0);
         result.setRecords(posts.stream()
-                .map(post -> convertToListResponse(post, userMap.get(post.getUserId()), postTagsMap.get(post.getId())))
+                .map(post -> convertToListResponse(post, userMap.get(post.getUserId()), postTagsMap.get(post.getId()), topicNameMap.get(post.getTopicId())))
                 .collect(Collectors.toList()));
 
         return result;
@@ -910,10 +958,11 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         Map<Long, SysUser> userMap = sysUserMapper.selectBatchIds(userIds).stream()
                 .collect(Collectors.toMap(SysUser::getId, u -> u, (a, b) -> a));
         Map<Long, List<PostDetailResponse.TagVO>> postTagsMap = getTagsMapByPostIds(postIds);
+        Map<Long, String> topicNameMap = getTopicNamesMapByPostIds(postIds, posts);
 
         IPage<PostListResponse> result = new Page<>(postPage.getCurrent(), postPage.getSize(), postPage.getTotal());
         result.setRecords(posts.stream()
-                .map(post -> convertToListResponse(post, userMap.get(post.getUserId()), postTagsMap.get(post.getId())))
+                .map(post -> convertToListResponse(post, userMap.get(post.getUserId()), postTagsMap.get(post.getId()), topicNameMap.get(post.getTopicId())))
                 .collect(Collectors.toList()));
 
         return result;
@@ -957,6 +1006,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         request.setSummary(draft.getSummary());
         request.setCategory(draft.getCategory());
         request.setPostId(draft.getPostId());
+        request.setTopicId(draft.getTopicId());
 
         // 将逗号分隔的 tagIds 转换为列表
         if (draft.getTagIds() != null && !draft.getTagIds().isEmpty()) {
@@ -1026,13 +1076,16 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         // 批量查询标签信息
         Map<Long, List<PostDetailResponse.TagVO>> postTagsMap = getTagsMapByPostIds(postIds);
 
+        // 批量查询话题名称
+        Map<Long, String> topicNameMap = getTopicNamesMapByPostIds(postIds, posts);
+
         // 作者信息（当前用户）
         SysUser user = sysUserMapper.selectById(userId);
 
         // 转换为列表响应
         IPage<PostListResponse> result = new Page<>(postPage.getCurrent(), postPage.getSize(), postPage.getTotal());
         result.setRecords(posts.stream()
-                .map(post -> convertToListResponse(post, user, postTagsMap.get(post.getId())))
+                .map(post -> convertToListResponse(post, user, postTagsMap.get(post.getId()), topicNameMap.get(post.getTopicId())))
                 .collect(Collectors.toList()));
 
         return result;
@@ -1094,16 +1147,19 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         // 批量查询标签信息
         Map<Long, List<PostDetailResponse.TagVO>> postTagsMap = getTagsMapByPostIds(postIds);
 
+        // 批量查询话题名称
+        Map<Long, String> topicNameMap = getTopicNamesMapByPostIds(postIds, posts);
+
         // 转换为详情响应
         IPage<PostDetailResponse> result = new Page<>(postPage.getCurrent(), postPage.getSize(), postPage.getTotal());
         result.setRecords(posts.stream()
-                .map(post -> convertToDetailResponse(post, userMap.get(post.getUserId()), postTagsMap.get(post.getId())))
+                .map(post -> convertToDetailResponse(post, userMap.get(post.getUserId()), postTagsMap.get(post.getId()), topicNameMap.get(post.getTopicId())))
                 .collect(Collectors.toList()));
 
         return result;
     }
 
-    private PostDetailResponse convertToDetailResponse(BlogPost post, SysUser user, List<PostDetailResponse.TagVO> tags) {
+    private PostDetailResponse convertToDetailResponse(BlogPost post, SysUser user, List<PostDetailResponse.TagVO> tags, String topicName) {
         PostDetailResponse response = new PostDetailResponse();
         response.setId(post.getId());
         response.setUserId(post.getUserId());
@@ -1122,6 +1178,8 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         response.setCreateTime(post.getCreateTime());
         response.setUpdateTime(post.getUpdateTime());
         response.setCoverImage(post.getCoverUrl());
+        response.setTopicId(post.getTopicId());
+        response.setTopicName(topicName);
 
         if (user != null) {
             response.setUsername(user.getUsername());
@@ -1216,10 +1274,13 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         // 批量查询标签信息
         Map<Long, List<PostDetailResponse.TagVO>> postTagsMap = getTagsMapByPostIds(postIds);
 
+        // 批量查询话题名称
+        Map<Long, String> topicNameMap = getTopicNamesMapByPostIds(postIds, posts);
+
         // 转换为详情响应
         IPage<PostDetailResponse> result = new Page<>(postPage.getCurrent(), postPage.getSize(), postPage.getTotal());
         result.setRecords(posts.stream()
-                .map(post -> convertToDetailResponse(post, userMap.get(post.getUserId()), postTagsMap.get(post.getId())))
+                .map(post -> convertToDetailResponse(post, userMap.get(post.getUserId()), postTagsMap.get(post.getId()), topicNameMap.get(post.getTopicId())))
                 .collect(Collectors.toList()));
 
         return result;

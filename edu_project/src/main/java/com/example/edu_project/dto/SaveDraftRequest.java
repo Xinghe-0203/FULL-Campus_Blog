@@ -40,6 +40,9 @@ public class SaveDraftRequest {
     @Schema(description = "标签名称列表")
     private List<String> tagNames;
 
+    @Schema(description = "话题ID")
+    private Long topicId;
+
     @Schema(description = "关联的文章ID（编辑已有文章时使用）")
     private Long postId;
 }

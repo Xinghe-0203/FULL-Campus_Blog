@@ -30,7 +30,8 @@ public interface CircleService extends IService<CirclePost> {
      * @return 创建的动态ID
      */
     Long createPost(String content, List<String> images, List<String> videos, String location, Long repostId,
-                    List<String> tags, Long userId, Integer visibility, Integer allowComment, Integer allowRepost);
+                    List<String> tags, Long userId, Integer visibility, Integer allowComment, Integer allowRepost,
+                    Long topicId);
 
     /**
      * 删除动态

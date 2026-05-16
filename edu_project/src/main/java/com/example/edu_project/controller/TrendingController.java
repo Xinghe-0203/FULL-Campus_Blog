@@ -3,6 +3,7 @@ package com.example.edu_project.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.edu_project.common.result.Result;
 import com.example.edu_project.service.TrendingService;
+import com.example.edu_project.vo.HotContentVO;
 import com.example.edu_project.vo.HotPostVO;
 import com.example.edu_project.vo.HotTagVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,6 +36,18 @@ public class TrendingController {
             @RequestParam(defaultValue = "1") @Min(1) int pageNum,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) int pageSize) {
         IPage<HotPostVO> result = trendingService.getHotPosts(pageNum, pageSize);
+        return Result.success(result);
+    }
+
+    /**
+     * 获取热门内容列表（文章+动态统一），按热度评分降序
+     */
+    @Operation(summary = "获取热门内容（文章+动态统一）")
+    @GetMapping("/content")
+    public Result<IPage<HotContentVO>> getHotContent(
+            @RequestParam(defaultValue = "1") @Min(1) int pageNum,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int pageSize) {
+        IPage<HotContentVO> result = trendingService.getHotContent(pageNum, pageSize);
         return Result.success(result);
     }
 

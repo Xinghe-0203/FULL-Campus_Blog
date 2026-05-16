@@ -47,4 +47,11 @@ public interface TopicService extends IService<Topic> {
      * @return 话题信息
      */
     Topic getTopicById(Long topicId);
+
+    /**
+     * 根据ID列表批量获取话题名称
+     * @param ids 话题ID列表
+     * @return 话题名称列表
+     */
+    List<String> getTopicNamesByIds(List<Long> ids);
 }

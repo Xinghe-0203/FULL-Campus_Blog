@@ -40,6 +40,9 @@ public class PostCreateRequest {
     @Schema(description = "标签名称列表")
     private List<String> tagNames;
 
+    @Schema(description = "话题ID")
+    private Long topicId;
+
     @Schema(description = "封面图片URL")
     private String coverImage;
 }

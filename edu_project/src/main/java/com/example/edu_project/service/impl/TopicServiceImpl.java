@@ -13,7 +13,9 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 话题服务实现类
@@ -133,6 +135,20 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
             }
             throw e;
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> getTopicNamesByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        LambdaQueryWrapper<Topic> wrapper = new LambdaQueryWrapper<>();
+        wrapper.in(Topic::getId, ids)
+                .eq(Topic::getStatus, 1);
+        return this.list(wrapper).stream()
+                .map(Topic::getName)
+                .collect(Collectors.toList());
     }
 
     @Override

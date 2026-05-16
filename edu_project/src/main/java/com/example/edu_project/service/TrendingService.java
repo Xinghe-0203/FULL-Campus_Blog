@@ -1,6 +1,7 @@
 package com.example.edu_project.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.example.edu_project.vo.HotContentVO;
 import com.example.edu_project.vo.HotPostVO;
 import com.example.edu_project.vo.HotTagVO;
 
@@ -16,6 +17,14 @@ public interface TrendingService {
      * @return 热门文章列表（按热度评分降序）
      */
     IPage<HotPostVO> getHotPosts(int pageNum, int pageSize);
+
+    /**
+     * 获取热门内容（文章+动态统一列表，按热度评分降序）
+     * @param pageNum 页码
+     * @param pageSize 每页数量
+     * @return 统一热门内容列表
+     */
+    IPage<HotContentVO> getHotContent(int pageNum, int pageSize);
 
     /**
      * 获取热门标签列表（公开接口）

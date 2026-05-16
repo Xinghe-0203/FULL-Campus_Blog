@@ -33,6 +33,9 @@ public class BlogPost implements Serializable {
     @Schema(description = "文章内容")
     private String content;
 
+    @Schema(description = "话题ID")
+    private Long topicId;
+
     @Schema(description = "文章分类")
     private String category;
 

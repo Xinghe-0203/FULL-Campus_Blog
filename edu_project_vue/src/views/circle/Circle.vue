@@ -75,6 +75,10 @@
             <div class="feed-content" @click="router.push(`/circle/${post.id}`)">
               <p class="feed-text">{{ post.content }}</p>
 
+              <div v-if="post.topicNames && post.topicNames.length" class="topic-tags">
+                <router-link v-for="tn in post.topicNames" :key="tn" :to="`/search?keyword=${'#' + tn}`" class="topic-tag-link">#{{ tn }}</router-link>
+              </div>
+
               <div v-if="post.images && post.images.length" class="feed-images" :class="`grid-${Math.min(post.images.length, 9)}`">
                 <div v-for="(image, idx) in post.images" :key="idx" class="img-wrap" :class="{ 'is-video': isVideo(image) }" @click.stop="openImagePreview(post.images, idx)">
                   <img v-if="!isVideo(image)" :src="image" alt="动态图片" class="feed-image" loading="lazy" />
@@ -162,6 +166,22 @@
               <textarea v-model="newPost.content" class="post-textarea" placeholder="分享你的校园生活..." rows="4" @input="autoResize" ref="textareaRef" maxlength="2000"></textarea>
               <div class="char-count" :class="{ warn: newPost.content.length > 1800 }">{{ newPost.content.length }}/2000</div>
 
+              <div class="topic-selector">
+                <div v-if="selectedTopic" class="topic-tag">
+                  <span>#{{ selectedTopic.name }}</span>
+                  <button class="remove-topic" @click="selectedTopic = null">✕</button>
+                </div>
+                <div v-else class="topic-input-wrapper">
+                  <input v-model="topicSearch" placeholder="添加话题..." @focus="showTopicDropdown = true" @blur="hideTopicDropdown" />
+                  <div v-if="showTopicDropdown && filteredTopics.length" class="topic-dropdown">
+                    <div v-for="topic in filteredTopics" :key="topic.id" class="topic-dropdown-item" @mousedown.prevent="selectTopic(topic)">
+                      <span class="topic-name">#{{ topic.name }}</span>
+                      <span class="topic-count">{{ topic.postCount }} 篇</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div v-if="newPost.images.length" class="uploaded-images">
                 <div v-for="(img, idx) in newPost.images" :key="idx" class="image-item">
                   <img :src="img" alt="" />
@@ -241,9 +261,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch, nextTick, onBeforeUnmount } from 'vue'
+import { ref, reactive, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { circleApi } from '../../api/circle'
+import { topicApi } from '../../api/topic'
 import { mediaApi } from '../../api/media'
 import { useUserStore } from '../../stores/user'
 import { formatRelativeTime, formatNumber } from '../../utils'
@@ -294,6 +315,27 @@ const newPost = reactive({
   visibility: 0,
   tags: []
 })
+
+const topicSearch = ref('')
+const showTopicDropdown = ref(false)
+const selectedTopic = ref(null)
+const allTopics = ref([])
+
+const filteredTopics = computed(() => {
+  if (!topicSearch.value) return allTopics.value
+  const q = topicSearch.value.toLowerCase()
+  return allTopics.value.filter(t => t.name.toLowerCase().includes(q))
+})
+
+const selectTopic = (topic) => {
+  selectedTopic.value = topic
+  topicSearch.value = ''
+  showTopicDropdown.value = false
+}
+
+const hideTopicDropdown = () => {
+  setTimeout(() => { showTopicDropdown.value = false }, 200)
+}
 
 const isVideo = (url) => {
   if (!url) return false
@@ -505,6 +547,7 @@ const publishPost = async () => {
       videos: newPost.videos,
       visibility: newPost.visibility,
       tags: newPost.tags,
+      topicId: selectedTopic.value?.id || null,
       allowComment: 1,
       allowRepost: 1
     })
@@ -514,6 +557,7 @@ const publishPost = async () => {
     newPost.videos = []
     newPost.visibility = 0
     newPost.tags = []
+    selectedTopic.value = null
     toast.success('发布成功')
     await fetchPosts(true)
   } catch (err) {
@@ -532,6 +576,11 @@ const openCreateModal = () => {
   }
   showCreateModal.value = true
   nextTick(() => autoResize())
+  if (allTopics.value.length === 0) {
+    topicApi.getTopicList({ pageNum: 1, pageSize: 100 }).then(res => {
+      allTopics.value = Array.isArray(res.data) ? res.data : []
+    }).catch(() => {})
+  }
 }
 
 onMounted(() => {
@@ -567,7 +616,7 @@ onBeforeUnmount(() => {
 }
 
 .create-post:hover {
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow);
   transform: translateY(-1px);
 }
 
@@ -588,22 +637,22 @@ onBeforeUnmount(() => {
 .create-input {
   flex: 1;
   padding: 10px 16px;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
   border-radius: 24px;
-  color: #999;
+  color: var(--text-muted);
   font-size: 14px;
   transition: background 0.3s;
 }
 
 .create-input:hover {
-  background: #eee;
+  background: var(--border);
 }
 
 .feed-tabs {
   display: flex;
   gap: 4px;
   margin-bottom: 14px;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
   border-radius: 12px;
   padding: 3px;
 }
@@ -616,19 +665,19 @@ onBeforeUnmount(() => {
   background: transparent;
   border: none;
   border-radius: 10px;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .tab-btn.active {
-  background: #fff;
-  color: #1a1a1a;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .tab-btn:hover:not(.active) {
-  color: #333;
+  color: var(--text-primary);
 }
 
 .feed-item {
@@ -645,7 +694,7 @@ onBeforeUnmount(() => {
 }
 
 .feed-item:hover {
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow);
   transform: translateY(-1px);
 }
 
@@ -678,12 +727,12 @@ onBeforeUnmount(() => {
 .author-name {
   font-weight: 600;
   font-size: 15px;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .feed-time {
   font-size: 12px;
-  color: #999;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -699,7 +748,7 @@ onBeforeUnmount(() => {
 
 .feed-text {
   font-size: 15px;
-  color: #1a1a1a;
+  color: var(--text-primary);
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
@@ -728,7 +777,7 @@ onBeforeUnmount(() => {
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 8px;
-  background: #f0f0f0;
+  background: var(--bg-secondary);
 }
 
 .img-wrap.is-video {
@@ -780,15 +829,15 @@ onBeforeUnmount(() => {
 .repost-card {
   margin-top: 12px;
   padding: 14px;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 12px;
-  border: 1px solid #eee;
+  border: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .repost-card:hover {
-  background: #f0f1f3;
+  background: var(--border);
 }
 
 .repost-header {
@@ -808,12 +857,12 @@ onBeforeUnmount(() => {
 .repost-author {
   font-size: 13px;
   font-weight: 500;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .repost-text {
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -838,17 +887,17 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eee;
+  background: var(--skeleton-base);
   border-radius: 6px;
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .feed-actions {
   display: flex;
   gap: 8px;
   padding-top: 12px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border);
 }
 
 .action-btn {
@@ -859,19 +908,19 @@ onBeforeUnmount(() => {
   background: transparent;
   border: none;
   border-radius: 20px;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 13px;
   transition: all 0.2s ease;
 }
 
 .action-btn:hover {
-  background: #f5f5f5;
-  color: #ef4444;
+  background: var(--bg-secondary);
+  color: var(--error);
 }
 
 .action-btn.liked {
-  color: #ef4444;
+  color: var(--error);
 }
 
 .like-icon.animate-pop {
@@ -895,20 +944,20 @@ onBeforeUnmount(() => {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
 .skeleton-info { flex: 1; }
-.skeleton-name { width: 100px; height: 14px; background: #eee; border-radius: 4px; margin-bottom: 6px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
-.skeleton-time { width: 60px; height: 12px; background: #eee; border-radius: 4px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-name { width: 100px; height: 14px; background: var(--skeleton-base); border-radius: 4px; margin-bottom: 6px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-time { width: 60px; height: 12px; background: var(--skeleton-base); border-radius: 4px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
 
 .skeleton-content { }
-.skeleton-text { height: 14px; background: #eee; border-radius: 4px; margin-bottom: 8px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-text { height: 14px; background: var(--skeleton-base); border-radius: 4px; margin-bottom: 8px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
 .skeleton-text.short { width: 60%; }
 .skeleton-images { display: flex; gap: 4px; margin-top: 12px; }
-.skeleton-img { flex: 1; aspect-ratio: 1; background: #eee; border-radius: 8px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-img { flex: 1; aspect-ratio: 1; background: var(--skeleton-base); border-radius: 8px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
 
 @keyframes shimmer {
   0% { background-position: 200% 0; }
@@ -918,27 +967,27 @@ onBeforeUnmount(() => {
 .error-state {
   text-align: center;
   padding: 60px 20px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .error-state h3 { margin: 12px 0 6px; font-size: 16px; }
-.error-state p { font-size: 13px; color: #999; margin-bottom: 16px; }
+.error-state p { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
 
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  color: #ccc;
+  color: var(--text-muted);
 }
 
 .empty-state-title {
   margin: 16px 0 6px;
   font-size: 16px;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .empty-state-text {
   font-size: 13px;
-  color: #bbb;
+  color: var(--text-muted);
 }
 
 .scroll-sentinel {
@@ -951,15 +1000,15 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #999;
+  color: var(--text-muted);
   font-size: 13px;
 }
 
 .spinner {
   width: 18px;
   height: 18px;
-  border: 2px solid #eee;
-  border-top-color: #4f46e5;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
@@ -970,7 +1019,7 @@ onBeforeUnmount(() => {
 
 .no-more {
   font-size: 13px;
-  color: #ccc;
+  color: var(--text-muted);
 }
 
 .modal-overlay {
@@ -999,7 +1048,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-header h3 {
@@ -1008,13 +1057,13 @@ onBeforeUnmount(() => {
 }
 
 .close-btn {
-  background: #f5f5f5;
+  background: var(--bg-secondary);
   border: none;
   width: 30px;
   height: 30px;
   border-radius: 50%;
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1023,7 +1072,7 @@ onBeforeUnmount(() => {
 }
 
 .close-btn:hover {
-  background: #e0e0e0;
+  background: var(--border);
 }
 
 .modal-body {
@@ -1064,17 +1113,17 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 4px;
   padding: 3px 10px;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
   border: none;
   border-radius: 20px;
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .visibility-selector:hover {
-  background: #e8e8e8;
+  background: var(--border);
 }
 
 .visibility-dropdown {
@@ -1082,10 +1131,10 @@ onBeforeUnmount(() => {
   top: 100%;
   left: 0;
   margin-top: 6px;
-  background: #fff;
-  border: 1px solid #eee;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow);
   padding: 6px;
   z-index: 100;
   min-width: 200px;
@@ -1103,11 +1152,11 @@ onBeforeUnmount(() => {
 
 .vis-item:hover,
 .vis-item.active {
-  background: #f5f5ff;
+  background: var(--primary-light);
 }
 
 .vis-label { font-size: 13px; font-weight: 500; }
-.vis-desc { font-size: 11px; color: #999; margin-top: 2px; }
+.vis-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
 .post-textarea {
   width: 100%;
@@ -1115,7 +1164,7 @@ onBeforeUnmount(() => {
   font-size: 15px;
   line-height: 1.6;
   resize: none;
-  color: #1a1a1a;
+  color: var(--text-primary);
   background: transparent;
   font-family: inherit;
   min-height: 100px;
@@ -1127,13 +1176,13 @@ onBeforeUnmount(() => {
 }
 
 .post-textarea::placeholder {
-  color: #bbb;
+  color: var(--text-muted);
 }
 
 .char-count {
   text-align: right;
   font-size: 12px;
-  color: #bbb;
+  color: var(--text-muted);
   margin-bottom: 10px;
 }
 
@@ -1153,7 +1202,7 @@ onBeforeUnmount(() => {
   aspect-ratio: 1;
   border-radius: 10px;
   overflow: hidden;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
 }
 
 .image-item img {
@@ -1195,18 +1244,18 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 4px;
   padding: 6px 12px;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
   border: none;
   border-radius: 20px;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 13px;
   transition: all 0.2s;
 }
 
 .tool-btn:hover {
-  background: #e8e8ff;
-  color: #4f46e5;
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 .tool-btn:disabled {
@@ -1220,7 +1269,7 @@ onBeforeUnmount(() => {
 
 .btn-primary {
   padding: 8px 20px;
-  background: #4f46e5;
+  background: var(--primary);
   color: #fff;
   border: none;
   border-radius: 20px;
@@ -1231,7 +1280,7 @@ onBeforeUnmount(() => {
 }
 
 .btn-primary:hover {
-  background: #4338ca;
+  background: var(--primary-hover);
   transform: translateY(-1px);
 }
 
@@ -1249,22 +1298,22 @@ onBeforeUnmount(() => {
 .btn-ghost {
   padding: 8px 20px;
   background: transparent;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   border-radius: 20px;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
 }
 
 .btn-ghost:hover {
-  background: #f5f5f5;
+  background: var(--bg-secondary);
 }
 
 .upload-progress-bar {
   margin-top: 10px;
   height: 4px;
-  background: #eee;
+  background: var(--skeleton-base);
   border-radius: 4px;
   position: relative;
   overflow: hidden;
@@ -1272,7 +1321,7 @@ onBeforeUnmount(() => {
 
 .progress-fill {
   height: 100%;
-  background: #4f46e5;
+  background: var(--primary);
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -1287,15 +1336,15 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
   gap: 10px;
   padding: 14px 20px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border);
 }
 
 .repost-original-card {
   padding: 14px;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 12px;
   margin-bottom: 14px;
-  border: 1px solid #eee;
+  border: 1px solid var(--border);
 }
 
 .repost-original-header {
@@ -1315,12 +1364,12 @@ onBeforeUnmount(() => {
 .repost-original-name {
   font-size: 13px;
   font-weight: 500;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .repost-original-text {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -1417,6 +1466,122 @@ onBeforeUnmount(() => {
 .modal-enter-from .modal-content,
 .modal-leave-to .modal-content {
   transform: scale(0.95);
+}
+
+.topic-selector {
+  margin-bottom: 12px;
+}
+
+.topic-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.topic-tag .remove-topic {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.topic-tag .remove-topic:hover {
+  opacity: 1;
+}
+
+.topic-input-wrapper {
+  position: relative;
+}
+
+.topic-input-wrapper input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.topic-input-wrapper input:focus {
+  border-color: var(--primary);
+}
+
+.topic-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.topic-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.topic-dropdown-item:hover {
+  background: var(--primary-light);
+}
+
+.topic-dropdown-item:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+
+.topic-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primary);
+}
+
+.topic-count {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.topic-tag-link {
+  display: inline-block;
+  padding: 3px 10px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.topic-tag-link:hover {
+  background: var(--primary-light);
 }
 
 @media (max-width: 600px) {

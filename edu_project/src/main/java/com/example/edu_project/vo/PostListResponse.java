@@ -31,6 +31,12 @@ public class PostListResponse {
     @Schema(description = "文章摘要")
     private String summary;
 
+    @Schema(description = "话题ID")
+    private Long topicId;
+
+    @Schema(description = "话题名称")
+    private String topicName;
+
     @Schema(description = "文章分类")
     private String category;
 

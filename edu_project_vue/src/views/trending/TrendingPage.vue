@@ -14,11 +14,11 @@
       </div>
 
       <div class="tabs">
-        <button class="tab-btn" :class="{ active: activeTab === 'posts' }" @click="switchTab('posts')">
+        <button class="tab-btn" :class="{ active: activeTab === 'content' }" @click="switchTab('content')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
           </svg>
-          热门文章
+          热门内容
         </button>
         <button class="tab-btn" :class="{ active: activeTab === 'tags' }" @click="switchTab('tags')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -37,7 +37,7 @@
       </div>
 
       <div class="trending-content">
-        <div v-if="loading || (activeTab === 'tags' && tagsLoading) || (activeTab === 'topics' && topicsLoading)" class="loading-section">
+        <div v-if="(activeTab === 'content' && contentLoading) || (activeTab === 'tags' && tagsLoading) || (activeTab === 'topics' && topicsLoading)" class="loading-section">
           <div v-for="i in 8" :key="i" class="trending-skeleton">
             <div class="skeleton-rank"></div>
             <div class="skeleton-info">
@@ -55,11 +55,11 @@
           <button class="btn btn-primary" @click="retryLoad">重新加载</button>
         </div>
 
-        <div v-else-if="activeTab === 'posts' && hotPosts.length === 0" class="empty-state">
+        <div v-else-if="activeTab === 'content' && !contentLoading && hotContent.length === 0" class="empty-state">
           <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
           </svg>
-          <p>暂无热门文章</p>
+          <p>暂无热门内容</p>
         </div>
 
         <div v-else-if="activeTab === 'tags' && !tagsLoading && hotTags.length === 0" class="empty-state">
@@ -78,13 +78,13 @@
           <p>暂无热门话题</p>
         </div>
 
-        <div v-if="activeTab === 'posts' && hotPosts.length > 0" class="rank-list">
+        <div v-if="activeTab === 'content' && hotContent.length > 0" class="rank-list">
           <transition-group name="rank">
             <div
-              v-for="(post, index) in hotPosts"
-              :key="post.id"
-              class="rank-item"
-              @click="router.push(`/post/${post.id}`)"
+              v-for="(item, index) in hotContent"
+              :key="item.id"
+              class="rank-item content-item"
+              @click="handleContentClick(item)"
             >
               <div class="rank-number" :class="{ top: index < 3 }">
                 <template v-if="index === 0">🔥</template>
@@ -94,23 +94,51 @@
               </div>
               <div class="rank-content">
                 <div class="rank-title">
+                  <span class="type-badge" :class="item.type === 0 ? 'type-article' : 'type-post'">
+                    {{ item.type === 0 ? '文章' : '动态' }}
+                  </span>
+                  <span v-if="item.type === 0" class="title-text">{{ item.title }}</span>
+                  <span v-else class="content-text">{{ truncateContent(item.content) }}</span>
                   <span class="rank-badge" v-if="index === 0" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">热</span>
                   <span class="rank-badge" v-else-if="index === 1" style="background:linear-gradient(135deg,#f97316,#f59e0b)">热</span>
                   <span class="rank-badge" v-else-if="index === 2" style="background:linear-gradient(135deg,#f97316,#f59e0b)">热</span>
                   <span class="rank-badge new" v-else-if="index < 5">新</span>
-                  {{ post.title }}
+                </div>
+                <div class="rank-user">
+                  <img
+                    :src="item.avatar || '/default-avatar.png'"
+                    class="user-avatar"
+                    @error="e => e.target.src = '/default-avatar.png'"
+                  />
+                  <span class="user-nickname">{{ item.nickname || item.username }}</span>
+                </div>
+                <div v-if="item.type === 1 && item.topics && item.topics.length > 0" class="rank-topics">
+                  <span v-for="topic in item.topics" :key="topic" class="topic-tag">#{{ topic }}</span>
+                </div>
+                <div v-if="item.type === 1 && item.images && item.images.length > 0" class="rank-images">
+                  <div class="image-row">
+                    <img
+                      v-for="(img, i) in item.images.slice(0, 4)"
+                      :key="i"
+                      :src="img"
+                      class="thumb-img"
+                      @error="e => e.target.style.display = 'none'"
+                    />
+                    <span v-if="item.images.length > 4" class="more-images">+{{ item.images.length - 4 }}</span>
+                  </div>
                 </div>
                 <div class="rank-meta">
-                  <span class="rank-score">🔥 {{ formatScore(post.score) }}</span>
-                  <span class="rank-views">{{ post.viewCount || 0 }} 阅读</span>
-                  <span v-if="post.likeCount" class="rank-likes">{{ post.likeCount }} 赞</span>
-                  <span v-if="post.commentCount" class="rank-comments">{{ post.commentCount }} 评论</span>
+                  <span class="rank-score">🔥 {{ formatScore(item.score) }}</span>
+                  <span v-if="item.type === 0" class="rank-views">{{ item.viewCount || 0 }} 阅读</span>
+                  <span class="rank-likes">{{ item.likeCount || 0 }} 赞</span>
+                  <span class="rank-comments">{{ item.commentCount || 0 }} 评论</span>
+                  <span v-if="item.type === 1" class="rank-shares">{{ item.shareCount || 0 }} 分享</span>
                 </div>
               </div>
             </div>
           </transition-group>
-          <div v-if="hasMorePosts" class="load-more">
-            <button class="btn btn-outline" @click="loadMorePosts" :disabled="loadingMore">
+          <div v-if="hasMoreContent" class="load-more">
+            <button class="btn btn-outline" @click="loadMoreContent" :disabled="loadingMore">
               {{ loadingMore ? '加载中...' : '加载更多' }}
             </button>
           </div>
@@ -173,18 +201,18 @@ import { useLogger } from '../../utils/logger'
 const router = useRouter()
 const logger = useLogger('Trending')
 
-const activeTab = ref('posts')
-const loading = ref(true)
+const activeTab = ref('content')
+const contentLoading = ref(true)
 const loadingMore = ref(false)
 const tagsLoading = ref(false)
 const topicsLoading = ref(false)
 const error = ref('')
 
-const hotPosts = ref([])
+const hotContent = ref([])
 const hotTags = ref([])
 const hotTopics = ref([])
-const currentPage = ref(1)
-const hasMorePosts = ref(true)
+const currentContentPage = ref(1)
+const hasMoreContent = ref(true)
 const PAGE_SIZE = 20
 
 const tagsColors = [
@@ -207,6 +235,11 @@ const formatScore = (score) => {
   return Math.round(score).toString()
 }
 
+const truncateContent = (text, maxLength = 80) => {
+  if (!text) return ''
+  return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
+}
+
 const getTagFontSize = (count) => {
   if (!count) return '14px'
   const sizes = ['14px', '16px', '18px', '20px', '22px', '24px']
@@ -219,28 +252,38 @@ const getTagColor = (count) => {
   return tagsColors[Math.min(Math.floor(count / 3), tagsColors.length - 1)]
 }
 
+const handleContentClick = (item) => {
+  if (item.type === 0) {
+    router.push(`/post/${item.id}`)
+  } else if (item.type === 1) {
+    router.push(`/circle/${item.id}`)
+  }
+}
+
 const switchTab = (tab) => {
   activeTab.value = tab
-  if (tab === 'tags' && hotTags.value.length === 0 && !tagsLoading.value && !loading.value) {
+  if (tab === 'content' && hotContent.value.length === 0 && !contentLoading.value && !loading.value) {
+    fetchHotContent(true)
+  } else if (tab === 'tags' && hotTags.value.length === 0 && !tagsLoading.value && !loading.value) {
     fetchHotTags()
   } else if (tab === 'topics' && hotTopics.value.length === 0 && !topicsLoading.value && !loading.value) {
     fetchHotTopics()
   }
 }
 
-const fetchHotPosts = async (reset = false) => {
+const fetchHotContent = async (reset = false) => {
   if (reset) {
-    currentPage.value = 1
-    hasMorePosts.value = true
+    currentContentPage.value = 1
+    hasMoreContent.value = true
   }
   try {
-    const res = await trendingApi.getHotPosts({ pageNum: currentPage.value, pageSize: PAGE_SIZE })
+    const res = await trendingApi.getHotContent({ pageNum: currentContentPage.value, pageSize: PAGE_SIZE })
     const data = res.data
     const records = data?.records || []
-    hotPosts.value = reset ? records : [...hotPosts.value, ...records]
-    hasMorePosts.value = (data?.pages || 0) > currentPage.value
+    hotContent.value = reset ? records : [...hotContent.value, ...records]
+    hasMoreContent.value = (data?.pages || 0) > currentContentPage.value
   } catch (err) {
-    logger.error('fetchHotPosts error', { error: err.message })
+    logger.error('fetchHotContent error', { error: err.message })
     throw err
   }
 }
@@ -270,14 +313,14 @@ const fetchHotTopics = async () => {
   }
 }
 
-const loadMorePosts = async () => {
-  if (loadingMore.value || !hasMorePosts.value) return
+const loadMoreContent = async () => {
+  if (loadingMore.value || !hasMoreContent.value) return
   loadingMore.value = true
-  currentPage.value++
+  currentContentPage.value++
   try {
-    await fetchHotPosts()
+    await fetchHotContent()
   } catch {
-    currentPage.value--
+    currentContentPage.value--
   } finally {
     loadingMore.value = false
   }
@@ -285,19 +328,19 @@ const loadMorePosts = async () => {
 
 const retryLoad = () => {
   error.value = ''
-  loading.value = true
+  contentLoading.value = true
   initLoad()
 }
 
 const initLoad = async () => {
-  loading.value = true
+  contentLoading.value = true
   error.value = ''
   try {
-    await fetchHotPosts(true)
+    await fetchHotContent(true)
   } catch (err) {
     error.value = '加载失败'
   }
-  loading.value = false
+  contentLoading.value = false
 }
 
 onMounted(() => {
@@ -521,6 +564,7 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   word-break: break-word;
+  flex-wrap: wrap;
 }
 
 .rank-badge {
@@ -544,6 +588,7 @@ onMounted(() => {
   margin-top: 6px;
   font-size: 12px;
   color: var(--text-muted);
+  flex-wrap: wrap;
 }
 
 .rank-score {
@@ -553,7 +598,8 @@ onMounted(() => {
 
 .rank-views,
 .rank-likes,
-.rank-comments {
+.rank-comments,
+.rank-shares {
   color: var(--text-muted);
 }
 
@@ -673,46 +719,116 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.topic-icon {
-  width: 44px;
-  height: 44px;
-  background: #f0f0ff;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6366f1;
-  flex-shrink: 0;
-}
-
 .topic-info {
   flex: 1;
   min-width: 0;
 }
 
-.topic-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0;
+/* --- New styles for content tab --- */
+
+.content-item {
+  flex-direction: row;
 }
 
-.topic-desc {
-  font-size: 13px;
-  color: #999;
-  margin: 4px 0;
-  white-space: nowrap;
+.type-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.type-article {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.type-post {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.title-text {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.topic-count {
-  font-size: 12px;
-  color: #bbb;
+.content-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-weight: 400;
+  font-size: 14px;
 }
 
-.topic-arrow {
+.rank-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.user-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
   flex-shrink: 0;
+}
+
+.user-nickname {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.rank-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.topic-tag {
+  font-size: 11px;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 1px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.rank-images {
+  margin-top: 6px;
+}
+
+.image-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.thumb-img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.more-images {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
 @media (max-width: 600px) {

@@ -5,7 +5,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
         返回
       </button>
-      <button class="mobile-back-btn" @click="showMobileList = !showMobileList" v-if="activeConversation && !showMobileList">
+      <button class="mobile-back-btn" @click="showMobileList = true" v-if="!showMobileList">
         ← 会话列表
       </button>
     </div>
@@ -13,6 +13,7 @@
       <div class="conversation-list card" :class="{ show: showMobileList }">
         <div class="list-header">
           <h2>私信</h2>
+          <button class="list-close-btn" @click="showMobileList = false" v-if="activeConversation">✕</button>
         </div>
         <div class="list-content">
           <div v-if="loadingConversations" class="empty-list">
@@ -62,7 +63,7 @@
               v-for="msg in messages"
               :key="msg.id"
               class="message-item"
-              :class="{ mine: msg.sender?.id == userStore.userId }"
+              :class="{ mine: String(msg.sender?.id) === String(userStore.userId) }"
             >
               <img :src="msg.sender?.avatar || defaultAvatar" :alt="msg.sender?.nickname" class="msg-avatar" @error="onAvatarError" />
               <div class="msg-content">
@@ -336,6 +337,9 @@ onUnmounted(() => {
 }
 
 .list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: var(--spacing-md);
   border-bottom: 1px solid var(--border);
 }
@@ -343,6 +347,16 @@ onUnmounted(() => {
 .list-header h2 {
   font-size: 1.125rem;
   font-weight: 600;
+}
+
+.list-close-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
 }
 
 .list-content {
@@ -542,6 +556,10 @@ onUnmounted(() => {
     position: fixed;
     inset: 0;
     z-index: 1000;
+  }
+
+  .list-close-btn {
+    display: block;
   }
 
   .mobile-back-btn {

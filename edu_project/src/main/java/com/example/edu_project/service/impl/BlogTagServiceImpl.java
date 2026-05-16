@@ -59,6 +59,28 @@ public class BlogTagServiceImpl extends ServiceImpl<BlogTagMapper, BlogTag> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public Long getOrCreateTag(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return null;
+        }
+        String sanitizedName = htmlSanitizer.sanitizePlainText(name.trim());
+        if (sanitizedName.length() > 20) {
+            sanitizedName = sanitizedName.substring(0, 20);
+        }
+        LambdaQueryWrapper<BlogTag> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BlogTag::getName, sanitizedName);
+        BlogTag existing = this.getOne(wrapper);
+        if (existing != null) {
+            return existing.getId();
+        }
+        BlogTag tag = new BlogTag();
+        tag.setName(sanitizedName);
+        this.save(tag);
+        return tag.getId();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteTag(Long tagId) {
         // 仅管理员可删除标签
         if (!SecurityUtils.isCurrentUserAdmin()) {

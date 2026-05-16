@@ -27,6 +27,20 @@ export const trendingApi = {
   },
 
   /**
+   * 获取热门混排内容（文章+动态）
+   * @param {{pageNum?: number, pageSize?: number}} params - 分页参数
+   * @returns {Promise<{code: number, message: string, data: Object}>}
+   */
+  getHotContent(params) {
+    return api.get('/trending/content', {
+      params: {
+        pageNum: params.pageNum || 1,
+        pageSize: params.pageSize || 10
+      }
+    })
+  },
+
+  /**
    * 更新热门状态
    * @param {number|string} postId - 文章ID
    * @returns {Promise<{code: number, message: string, data: Object}>}

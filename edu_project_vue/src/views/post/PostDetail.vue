@@ -245,6 +245,7 @@
         </div>
       </div>
     </aside>
+    <ConfirmDialog />
   </div>
 </template>
 
@@ -263,11 +264,13 @@ import { useUserStore } from '../../stores/user'
 import { formatRelativeTime } from '../../utils'
 import { useLogger } from '../../utils/logger'
 import { toast } from '../../utils/toast'
+import { useConfirm } from '../../composables/useConfirm'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const logger = useLogger('PostDetail')
+const { confirm, ConfirmDialog } = useConfirm()
 
 const post = ref(null)
 const comments = ref([])
@@ -519,7 +522,8 @@ const submitComment = async () => {
 
 // 删除评论
 const deleteComment = async (commentId) => {
-  if (!confirm('确定删除这条评论吗？')) return
+  const ok = await confirm('确定删除这条评论吗？')
+  if (!ok) return
   
   try {
     await commentApi.deleteComment(commentId)

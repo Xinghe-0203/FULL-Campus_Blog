@@ -33,6 +33,22 @@
           <textarea v-model="form.content" class="post-textarea" placeholder="分享你的校园生活..." rows="6" maxlength="2000" @input="autoResize" ref="textareaRef"></textarea>
           <div class="char-count" :class="{ warn: form.content.length > 1800 }">{{ form.content.length }}/2000</div>
 
+          <div class="topic-selector">
+            <div v-if="selectedTopic" class="topic-tag">
+              <span>#{{ selectedTopic.name }}</span>
+              <button class="remove-topic" @click="selectedTopic = null">✕</button>
+            </div>
+            <div v-else class="topic-input-wrapper">
+              <input v-model="topicSearch" placeholder="添加话题..." @focus="showTopicDropdown = true" @blur="hideTopicDropdown" />
+              <div v-if="showTopicDropdown && filteredTopics.length" class="topic-dropdown">
+                <div v-for="topic in filteredTopics" :key="topic.id" class="topic-dropdown-item" @mousedown.prevent="selectTopic(topic)">
+                  <span class="topic-name">#{{ topic.name }}</span>
+                  <span class="topic-count">{{ topic.postCount }} 篇</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div v-if="form.images.length" class="uploaded-images">
             <div v-for="(img, idx) in form.images" :key="idx" class="image-item">
               <img :src="img" alt="" />
@@ -79,9 +95,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { circleApi } from '../../api/circle'
+import { topicApi } from '../../api/topic'
 import { mediaApi } from '../../api/media'
 import { useUserStore } from '../../stores/user'
 import { useLogger } from '../../utils/logger'
@@ -103,6 +120,27 @@ const videoInput = ref(null)
 const currentUploadIndex = ref(0)
 const totalUploadCount = ref(0)
 const textareaRef = ref(null)
+
+const topicSearch = ref('')
+const showTopicDropdown = ref(false)
+const selectedTopic = ref(null)
+const allTopics = ref([])
+
+const filteredTopics = computed(() => {
+  if (!topicSearch.value) return allTopics.value
+  const q = topicSearch.value.toLowerCase()
+  return allTopics.value.filter(t => t.name.toLowerCase().includes(q))
+})
+
+const selectTopic = (topic) => {
+  selectedTopic.value = topic
+  topicSearch.value = ''
+  showTopicDropdown.value = false
+}
+
+const hideTopicDropdown = () => {
+  setTimeout(() => { showTopicDropdown.value = false }, 200)
+}
 
 const autoResize = () => {
   const el = textareaRef.value
@@ -198,6 +236,7 @@ const publishPost = async () => {
       videos: form.videos,
       visibility: form.visibility,
       tags: form.tags,
+      topicId: selectedTopic.value?.id || null,
       allowComment: 1,
       allowRepost: 1
     })
@@ -222,6 +261,9 @@ onMounted(() => {
     return
   }
   document.title = '发布动态 - 校友圈'
+  topicApi.getTopicList({ pageNum: 1, pageSize: 100 }).then(res => {
+    allTopics.value = Array.isArray(res.data) ? res.data : []
+  }).catch(() => {})
 })
 </script>
 
@@ -242,7 +284,7 @@ onMounted(() => {
 
 .card-header {
   padding: 16px 20px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border);
 }
 
 .card-header h2 {
@@ -280,7 +322,7 @@ onMounted(() => {
 .create-nickname {
   font-size: 14px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .visibility-selector {
@@ -288,17 +330,17 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   padding: 3px 10px;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
   border: none;
   border-radius: 20px;
   font-size: 12px;
-  color: #666;
+  color: var(--text-muted);
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .visibility-selector:hover {
-  background: #e8e8e8;
+  background: var(--border);
 }
 
 .visibility-dropdown {
@@ -306,8 +348,8 @@ onMounted(() => {
   top: 100%;
   left: 0;
   margin-top: 6px;
-  background: #fff;
-  border: 1px solid #eee;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   padding: 6px;
@@ -327,15 +369,15 @@ onMounted(() => {
 
 .vis-item:hover,
 .vis-item.active {
-  background: #f5f5ff;
+  background: var(--primary-light);
 }
 
 .vis-label { font-size: 13px; font-weight: 500; }
-.vis-desc { font-size: 11px; color: #999; margin-top: 2px; }
+.vis-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
 .post-textarea {
   width: 100%;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 12px;
   font-size: 15px;
@@ -347,18 +389,18 @@ onMounted(() => {
 }
 
 .post-textarea:focus {
-  border-color: #4f46e5;
+  border-color: var(--primary);
 }
 
 .char-count {
   text-align: right;
   font-size: 12px;
-  color: #bbb;
+  color: var(--text-muted);
   margin-top: 8px;
 }
 
 .char-count.warn {
-  color: #f59e0b;
+  color: var(--error);
 }
 
 .uploaded-images {
@@ -373,7 +415,7 @@ onMounted(() => {
   aspect-ratio: 1;
   border-radius: 10px;
   overflow: hidden;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
 }
 
 .image-item img {
@@ -449,18 +491,18 @@ onMounted(() => {
 
 .upload-progress-bar {
   height: 4px;
-  background: #eee;
+  background: var(--bg-secondary);
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 4px;
 }
 
 .upload-progress-container { margin-bottom: 12px; }
-.upload-progress-text { display: block; font-size: 12px; color: #666; text-align: center; }
+.upload-progress-text { display: block; font-size: 12px; color: var(--text-muted); text-align: center; }
 
 .progress-fill {
   height: 100%;
-  background: #4f46e5;
+  background: var(--primary);
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -475,18 +517,18 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   padding: 6px 14px;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
   border: none;
   border-radius: 20px;
-  color: #666;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 13px;
   transition: all 0.2s;
 }
 
 .tool-btn:hover {
-  background: #e8e8ff;
-  color: #4f46e5;
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 .tool-btn:disabled {
@@ -499,12 +541,12 @@ onMounted(() => {
   justify-content: flex-end;
   gap: 10px;
   padding: 14px 20px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border);
 }
 
 .btn-primary {
   padding: 8px 24px;
-  background: #4f46e5;
+  background: var(--primary);
   color: #fff;
   border: none;
   border-radius: 20px;
@@ -515,7 +557,7 @@ onMounted(() => {
 }
 
 .btn-primary:hover {
-  background: #4338ca;
+  background: var(--primary-hover);
   transform: translateY(-1px);
 }
 
@@ -528,16 +570,109 @@ onMounted(() => {
 .btn-ghost {
   padding: 8px 20px;
   background: transparent;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   border-radius: 20px;
-  color: #666;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
 }
 
 .btn-ghost:hover {
-  background: #f5f5f5;
+  background: var(--bg-secondary);
+}
+
+.topic-selector {
+  margin-bottom: 12px;
+}
+
+.topic-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.topic-tag .remove-topic {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.topic-tag .remove-topic:hover {
+  opacity: 1;
+}
+
+.topic-input-wrapper {
+  position: relative;
+}
+
+.topic-input-wrapper input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.topic-input-wrapper input:focus {
+  border-color: var(--primary);
+}
+
+.topic-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.topic-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.topic-dropdown-item:hover {
+  background: var(--primary-light);
+}
+
+.topic-dropdown-item:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+
+.topic-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primary);
+}
+
+.topic-count {
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 @media (max-width: 600px) {

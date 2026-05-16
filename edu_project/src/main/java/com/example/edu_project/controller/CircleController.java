@@ -55,7 +55,8 @@ public class CircleController {
                 userId,
                 request.getVisibility(),
                 request.getAllowComment(),
-                request.getAllowRepost()
+                request.getAllowRepost(),
+                request.getTopicId()
         );
 
         return Result.success(postId);

@@ -1,19 +1,15 @@
 package com.example.edu_project.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.edu_project.entity.BlogPost;
-import com.example.edu_project.entity.BlogPostTag;
-import com.example.edu_project.entity.BlogTag;
-import com.example.edu_project.entity.BlogTrending;
-import com.example.edu_project.mapper.BlogPostMapper;
-import com.example.edu_project.mapper.BlogPostTagMapper;
-import com.example.edu_project.mapper.BlogTagMapper;
-import com.example.edu_project.mapper.BlogTrendingMapper;
+import com.example.edu_project.entity.*;
+import com.example.edu_project.mapper.*;
 import com.example.edu_project.config.CaffeineCacheConfig;
 import com.example.edu_project.service.TrendingService;
+import com.example.edu_project.vo.HotContentVO;
 import com.example.edu_project.vo.HotPostVO;
 import com.example.edu_project.vo.HotTagVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +36,15 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
 
     @Autowired
     private BlogPostTagMapper blogPostTagMapper;
+
+    @Autowired
+    private CirclePostMapper circlePostMapper;
+
+    @Autowired
+    private SysUserMapper sysUserMapper;
+
+    @Autowired
+    private TopicMapper topicMapper;
 
     /**
      * 热度计算公式：score = view*1 + like*5 + comment*10
@@ -101,6 +106,211 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
         Page<HotPostVO> resultPage = new Page<>(trendingPage.getCurrent(), trendingPage.getSize(), trendingPage.getTotal());
         resultPage.setRecords(result);
         return resultPage;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public IPage<HotContentVO> getHotContent(int pageNum, int pageSize) {
+        int fetchSize = Math.max(pageSize * 2, 100);
+
+        // 1. 获取热门文章（已有热度表）
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime dateStart = now.minusDays(TRENDING_DAYS);
+        Page<BlogTrending> articlePage = new Page<>(1, fetchSize);
+        IPage<BlogTrending> trendingPage = baseMapper.selectHotPosts(articlePage, dateStart, now);
+        List<HotContentVO> articleVOs = convertArticlesToHotContent(trendingPage.getRecords());
+
+        // 2. 获取热门校友圈动态（按互动量排序）
+        LambdaQueryWrapper<CirclePost> circleWrapper = new LambdaQueryWrapper<>();
+        circleWrapper.eq(CirclePost::getStatus, 1)
+                .eq(CirclePost::getVisibility, 0)
+                .orderByDesc(CirclePost::getLikeCount)
+                .orderByDesc(CirclePost::getCommentCount)
+                .orderByDesc(CirclePost::getRepostCount)
+                .last("LIMIT " + fetchSize);
+        List<CirclePost> hotCircles = circlePostMapper.selectList(circleWrapper);
+        List<HotContentVO> circleVOs = convertCirclesToHotContent(hotCircles);
+
+        // 3. 合并并按热度评分降序排列
+        List<HotContentVO> merged = new ArrayList<>(articleVOs);
+        merged.addAll(circleVOs);
+        merged.sort((a, b) -> Double.compare(b.getScore(), a.getScore()));
+
+        // 4. 内存分页
+        int total = merged.size();
+        int fromIndex = (pageNum - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, total);
+
+        Page<HotContentVO> resultPage = new Page<>(pageNum, pageSize, total);
+        if (fromIndex < merged.size()) {
+            resultPage.setRecords(merged.subList(fromIndex, toIndex));
+        } else {
+            resultPage.setRecords(new ArrayList<>());
+        }
+        return resultPage;
+    }
+
+    private List<HotContentVO> convertArticlesToHotContent(List<BlogTrending> trendings) {
+        if (trendings.isEmpty()) return Collections.emptyList();
+
+        List<Long> postIds = trendings.stream()
+                .map(BlogTrending::getPostId)
+                .collect(Collectors.toList());
+
+        Map<Long, BlogPost> postMap = blogPostMapper.selectBatchIds(postIds).stream()
+                .filter(p -> p.getStatus() == 1 && p.getIsDeleted() == 0)
+                .collect(Collectors.toMap(BlogPost::getId, p -> p, (a, b) -> a));
+
+        if (postMap.isEmpty()) return Collections.emptyList();
+
+        // 批量查询用户信息
+        Set<Long> userIds = postMap.values().stream()
+                .map(BlogPost::getUserId)
+                .collect(Collectors.toSet());
+        Map<Long, SysUser> userMap = userIds.isEmpty() ? Collections.emptyMap() :
+                sysUserMapper.selectBatchIds(userIds).stream()
+                        .collect(Collectors.toMap(SysUser::getId, u -> u, (a, b) -> a));
+
+        // 批量查询标签
+        Map<Long, List<String>> postTagsMap = getPostTagsMap(postIds);
+
+        List<HotContentVO> result = new ArrayList<>();
+        for (BlogTrending trending : trendings) {
+            BlogPost post = postMap.get(trending.getPostId());
+            if (post == null) continue;
+
+            HotContentVO vo = new HotContentVO();
+            vo.setId(post.getId());
+            vo.setTitle(post.getTitle());
+            vo.setContent(post.getSummary());
+            vo.setUserId(post.getUserId());
+
+            SysUser user = userMap.get(post.getUserId());
+            if (user != null) {
+                vo.setUsername(user.getUsername());
+                vo.setNickname(user.getNickname());
+                vo.setAvatar(user.getAvatar());
+            }
+
+            vo.setType(0);
+            vo.setLikeCount(trending.getLikeCount() != null ? trending.getLikeCount().longValue() : 0L);
+            vo.setCommentCount(trending.getCommentCount() != null ? trending.getCommentCount().longValue() : 0L);
+            vo.setShareCount(post.getShareCount() != null ? post.getShareCount().longValue() : 0L);
+            vo.setViewCount(trending.getViewCount() != null ? trending.getViewCount().longValue() : 0L);
+            vo.setImages(new ArrayList<>());
+            vo.setTags(postTagsMap.getOrDefault(post.getId(), new ArrayList<>()));
+            vo.setTopics(new ArrayList<>());
+            vo.setCreateTime(post.getCreateTime());
+            vo.setScore(trending.getScore());
+            result.add(vo);
+        }
+        return result;
+    }
+
+    private List<HotContentVO> convertCirclesToHotContent(List<CirclePost> circles) {
+        if (circles.isEmpty()) return Collections.emptyList();
+
+        // 批量查询用户信息
+        Set<Long> userIds = circles.stream()
+                .map(CirclePost::getUserId)
+                .collect(Collectors.toSet());
+        Map<Long, SysUser> userMap = userIds.isEmpty() ? Collections.emptyMap() :
+                sysUserMapper.selectBatchIds(userIds).stream()
+                        .collect(Collectors.toMap(SysUser::getId, u -> u, (a, b) -> a));
+
+        // 批量查询话题名称
+        Map<Long, String> topicNameMap = getTopicNames(circles);
+
+        List<HotContentVO> result = new ArrayList<>();
+        for (CirclePost circle : circles) {
+            int likes = circle.getLikeCount() != null ? circle.getLikeCount() : 0;
+            int comments = circle.getCommentCount() != null ? circle.getCommentCount() : 0;
+            int reposts = circle.getRepostCount() != null ? circle.getRepostCount() : 0;
+            double score = likes * 3.0 + comments * 5.0 + reposts * 2.0;
+
+            HotContentVO vo = new HotContentVO();
+            vo.setId(circle.getId());
+            vo.setTitle("");
+            vo.setContent(circle.getContent());
+            vo.setUserId(circle.getUserId());
+
+            SysUser user = userMap.get(circle.getUserId());
+            if (user != null) {
+                vo.setUsername(user.getUsername());
+                vo.setNickname(user.getNickname());
+                vo.setAvatar(user.getAvatar());
+            }
+
+            vo.setType(1);
+            vo.setLikeCount((long) likes);
+            vo.setCommentCount((long) comments);
+            vo.setShareCount((long) reposts);
+            vo.setViewCount(circle.getViewCount() != null ? circle.getViewCount() : 0L);
+
+            List<String> images = new ArrayList<>();
+            if (StrUtil.isNotBlank(circle.getImageUrls())) {
+                images = cn.hutool.json.JSONUtil.toList(circle.getImageUrls(), String.class);
+            }
+            vo.setImages(images);
+
+            List<String> tags = new ArrayList<>();
+            if (StrUtil.isNotBlank(circle.getTags())) {
+                tags = cn.hutool.json.JSONUtil.toList(circle.getTags(), String.class);
+            }
+            vo.setTags(tags);
+
+            List<String> topicNames = new ArrayList<>();
+            if (StrUtil.isNotBlank(circle.getTopicIds())) {
+                List<Long> topicIds = cn.hutool.json.JSONUtil.toList(circle.getTopicIds(), Long.class);
+                for (Long topicId : topicIds) {
+                    String name = topicNameMap.get(topicId);
+                    if (name != null) topicNames.add(name);
+                }
+            }
+            vo.setTopics(topicNames);
+
+            vo.setCreateTime(circle.getCreateTime());
+            vo.setScore(score);
+            result.add(vo);
+        }
+        return result;
+    }
+
+    private Map<Long, List<String>> getPostTagsMap(List<Long> postIds) {
+        if (postIds.isEmpty()) return Collections.emptyMap();
+
+        LambdaQueryWrapper<BlogPostTag> ptWrapper = new LambdaQueryWrapper<>();
+        ptWrapper.in(BlogPostTag::getPostId, postIds);
+        List<BlogPostTag> postTags = blogPostTagMapper.selectList(ptWrapper);
+        if (postTags.isEmpty()) return Collections.emptyMap();
+
+        Set<Long> tagIds = postTags.stream()
+                .map(BlogPostTag::getTagId)
+                .collect(Collectors.toSet());
+
+        Map<Long, String> tagNameMap = blogTagMapper.selectBatchIds(tagIds).stream()
+                .collect(Collectors.toMap(BlogTag::getId, BlogTag::getName, (a, b) -> a));
+
+        Map<Long, List<String>> result = new HashMap<>();
+        for (BlogPostTag pt : postTags) {
+            result.computeIfAbsent(pt.getPostId(), k -> new ArrayList<>())
+                    .add(tagNameMap.getOrDefault(pt.getTagId(), ""));
+        }
+        return result;
+    }
+
+    private Map<Long, String> getTopicNames(List<CirclePost> circles) {
+        Set<Long> allTopicIds = new HashSet<>();
+        for (CirclePost circle : circles) {
+            if (StrUtil.isNotBlank(circle.getTopicIds())) {
+                List<Long> ids = cn.hutool.json.JSONUtil.toList(circle.getTopicIds(), Long.class);
+                allTopicIds.addAll(ids);
+            }
+        }
+        if (allTopicIds.isEmpty()) return Collections.emptyMap();
+
+        return topicMapper.selectBatchIds(allTopicIds).stream()
+                .collect(Collectors.toMap(Topic::getId, Topic::getName, (a, b) -> a));
     }
 
     @Override

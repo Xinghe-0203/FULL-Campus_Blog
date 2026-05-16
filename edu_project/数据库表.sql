@@ -124,6 +124,8 @@ CREATE TABLE `blog_post` (
 
     `content`           LONGTEXT        NOT NULL                     COMMENT '文章正文内容，存储 Markdown 格式的原始文本，支持大型富文本',
 
+    `topic_id`          BIGINT          DEFAULT NULL                  COMMENT '关联话题ID，关联 blog_topic 表',
+
     `category`          VARCHAR(50)     DEFAULT '其他'                COMMENT '文章所属分类，如"技术分享"、"校园生活"、"资源下载"等，默认为"其他"',
 
     -- -------------------- 互动统计字段 --------------------
@@ -562,6 +564,8 @@ CREATE TABLE `blog_draft` (
     `category`          VARCHAR(50)     DEFAULT NULL                  COMMENT '草稿分类',
 
     `tag_ids`           VARCHAR(200)    DEFAULT NULL                  COMMENT '草稿标签ID（逗号分隔）',
+
+    `topic_id`          BIGINT          DEFAULT NULL                  COMMENT '关联话题ID',
 
     `post_id`           BIGINT          DEFAULT NULL                  COMMENT '关联的文章ID（编辑已有文章时使用）',
 

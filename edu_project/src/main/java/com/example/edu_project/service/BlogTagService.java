@@ -26,4 +26,11 @@ public interface BlogTagService extends IService<BlogTag> {
      * @param tagId 标签ID
      */
     void deleteTag(Long tagId);
+
+    /**
+     * 根据标签名称获取或创建标签
+     * @param name 标签名称
+     * @return 标签ID，如果名称为空则返回 null
+     */
+    Long getOrCreateTag(String name);
 }

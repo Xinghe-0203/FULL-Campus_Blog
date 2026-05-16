@@ -58,6 +58,11 @@ public class BlogDraft implements Serializable {
     private String tagIds;
 
     /**
+     * 话题ID
+     */
+    private Long topicId;
+
+    /**
      * 关联的文章ID（编辑已有文章时使用）
      */
     private Long postId;

@@ -154,6 +154,14 @@
             <button class="btn btn-text btn-xs" @click="createTagAndAdd">创建「{{ tagInput }}」标签</button>
           </div>
         </div>
+
+        <div class="sidebar-section card">
+          <h3 class="sidebar-title">话题</h3>
+          <select v-model="form.topicId" class="form-input">
+            <option :value="null">不选择话题</option>
+            <option v-for="topic in topics" :key="topic.id" :value="topic.id">{{ topic.name }}</option>
+          </select>
+        </div>
       </div>
     </div>
   </div>
@@ -166,6 +174,7 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { postApi } from '../../api/post'
 import { tagApi } from '../../api/tag'
+import { topicApi } from '../../api/topic'
 import { mediaApi } from '../../api/media'
 import { useUserStore } from '../../stores/user'
 import { useLogger } from '../../utils/logger'
@@ -176,7 +185,7 @@ const router = useRouter()
 const userStore = useUserStore()
 const logger = useLogger('PostEdit')
 
-const form = reactive({ title: '', content: '', summary: '', category: '', coverImage: '', tags: [] })
+const form = reactive({ title: '', content: '', summary: '', category: '', coverImage: '', tags: [], topicId: null })
 const postInfo = reactive({ createTime: '', viewCount: 0, likeCount: 0 })
 const showPreview = ref(false)
 const saving = ref(false)
@@ -185,6 +194,7 @@ const tagInput = ref('')
 const selectedTags = ref([])
 const allTags = ref([])
 const filteredTags = ref([])
+const topics = ref([])
 const currentDraftId = ref(null)
 const contentTextarea = ref(null)
 const coverInput = ref(null)
@@ -195,7 +205,7 @@ const isLoading = ref(false)
 const dirty = ref(false)
 
 let autoSaveTimer = null
-watch([() => form.title, () => form.content, () => form.summary, () => form.category, () => form.coverImage, selectedTags], () => {
+watch([() => form.title, () => form.content, () => form.summary, () => form.category, () => form.coverImage, () => form.topicId, selectedTags], () => {
   dirty.value = true
   clearTimeout(autoSaveTimer)
   autoSaveTimer = setTimeout(() => { if (form.title || form.content) autoSave() }, 5000)
@@ -377,6 +387,15 @@ const fetchTags = async () => {
   }
 }
 
+const fetchTopics = async () => {
+  try {
+    const response = await topicApi.getTopicList()
+    topics.value = response.data || []
+  } catch (error) {
+    logger.error('Failed to fetch topics', { error: error.message })
+  }
+}
+
 function filterTags() {
   const input = tagInput.value.trim().toLowerCase()
   if (!input) { filteredTags.value = []; return }
@@ -452,6 +471,7 @@ const fetchPost = async () => {
     form.summary = post.summary || ''
     form.category = post.category || ''
     form.coverImage = post.coverImage || ''
+    form.topicId = post.topicId || null
     selectedTags.value = post.tags || []
     postInfo.createTime = post.createTime
     postInfo.viewCount = post.viewCount || 0
@@ -473,6 +493,7 @@ const fetchDraft = async () => {
       form.category = res.data.category || ''
       selectedTags.value = res.data.tags || []
       form.coverImage = res.data.coverImage || ''
+      form.topicId = res.data.topicId || null
     }
   } catch (err) {
     logger.error('fetch draft error', { error: err.message })
@@ -491,6 +512,7 @@ const fetchDraftById = async (draftId) => {
       form.category = res.data.category || ''
       selectedTags.value = res.data.tags || []
       form.coverImage = res.data.coverImage || ''
+      form.topicId = res.data.topicId || null
     }
   } catch (err) {
     logger.error('fetch draft by id error', { error: err.message })
@@ -505,7 +527,7 @@ const saveDraft = async () => {
   saving.value = true
   saveStatus.value = 'saving'
   try {
-    const data = { title: form.title, content: form.content, summary: form.summary, category: form.category, coverImage: form.coverImage, tagIds: selectedTags.value.filter(t => t.id).map(t => t.id), tagNames: selectedTags.value.map(t => t.name), draftId: currentDraftId.value || undefined }
+    const data = { title: form.title, content: form.content, summary: form.summary, category: form.category, coverImage: form.coverImage, tagIds: selectedTags.value.filter(t => t.id).map(t => t.id), tagNames: selectedTags.value.map(t => t.name), topicId: form.topicId || undefined, draftId: currentDraftId.value || undefined }
     if (route.params.id) data.postId = Number(route.params.id)
     const res = await postApi.saveDraft(data)
     currentDraftId.value = res.data || currentDraftId.value
@@ -526,7 +548,7 @@ const publishPost = async () => {
 
   publishing.value = true
   try {
-    const postData = { title: form.title, content: form.content, summary: form.summary, category: form.category, coverImage: form.coverImage, tagIds: selectedTags.value.filter(t => t.id).map(t => t.id), tagNames: selectedTags.value.map(t => t.name) }
+    const postData = { title: form.title, content: form.content, summary: form.summary, category: form.category, coverImage: form.coverImage, tagIds: selectedTags.value.filter(t => t.id).map(t => t.id), tagNames: selectedTags.value.map(t => t.name), topicId: form.topicId || undefined }
 
     if (route.params.id) {
       await postApi.updatePost(route.params.id, postData)
@@ -551,7 +573,7 @@ const autoSave = async () => {
   if (!form.title && !form.content) return
   saveStatus.value = 'saving'
   try {
-    const data = { title: form.title, content: form.content, summary: form.summary, category: form.category, coverImage: form.coverImage, tagIds: selectedTags.value.filter(t => t.id).map(t => t.id), tagNames: selectedTags.value.map(t => t.name), draftId: currentDraftId.value || undefined }
+    const data = { title: form.title, content: form.content, summary: form.summary, category: form.category, coverImage: form.coverImage, tagIds: selectedTags.value.filter(t => t.id).map(t => t.id), tagNames: selectedTags.value.map(t => t.name), topicId: form.topicId || undefined, draftId: currentDraftId.value || undefined }
     if (route.params.id) data.postId = Number(route.params.id)
     const res = await postApi.saveDraft(data)
     currentDraftId.value = res.data || currentDraftId.value
@@ -571,6 +593,7 @@ function handleBeforeUnload(e) {
 onMounted(async () => {
   window.addEventListener('beforeunload', handleBeforeUnload)
   fetchTags()
+  fetchTopics()
   isLoading.value = true
   if (route.params.id) {
     await fetchPost()

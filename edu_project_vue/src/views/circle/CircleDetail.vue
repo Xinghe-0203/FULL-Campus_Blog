@@ -47,6 +47,10 @@
           <div class="feed-content">
             <p class="feed-text">{{ post.content }}</p>
 
+            <div v-if="post.topicNames && post.topicNames.length" class="topic-tags">
+              <router-link v-for="tn in post.topicNames" :key="tn" :to="`/search?keyword=${'#' + tn}`" class="topic-tag-link">#{{ tn }}</router-link>
+            </div>
+
             <div v-if="post.images && post.images.length" class="feed-images" :class="`grid-${Math.min(post.images.length, 9)}`">
               <div v-for="(image, idx) in post.images" :key="idx" class="img-wrap" :class="{ 'is-video': isVideo(image) }" @click="openImagePreview(post.images, idx)">
                 <img v-if="!isVideo(image)" :src="image" alt="" class="feed-image" loading="lazy" />
@@ -451,12 +455,12 @@ onMounted(() => {
 .author-name {
   font-weight: 600;
   font-size: 15px;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .feed-time {
   font-size: 12px;
-  color: #999;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -467,7 +471,7 @@ onMounted(() => {
 
 .feed-text {
   font-size: 15px;
-  color: #1a1a1a;
+  color: var(--text-primary);
   line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
@@ -492,7 +496,7 @@ onMounted(() => {
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 8px;
-  background: #f0f0f0;
+  background: var(--bg-secondary);
   cursor: pointer;
 }
 
@@ -541,15 +545,15 @@ onMounted(() => {
 .repost-card {
   margin-top: 14px;
   padding: 14px;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 12px;
-  border: 1px solid #eee;
+  border: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .repost-card:hover {
-  background: #f0f1f3;
+  background: var(--border);
 }
 
 .repost-header {
@@ -569,12 +573,12 @@ onMounted(() => {
 .repost-author {
   font-size: 13px;
   font-weight: 500;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .repost-text {
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -599,10 +603,10 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eee;
+  background: var(--bg-secondary);
   border-radius: 6px;
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .feed-stats {
@@ -610,8 +614,8 @@ onMounted(() => {
   justify-content: space-between;
   padding: 10px 0;
   font-size: 12px;
-  color: #999;
-  border-bottom: 1px solid #f0f0f0;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
   margin-bottom: 10px;
 }
 
@@ -625,10 +629,10 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   padding: 8px 20px;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
   border: none;
   border-radius: 20px;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s ease;
@@ -637,17 +641,17 @@ onMounted(() => {
 }
 
 .action-btn:hover {
-  background: #f0f0f0;
+  background: var(--border);
 }
 
 .action-btn.liked {
-  color: #ef4444;
-  background: #fef2f2;
+  color: var(--error);
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .action-btn.active-comment {
-  color: #4f46e5;
-  background: #eef2ff;
+  color: var(--primary);
+  background: var(--primary-light);
 }
 
 .like-icon.animate-pop {
@@ -670,7 +674,7 @@ onMounted(() => {
   font-size: 15px;
   font-weight: 600;
   margin-bottom: 16px;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .comment-form {
@@ -696,29 +700,29 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
-  background: #f0f4ff;
+  background: var(--primary-light);
   border-radius: 8px 8px 0 0;
   font-size: 13px;
-  color: #4f46e5;
+  color: var(--primary);
 }
 
 .cancel-reply {
   background: none;
   border: none;
   font-size: 14px;
-  color: #999;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0 4px;
 }
 
 .cancel-reply:hover {
-  color: #ef4444;
+  color: var(--error);
 }
 
 .comment-form-body textarea {
   width: 100%;
   padding: 10px 14px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   border-radius: 12px;
   font-size: 14px;
   font-family: inherit;
@@ -729,7 +733,7 @@ onMounted(() => {
 }
 
 .comment-form-body textarea:focus {
-  border-color: #4f46e5;
+  border-color: var(--primary);
 }
 
 .comment-form-bottom {
@@ -741,12 +745,12 @@ onMounted(() => {
 
 .comment-form-bottom .char-count {
   font-size: 12px;
-  color: #bbb;
+  color: var(--text-muted);
 }
 
 .btn-primary {
   padding: 8px 20px;
-  background: #4f46e5;
+  background: var(--primary);
   color: #fff;
   border: none;
   border-radius: 20px;
@@ -757,7 +761,7 @@ onMounted(() => {
 }
 
 .btn-primary:hover {
-  background: #4338ca;
+  background: var(--primary-hover);
 }
 
 .btn-primary:disabled {
@@ -773,15 +777,15 @@ onMounted(() => {
 .login-hint {
   text-align: center;
   padding: 14px;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 12px;
   margin-bottom: 20px;
   font-size: 14px;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .login-hint a {
-  color: #4f46e5;
+  color: var(--primary);
   font-weight: 500;
   text-decoration: none;
 }
@@ -820,22 +824,22 @@ onMounted(() => {
 .comment-author {
   font-size: 14px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
   text-decoration: none;
 }
 
 .comment-author:hover {
-  color: #4f46e5;
+  color: var(--primary);
 }
 
 .comment-time {
   font-size: 11px;
-  color: #bbb;
+  color: var(--text-muted);
 }
 
 .comment-content {
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
   line-height: 1.5;
   word-break: break-word;
 }
@@ -849,24 +853,24 @@ onMounted(() => {
 .comment-action-btn {
   background: none;
   border: none;
-  color: #999;
+  color: var(--text-muted);
   font-size: 12px;
   cursor: pointer;
   padding: 2px 0;
 }
 
 .comment-action-btn:hover {
-  color: #4f46e5;
+  color: var(--primary);
 }
 
 .comment-action-btn.danger:hover {
-  color: #ef4444;
+  color: var(--error);
 }
 
 .nested-replies {
   margin-top: 10px;
   padding: 10px 0 0 14px;
-  border-left: 2px solid #eee;
+  border-left: 2px solid var(--border);
 }
 
 .reply-item {
@@ -895,7 +899,7 @@ onMounted(() => {
 .no-comments {
   text-align: center;
   padding: 30px;
-  color: #bbb;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
@@ -918,15 +922,15 @@ onMounted(() => {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
 .skeleton-info { flex: 1; }
-.skeleton-name { width: 100px; height: 14px; background: #eee; border-radius: 4px; margin-bottom: 6px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
-.skeleton-time { width: 60px; height: 12px; background: #eee; border-radius: 4px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
-.skeleton-text { height: 14px; background: #eee; border-radius: 4px; margin-bottom: 8px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-name { width: 100px; height: 14px; background: var(--skeleton-base); border-radius: 4px; margin-bottom: 6px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-time { width: 60px; height: 12px; background: var(--skeleton-base); border-radius: 4px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-text { height: 14px; background: var(--skeleton-base); border-radius: 4px; margin-bottom: 8px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
 .skeleton-text.short { width: 60%; }
 
 @keyframes shimmer {
@@ -950,20 +954,20 @@ onMounted(() => {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #eee;
+  background: var(--skeleton-base);
   flex-shrink: 0;
   animation: shimmer 1.5s infinite;
   background-size: 200% 100%;
 }
 
 .cs-body { flex: 1; }
-.cs-name { width: 80px; height: 12px; background: #eee; border-radius: 4px; margin-bottom: 8px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
-.cs-text { width: 100%; height: 12px; background: #eee; border-radius: 4px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.cs-name { width: 80px; height: 12px; background: var(--skeleton-base); border-radius: 4px; margin-bottom: 8px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.cs-text { width: 100%; height: 12px; background: var(--skeleton-base); border-radius: 4px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
 
 .error-state {
   text-align: center;
   padding: 60px 20px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .error-state h3 {
@@ -997,7 +1001,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-header h3 {
@@ -1006,13 +1010,13 @@ onMounted(() => {
 }
 
 .close-btn {
-  background: #f5f5f5;
+  background: var(--bg-secondary);
   border: none;
   width: 30px;
   height: 30px;
   border-radius: 50%;
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1021,7 +1025,7 @@ onMounted(() => {
 }
 
 .close-btn:hover {
-  background: #e0e0e0;
+  background: var(--border);
 }
 
 .modal-body {
@@ -1036,12 +1040,12 @@ onMounted(() => {
   justify-content: flex-end;
   gap: 10px;
   padding: 14px 20px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border);
 }
 
 .post-textarea {
   width: 100%;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 12px;
   font-size: 15px;
@@ -1054,26 +1058,26 @@ onMounted(() => {
 }
 
 .post-textarea:focus {
-  border-color: #4f46e5;
+  border-color: var(--primary);
 }
 
 .char-count {
   text-align: right;
   font-size: 12px;
-  color: #bbb;
+  color: var(--text-muted);
   margin-top: 8px;
 }
 
 .char-count.warn {
-  color: #f59e0b;
+  color: var(--warning);
 }
 
 .repost-original-card {
   padding: 14px;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 12px;
   margin-bottom: 14px;
-  border: 1px solid #eee;
+  border: 1px solid var(--border);
 }
 
 .repost-original-header {
@@ -1093,12 +1097,12 @@ onMounted(() => {
 .repost-original-name {
   font-size: 13px;
   font-weight: 500;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .repost-original-text {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -1107,16 +1111,16 @@ onMounted(() => {
 .btn-ghost {
   padding: 8px 20px;
   background: transparent;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   border-radius: 20px;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
 }
 
 .btn-ghost:hover {
-  background: #f5f5f5;
+  background: var(--bg-secondary);
 }
 
 .modal-enter-active,
@@ -1210,6 +1214,30 @@ onMounted(() => {
   background: rgba(0,0,0,0.5);
   padding: 6px 16px;
   border-radius: 20px;
+}
+
+.topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.topic-tag-link {
+  display: inline-block;
+  padding: 3px 10px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.topic-tag-link:hover {
+  background: var(--primary-light);
+  color: var(--primary-hover);
 }
 
 @media (max-width: 600px) {

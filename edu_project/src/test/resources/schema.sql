@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS blog_post (
     title VARCHAR(255) NOT NULL,
     summary VARCHAR(500),
     content CLOB,
+    topic_id BIGINT,
     category VARCHAR(50),
     cover_url VARCHAR(500),
     view_count BIGINT DEFAULT 0,

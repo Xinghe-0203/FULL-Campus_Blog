@@ -1,5 +1,30 @@
 # 变更日志
 
+## v1.51 - 2026-05-16
+
+### 🐛 CRITICAL - 页面跳转白屏修复
+- **App.vue** - 移除导致白屏的 `<transition mode="out-in">` 和全屏加载遮罩
+  - 原因：`mode="out-in"` 导致旧组件消失后新组件以 `opacity:0` 进入，若 `onAfterEnter` 未触发则永久白屏
+  - 修复：直接渲染 `<component :is>` 无过渡动画，`:key` 改为 `$route.path` 避免查询参数变化触发重建
+  - 移除 `routeLoading` 全屏遮罩（`background: var(--background)` 即白色遮罩阻塞内容）
+  - 移除 `routeError` 全屏错误遮罩（路由错误由 `router.onError` 全局 toast 处理）
+  - 移除 `onErrorCaptured`（组件错误由各页面内部 error 状态处理）
+
+### 🐛 私信页面功能优化
+- **Messages.vue** - 3项修复：
+  - 发送者 ID 比较改用 `String()` 转换后严格等于（`==` 改为 `String()===`）
+  - 移动端会话列表添加关闭按钮（✕），修复无法返回消息区域的问题
+  - 移动端"← 会话列表"按钮改为始终显示（不仅限有活跃会话时）
+
+### 🎨 暗色模式修复
+- **Circle.vue** - 50+ 处硬编码颜色替换为 CSS 变量（`#1a1a1a`→`var(--text-primary)` 等）
+- **CirclePost.vue** - 30+ 处硬编码颜色替换为 CSS 变量
+- **CircleDetail.vue** - 30+ 处硬编码颜色替换为 CSS 变量
+- **TrendingPage.vue** - 移除重复的 CSS 选择器覆盖（`.topic-icon`等6个选择器硬编码颜色覆盖了正确的变量）
+
+### 🔧 代码质量
+- **PostDetail.vue** - `window.confirm()` 替换为项目 `useConfirm()` 组件化确认框
+
 ## v1.49 - 2026-05-16
 
 ### 🐛 前端 Bug 修复
