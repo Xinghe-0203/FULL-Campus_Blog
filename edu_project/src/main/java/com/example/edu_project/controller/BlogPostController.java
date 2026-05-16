@@ -108,10 +108,12 @@ public class BlogPostController {
     @Operation(summary = "获取文章详情")
     @GetMapping("/{id}")
     public Result<PostDetailResponse> getPostDetail(@PathVariable Long id, HttpServletRequest request) {
-        // 增加阅读量（使用指纹防止刷阅读量）
         String userKey = getUserIdentifier(request);
-        blogPostService.incrementViewCount(id, userKey);
-        // 获取文章详情
+        try {
+            blogPostService.incrementViewCount(id, userKey);
+        } catch (Exception e) {
+            log.warn("Failed to increment view count for post {}", id, e);
+        }
         PostDetailResponse detail = blogPostService.getPostDetail(id);
         return Result.success(detail);
     }

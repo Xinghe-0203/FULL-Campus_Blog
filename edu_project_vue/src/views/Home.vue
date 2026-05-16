@@ -452,12 +452,24 @@ const toggleCollect = async (post) => {
 const sharePost = async (post) => {
   const url = `${window.location.origin}/post/${post.id}`
   try {
-    await navigator.clipboard.writeText(url)
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(url)
+    } else {
+      const textarea = document.createElement('textarea')
+      textarea.value = url
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+    }
     toast.success('链接已复制')
     if (userStore.isLoggedIn) {
-      shareApi.recordShare(post.id).then(() => {
+      try {
+        await shareApi.recordShare(post.id)
         post.shareCount = (post.shareCount || 0) + 1
-      }).catch(() => {})
+      } catch {}
     }
   } catch {
     toast.error('复制失败，请手动复制链接')

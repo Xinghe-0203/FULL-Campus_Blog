@@ -67,7 +67,7 @@
             >
               <img :src="msg.sender?.avatar || defaultAvatar" :alt="msg.sender?.nickname" class="msg-avatar" @error="onAvatarError" />
               <div class="msg-content">
-                <p class="msg-text" v-html="sanitizeText(msg.content)"></p>
+                <p class="msg-text">{{ msg.content }}</p>
                 <span class="msg-time">{{ formatRelativeTime(msg.createTime) }}</span>
               </div>
             </div>

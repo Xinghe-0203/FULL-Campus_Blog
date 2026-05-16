@@ -59,6 +59,16 @@
   /* 骨架屏 */
   --skeleton-base: #E5E7EB;
   --skeleton-highlight: #F8FAFC;
+
+  --navbar-bg: rgba(255, 255, 255, 0.95);
+  --blue: #3B82F6;
+  --blue-light: rgba(59, 130, 246, 0.1);
+  --green: #10B981;
+  --green-light: rgba(16, 185, 129, 0.1);
+  --purple: #8B5CF6;
+  --purple-light: rgba(139, 92, 246, 0.1);
+  --red: #EF4444;
+  --red-light: rgba(239, 68, 68, 0.1);
 }
 
 /* ==================== 暗色模式 ==================== */
@@ -86,6 +96,16 @@
 
   --skeleton-base: #334155;
   --skeleton-highlight: #1E293B;
+
+  --navbar-bg: rgba(30, 41, 59, 0.95);
+  --blue: #60A5FA;
+  --blue-light: rgba(96, 165, 250, 0.15);
+  --green: #34D399;
+  --green-light: rgba(52, 211, 153, 0.15);
+  --purple: #A78BFA;
+  --purple-light: rgba(167, 139, 250, 0.15);
+  --red: #F87171;
+  --red-light: rgba(248, 113, 113, 0.15);
 }
 
 /* ==================== 基础重置 ==================== */

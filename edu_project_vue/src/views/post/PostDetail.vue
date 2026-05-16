@@ -298,7 +298,11 @@ const renderedContent = computed(() => {
   if (!post.value?.content) return ''
 
   const html = marked.parse(post.value.content)
-  return DOMPurify.sanitize(html)
+  return DOMPurify.sanitize(html, {
+    USE_PROFILES: { html: true },
+    FORBID_TAGS: ['style', 'script', 'iframe', 'form', 'input', 'button', 'textarea', 'select'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover']
+  })
 })
 
 // XSS防护：对用户生成内容进行净化
@@ -556,21 +560,27 @@ const cancelReply = () => {
 
 // 分享文章
 const sharePost = async () => {
+  const url = window.location.href
   try {
-    // 调用API记录分享
-    await shareApi.recordShare(route.params.id, 'web')
-
-    // 本地更新分享数
-    post.value.shareCount = (post.value.shareCount || 0) + 1
-
-    // 复制链接到剪贴板
-    const url = window.location.href
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(url)
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(url)
+      } else {
+        const textarea = document.createElement('textarea')
+        textarea.value = url
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      }
       toast.success('链接已复制到剪贴板')
-    } else {
+    } catch {
       toast.success('分享成功')
     }
+    await shareApi.recordShare(route.params.id, 'web')
+    post.value.shareCount = (post.value.shareCount || 0) + 1
   } catch (err) {
     logger.error('Failed to share post', { error: err.message })
     toast.error('分享失败')

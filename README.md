@@ -1,7 +1,7 @@
 # 校园博客论坛系统 / Campus Blog Forum System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-v1.52-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
+[![Version](https://img.shields.io/badge/version-v1.53-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-green)](https://spring.io/projects/spring-boot)
 [![Vue](https://img.shields.io/badge/Vue-3.4.21-brightgreen)](https://vuejs.org/)
@@ -847,11 +847,22 @@ SOFTWARE.
 
 ## 更新日志
 
+### v1.53 (2026-05-16)
+- **安全加固**：DOMPurify 添加 FORBID_TAGS/FORBID_ATTR 配置防止 XSS
+- **通知轮询**：Navbar 每30秒自动刷新未读通知/私信数
+- **管理后台**：用户管理新增封禁/解封按钮和封禁状态列
+- **剪贴板回退**：分享功能添加非HTTPS环境 textarea 回退方案
+- **分页修复**：话题列表 `/topic/list` 返回完整分页元数据
+- **Dashboard 自动刷新**：管理后台仪表盘每60秒自动刷新统计数据
+- **匿名用户体验**：未登录用户也能查看粉丝/关注数据
+- **参数验证**：校友圈接口 String 参数改为 int + @Min/@Max 验证
+- **暗色模式**：新增 CSS 变量 (--navbar-bg, --blue 等)，消除硬编码颜色
+
 ### v1.52 (2026-05-16)
 - **热搜榜改版**：热门内容Tab支持文章和校友圈动态混排展示，按热度评分统一排名
 - **校友圈话题**：发布/详情页新增话题选择器，支持搜索话题并关联到动态
 
-### v1.52 (2026-05-16)
+### v1.51 (2026-05-16)
 
 ### v1.49 (2026-05-16)
 - 修复验证码并发竞态问题（EmailServiceImpl添加synchronized同步块）
@@ -876,7 +887,7 @@ SOFTWARE.
 
 ## 项目信息
 
-- **版本**: v1.52
+- **版本**: v1.53
 - **最后更新**: 2026-05-16
 - **开发者**: 刘畅
 - **GitHub**: https://github.com/Xinghe-0203/FULL-Campus_Blog

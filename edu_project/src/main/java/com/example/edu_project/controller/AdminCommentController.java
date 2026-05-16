@@ -8,6 +8,7 @@ import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.CommentWithPostVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,7 +31,7 @@ public class AdminCommentController {
     @Operation(summary = "获取评论列表")
     @GetMapping("/list")
     @PreAuthorize("hasRole('admin')")
-    public Result<IPage<CommentWithPostVO>> getCommentList(@Validated PageRequest request) {
+    public Result<IPage<CommentWithPostVO>> getCommentList(@Valid PageRequest request) {
         IPage<CommentWithPostVO> result = blogCommentService.getAllComments(request.getPageNum(), request.getPageSize());
         return Result.success(result);
     }

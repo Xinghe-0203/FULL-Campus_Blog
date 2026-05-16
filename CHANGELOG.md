@@ -1,5 +1,27 @@
 # 变更日志
 
+## v1.53 - 2026-05-16
+
+### 🐛 HIGH 修复
+- **Navbar.vue** - 添加通知/私信未读数轮询（每30秒刷新），移除硬编码暗色背景改用 CSS 变量
+- **Home.vue** - `sharePost` 添加非 HTTPS 环境剪贴板回退（textarea + execCommand），修复 API 调用竞态
+- **PostDetail.vue** - `sharePost` 添加非 HTTPS 环境剪贴板回退，分离 API 与剪贴板错误处理
+- **Users.vue + admin.js** - 添加封禁/解封 API（`PUT /admin/user/{id}/ban`）和 UI 按钮，新增封禁状态列
+- **PostEdit.vue + PostDetail.vue** - DOMPurify 添加 `FORBID_TAGS` 和 `FORBID_ATTR` 配置防止 XSS
+- **TopicController.java** - 分页接口 `/topic/list` 返回 `IPage<Map>` 而非 `List<Map>`，保留分页元数据；修复 mojibake 注释
+
+### 🐛 MEDIUM 修复
+- **Dashboard.vue** - 添加60秒自动刷新（`setInterval` + `onUnmounted` 清理）
+- **Dashboard.vue** - 硬编码颜色替换为 CSS 变量（`--blue`, `--green`, `--purple`, `--red` 等）
+- **AdminCommentController.java** - `@Validated PageRequest` → `@Valid PageRequest`
+- **CircleController.java** - String 分页参数改为 `int` + `@Min`/`@Max` 验证，移除 `parsePage`/`parsePageSize` 辅助方法
+- **FollowController.java** - 匿名用户也能获取粉丝/关注数（从 `if (userId != null)` 代码块移出）
+- **BlogPostController.java** - 浏览量增加失败不再阻塞文章加载（try-catch 包裹）
+
+### 🐛 LOW 修复
+- **Messages.vue** - `v-html="sanitizeText(msg.content)"` → `{{ msg.content }}` 文本插值（避免不必要的 v-html）
+- **main.css** - 新增 `--navbar-bg`, `--blue`, `--green`, `--purple`, `--red` 等 CSS 变量，暗色模式适配
+
 ## v1.52 - 2026-05-16
 
 ### ✨ 热搜榜改版 — 文章+动态混排

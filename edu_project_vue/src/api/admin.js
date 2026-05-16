@@ -83,6 +83,16 @@ export const adminApi = {
   },
 
   /**
+   * 封禁/解封用户
+   * @param {number|string} userId - 用户ID
+   * @param {boolean} ban - true=封禁, false=解封
+   * @returns {Promise<{code: number, message: string, data: Object}>}
+   */
+  banUser(userId, ban) {
+    return api.put(`/admin/user/${userId}/ban`, { ban })
+  },
+
+  /**
    * 获取文章列表
    * @param {{pageNum?: number, pageSize?: number, status?: string}} params - 查询参数
    * @returns {Promise<{code: number, message: string, data: Object}>}

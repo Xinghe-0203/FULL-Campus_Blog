@@ -1,5 +1,6 @@
 package com.example.edu_project.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.common.result.Result;
 import com.example.edu_project.dto.TopicCreateRequest;
@@ -26,10 +27,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * 璇濋鎺у埗鍣?
+ * 话题控制器
  */
 @Slf4j
-@Tag(name = "璇濋", description = "璇濋鐩稿叧鎺ュ彛")
+@Tag(name = "话题", description = "话题相关接口")
 @RestController
 @RequestMapping("/topic")
 @Validated
@@ -51,6 +52,75 @@ public class TopicController {
         map.put("createTime", topic.getCreateTime());
         return map;
     }
+
+    /**
+     * 创建话题（仅管理员）
+     */
+    @Operation(summary = "创建话题（仅管理员）")
+    @PostMapping
+    @PreAuthorize("hasRole('admin')")
+    public Result<Long> createTopic(@Valid @RequestBody TopicCreateRequest request) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+
+        Long topicId = topicService.createTopic(request.getName(), request.getDescription());
+        return Result.success(topicId);
+    }
+
+    /**
+     * 获取话题列表（分页）
+     */
+    @Operation(summary = "获取话题列表")
+    @GetMapping("/list")
+    public Result<IPage<Map<String, Object>>> getTopicList(
+            @RequestParam(defaultValue = "1", name = "pageNum") @Min(1) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int pageSize) {
+        IPage<Topic> topicPage = topicService.getTopicList(page, pageSize);
+        IPage<Map<String, Object>> result = topicPage.convert(this::toTopicMap);
+        return Result.success(result);
+    }
+
+    /**
+     * 获取热门话题
+     */
+    @Operation(summary = "获取热门话题")
+    @GetMapping("/hot")
+    public Result<List<Map<String, Object>>> getHotTopics(
+            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int limit) {
+        List<Map<String, Object>> result = topicService.getHotTopics(limit)
+                .stream().map(this::toTopicMap).collect(Collectors.toList());
+        return Result.success(result);
+    }
+
+    /**
+     * 获取话题详情
+     */
+    @Operation(summary = "获取话题详情")
+    @GetMapping("/{topicId}")
+    public Result<Map<String, Object>> getTopicById(@PathVariable Long topicId) {
+        Topic topic = topicService.getTopicById(topicId);
+        if (topic == null) {
+            throw new BusinessException(404, "话题不存在");
+        }
+        return Result.success(toTopicMap(topic));
+    }
+
+    /**
+     * 获取话题下的动态列表
+     */
+    @Operation(summary = "获取话题下的动态列表")
+    @GetMapping("/{topicId}/posts")
+    public Result<List<CirclePostVO>> getTopicPosts(
+            @PathVariable Long topicId,
+            @RequestParam(defaultValue = "1", name = "pageNum") @Min(1) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int pageSize) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        List<CirclePostVO> posts = circleService.getPostsByTopic(topicId, page, pageSize, userId);
+        return Result.success(posts);
+    }
+}
 
     /**
      * 鍒涘缓璇濋锛堜粎绠＄悊鍛橈級

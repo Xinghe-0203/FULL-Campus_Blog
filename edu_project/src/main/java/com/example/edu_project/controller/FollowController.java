@@ -70,16 +70,16 @@ public class FollowController {
     @GetMapping("/check/{targetUserId}")
     public Result<FollowStatusVO> checkFollow(@PathVariable Long targetUserId) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
-        boolean following = followService.isFollowing(targetUserId, userId);
+        boolean following = false;
+        if (userId != null) {
+            following = followService.isFollowing(targetUserId, userId);
+        }
 
         FollowStatusVO result = new FollowStatusVO();
         result.setFollowing(following);
-
-        if (userId != null) {
-            FollowService.FollowCountsVO targetCounts = followService.getCounts(targetUserId);
-            result.setFollowerCount(targetCounts.getFollowerCount());
-            result.setFollowingCount(targetCounts.getFollowingCount());
-        }
+        FollowService.FollowCountsVO targetCounts = followService.getCounts(targetUserId);
+        result.setFollowerCount(targetCounts.getFollowerCount());
+        result.setFollowingCount(targetCounts.getFollowingCount());
 
         return Result.success(result);
     }

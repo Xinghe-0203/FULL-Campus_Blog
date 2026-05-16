@@ -129,7 +129,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { adminApi } from '../../api/admin'
 import { useLogger } from '../../utils/logger'
 
@@ -137,6 +137,7 @@ const logger = useLogger('AdminDashboard')
 const stats = ref({})
 const loading = ref(true)
 const error = ref('')
+let refreshTimer = null
 
 const fetchStats = async () => {
   loading.value = true
@@ -154,6 +155,11 @@ const fetchStats = async () => {
 
 onMounted(() => {
   fetchStats()
+  refreshTimer = setInterval(fetchStats, 60000)
+})
+
+onUnmounted(() => {
+  if (refreshTimer) clearInterval(refreshTimer)
 })
 </script>
 
@@ -229,23 +235,23 @@ onMounted(() => {
 }
 
 .stat-icon.users {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3B82F6;
+  background: var(--blue-light, rgba(59, 130, 246, 0.1));
+  color: var(--blue, #3B82F6);
 }
 
 .stat-icon.posts {
-  background: rgba(16, 185, 129, 0.1);
-  color: #10B981;
+  background: var(--green-light, rgba(16, 185, 129, 0.1));
+  color: var(--green, #10B981);
 }
 
 .stat-icon.comments {
-  background: rgba(139, 92, 246, 0.1);
-  color: #8B5CF6;
+  background: var(--purple-light, rgba(139, 92, 246, 0.1));
+  color: var(--purple, #8B5CF6);
 }
 
 .stat-icon.reports {
-  background: rgba(239, 68, 68, 0.1);
-  color: #EF4444;
+  background: var(--red-light, rgba(239, 68, 68, 0.1));
+  color: var(--red, #EF4444);
 }
 
 .stat-info {

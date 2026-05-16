@@ -288,14 +288,26 @@ const handleDocumentClick = (event) => {
   }
 }
 
+let notificationTimer = null
+
+const fetchNotifications = async () => {
+  if (!userStore.isLoggedIn) return
+  try {
+    await userStore.fetchUnreadCounts()
+  } catch {}
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
   document.addEventListener('click', handleClickOutside)
   document.addEventListener('click', handleDocumentClick)
+  fetchNotifications()
+  notificationTimer = setInterval(fetchNotifications, 30000)
 })
 
 onUnmounted(() => {
   if (scrollTimer) clearTimeout(scrollTimer)
+  if (notificationTimer) clearInterval(notificationTimer)
   window.removeEventListener('scroll', handleScroll)
   document.removeEventListener('click', handleClickOutside)
   document.removeEventListener('click', handleDocumentClick)
@@ -309,15 +321,11 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: 60px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--navbar-bg, rgba(255, 255, 255, 0.95));
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
   z-index: 1000;
   transition: all var(--transition);
-}
-
-.dark-mode .navbar {
-  background: rgba(30, 41, 59, 0.95);
 }
 
 .navbar.scrolled {

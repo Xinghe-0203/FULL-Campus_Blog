@@ -25,6 +25,7 @@
                 <th>邮箱</th>
                 <th>角色</th>
                 <th>状态</th>
+                <th>封禁</th>
                 <th>注册时间</th>
                 <th>操作</th>
               </tr>
@@ -60,14 +61,15 @@
               <th>用户</th>
               <th>邮箱</th>
               <th>角色</th>
-              <th>状态</th>
-              <th>注册时间</th>
+<th>状态</th>
+                <th>封禁</th>
+                <th>注册时间</th>
               <th>操作</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="users.length === 0">
-              <td colspan="7" class="empty-cell">暂无用户</td>
+              <td colspan="8" class="empty-cell">暂无用户</td>
             </tr>
             <tr v-for="user in users" :key="user.id">
               <td>{{ user.id }}</td>
@@ -88,6 +90,11 @@
                   {{ user.status === 1 ? '正常' : '禁用' }}
                 </span>
               </td>
+              <td>
+                <span class="status" :class="user.banned ? 'banned' : ''">
+                  {{ user.banned ? '已封禁' : '正常' }}
+                </span>
+              </td>
               <td>{{ formatDate(user.createTime) }}</td>
               <td>
                 <div class="actions">
@@ -96,6 +103,12 @@
                     @click="toggleUserStatus(user)"
                   >
                     {{ user.status === 1 ? '禁用' : '启用' }}
+                  </button>
+                  <button 
+                    class="btn btn-sm btn-ghost danger"
+                    @click="toggleBan(user)"
+                  >
+                    {{ user.banned ? '解封' : '封禁' }}
                   </button>
                   <button 
                     class="btn btn-sm btn-ghost"
@@ -200,6 +213,21 @@ const resetPassword = async (user) => {
   }
 }
 
+const toggleBan = async (user) => {
+  const action = user.banned ? '解封' : '封禁'
+  const ok = await confirm(`确定${action}该用户吗？`, `${action}用户`)
+  if (!ok) return
+
+  try {
+    await adminApi.banUser(user.id, !user.banned)
+    user.banned = !user.banned
+    toast.success(`${action}成功`)
+  } catch (err) {
+    logger.error('Failed to toggle ban', { error: err.message })
+    toast.error('操作失败')
+  }
+}
+
 const changePage = (page) => {
   currentPage.value = page
   fetchUsers()
@@ -300,6 +328,11 @@ onMounted(() => {
 
 .status.disabled {
   color: var(--error);
+}
+
+.status.banned {
+  color: #EF4444;
+  font-weight: 600;
 }
 
 .actions {

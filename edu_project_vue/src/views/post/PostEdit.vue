@@ -215,7 +215,11 @@ watch([() => form.title, () => form.content, () => form.summary, () => form.cate
 
 const renderedContent = computed(() => {
   if (!form.content) return ''
-  return DOMPurify.sanitize(marked.parse(form.content))
+  return DOMPurify.sanitize(marked.parse(form.content), {
+    USE_PROFILES: { html: true },
+    FORBID_TAGS: ['style', 'script', 'iframe', 'form', 'input', 'button', 'textarea', 'select'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover']
+  })
 })
 const wordCount = computed(() => form.content.replace(/\s/g, '').length)
 const readingTime = computed(() => Math.max(1, Math.ceil(wordCount.value / 300)))
