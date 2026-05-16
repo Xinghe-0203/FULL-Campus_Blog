@@ -160,6 +160,7 @@
           <select v-model="form.topicId" class="form-input">
             <option :value="null">不选择话题</option>
             <option v-for="topic in topics" :key="topic.id" :value="topic.id">{{ topic.name }}</option>
+            <option v-if="form.topicId && !topics.find(t => t.id === form.topicId)" :value="form.topicId">{{ savedTopicName || '当前话题' }}</option>
           </select>
         </div>
       </div>
@@ -195,6 +196,7 @@ const selectedTags = ref([])
 const allTags = ref([])
 const filteredTags = ref([])
 const topics = ref([])
+const savedTopicName = ref('')
 const currentDraftId = ref(null)
 const contentTextarea = ref(null)
 const coverInput = ref(null)
@@ -430,9 +432,11 @@ async function createTagAndAdd() {
   if (!name || selectedTags.value.find(s => s.name === name)) return
   try {
     const res = await tagApi.createTag({ name })
-    const newTag = res.data || { id: Date.now(), name }
-    selectedTags.value.push(newTag)
-    allTags.value.push(newTag)
+    const newTag = res.data
+    if (newTag && newTag.id) {
+      selectedTags.value.push(newTag)
+    }
+    await fetchTags()
     tagInput.value = ''
     toast.success('标签已创建')
   } catch (err) {
@@ -472,6 +476,7 @@ const fetchPost = async () => {
     form.category = post.category || ''
     form.coverImage = post.coverImage || ''
     form.topicId = post.topicId || null
+    savedTopicName.value = post.topicName || ''
     selectedTags.value = post.tags || []
     postInfo.createTime = post.createTime
     postInfo.viewCount = post.viewCount || 0
@@ -592,9 +597,9 @@ function handleBeforeUnload(e) {
 
 onMounted(async () => {
   window.addEventListener('beforeunload', handleBeforeUnload)
-  fetchTags()
-  fetchTopics()
   isLoading.value = true
+  await fetchTags()
+  await fetchTopics()
   if (route.params.id) {
     await fetchPost()
   } else if (route.query.draft) {

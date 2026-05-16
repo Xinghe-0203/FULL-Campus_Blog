@@ -1,82 +1,51 @@
 # 变更日志
 
-## v1.51 - 2026-05-16
-
-### 🐛 CRITICAL - 页面跳转白屏修复
-- **App.vue** - 移除导致白屏的 `<transition mode="out-in">` 和全屏加载遮罩
-  - 原因：`mode="out-in"` 导致旧组件消失后新组件以 `opacity:0` 进入，若 `onAfterEnter` 未触发则永久白屏
-  - 修复：直接渲染 `<component :is>` 无过渡动画，`:key` 改为 `$route.path` 避免查询参数变化触发重建
-  - 移除 `routeLoading` 全屏遮罩（`background: var(--background)` 即白色遮罩阻塞内容）
-  - 移除 `routeError` 全屏错误遮罩（路由错误由 `router.onError` 全局 toast 处理）
-  - 移除 `onErrorCaptured`（组件错误由各页面内部 error 状态处理）
-
-### 🐛 私信页面功能优化
-- **Messages.vue** - 3项修复：
-  - 发送者 ID 比较改用 `String()` 转换后严格等于（`==` 改为 `String()===`）
-  - 移动端会话列表添加关闭按钮（✕），修复无法返回消息区域的问题
-  - 移动端"← 会话列表"按钮改为始终显示（不仅限有活跃会话时）
-
-### 🎨 暗色模式修复
-- **Circle.vue** - 50+ 处硬编码颜色替换为 CSS 变量（`#1a1a1a`→`var(--text-primary)` 等）
-- **CirclePost.vue** - 30+ 处硬编码颜色替换为 CSS 变量
-- **CircleDetail.vue** - 30+ 处硬编码颜色替换为 CSS 变量
-- **TrendingPage.vue** - 移除重复的 CSS 选择器覆盖（`.topic-icon`等6个选择器硬编码颜色覆盖了正确的变量）
-
-### 🔧 代码质量
-- **PostDetail.vue** - `window.confirm()` 替换为项目 `useConfirm()` 组件化确认框
-
 ## v1.52 - 2026-05-16
 
+### ✨ 热搜榜改版 — 文章+动态混排
+- **TrendingPage.vue** - "热门内容"Tab 展示文章（type=0）和校友圈动态（type=1）混合排名
+  - 每条内容显示类型标签（蓝色"文章" / 绿色"动态"）
+  - 点击跳转：文章 → `/post/:id`，动态 → `/circle/:id`
+  - 动态显示话题标签、缩略图、分享数等附加信息，支持分页加载
+- **trending.js** - 新增 `getHotContent()` 方法调用 `GET /trending/content`
+- **HotContentVO.java** - 新增统一 VO，包含 type、title、content、images、tags、topics 等 16 个字段
+- **TrendingServiceImpl.java** - 新增 `getHotContent()` 方法：
+  - 同时查询热门文章和热门动态，合并后按热度评分降序排列，内存分页返回
+
+### ✨ 校友圈话题功能 + 文章话题完善
+- **Circle.vue** - 发布弹窗新增话题选择器，feed 卡片显示话题标签（可点击跳转搜索）
+- **CirclePost.vue** - 独立发布页面新增话题选择器
+- **CircleDetail.vue** - 动态详情页显示话题标签
+- **PostEdit.vue** - 话题选择器下拉 + 标签创建修复：
+  - `createTagAndAdd` 去掉 `Date.now()` 伪 ID，改为服务端返回后重新加载标签列表
+  - 话题选择器添加回显兼容（编辑已有文章时显示当前话题）
+- **PostDetail.vue** - 新增话题徽章展示（点击跳转搜索）
+
 ### 🐛 15 Agent 深度检查 — 关键 Bug 修复
-
-#### CRITICAL 修复 (12项)
 - **TrendingPage.vue** - 修复 `switchTab` 中引用未定义的 `loading` ref 导致 Tab 切换崩溃
-- **UserProfile.vue** - 修复校友圈缩略图 `@click="previewImage(url)"` 调用未定义函数导致运行时错误
+- **UserProfile.vue** - 修复校友圈缩略图 `@click="previewImage(url)"` 调用未定义函数运行时错误
 - **Notifications.vue** - 修复 `v-if`/`v-else-if` 链断裂导致骨架屏和空状态同时渲染
-- **PasswordReset.vue** - 修复重置密码 API 参数 `newPassword` → `password` 导致密码重置失败
+- **PasswordReset.vue** - 修复重置密码 API 参数 `newPassword` → `password` 导致重置失败
 - **Navbar.vue** - 修复下拉菜单点击链接后无法关闭（冒泡事件导致 `toggleDropdown` 二次触发）
-- **Following.vue** - 修复取消关注乐观更新缺少回滚（API 失败后列表永久消失）
-- **Followers.vue** - 修复关注/取消关注状态切换未在 API 失败时恢复
-- **BlogTagServiceImpl.java** - 修复 `getOrCreateTag()` 和 `createTag()` 并发竞态导致 `DuplicateKeyException` 回滚整个帖子创建
-- **BlogCommentServiceImpl.java** - 修复 null 或空字符串评论内容导致 DB `NOT NULL` 约束违反（500 错误）
-- **CirclePostCreateRequest.java** - 添加 `@NotBlank` 校验，防止空内容传入触发 DB 约束错误
-- **HtmlSanitizer.java** - 修复 `sanitizeMarkdown()` 手动 `replace()` 导致 HTML 实体双重编码，改用 `HtmlUtils.htmlEscape()`
+- **Following.vue** / **Followers.vue** - 修复乐观更新缺少错误回滚
+- **BlogTagServiceImpl.java** - 修复 `getOrCreateTag()` 并发竞态导致 `DuplicateKeyException` 回滚帖子创建
+- **BlogCommentServiceImpl.java** - 修复 null 内容导致 DB `NOT NULL` 约束违反
+- **CirclePostCreateRequest.java** - 添加 `@NotBlank` 校验防止空内容
+- **HtmlSanitizer.java** - 修复 `sanitizeMarkdown()` 实体双重编码，改用 `HtmlUtils.htmlEscape()`
 
-#### 前端其他修复 (根据审计发现)
-- **BlogTagServiceImpl.createTag** - 添加 `DuplicateKeyException` 异常处理使标签创建幂等
-- **PostDetail.vue** - `confirm()` 替换为 `useConfirm()` 组件化对话框
-- **Circle/CirclePost/CircleDetail/TrendingPage.vue** - 110+ 处硬编码颜色替换为 CSS 变量
-- **Messages.vue** - 移动端添加会话列表关闭按钮、修复 sender ID 比较
-- **App.vue** - 移除导致页面跳转白屏的 `<transition>` 和加载遮罩
+### 🎨 暗色模式修复
+- **Circle.vue** / **CirclePost.vue** / **CircleDetail.vue** - 110+ 处硬编码颜色替换为 CSS 变量
+- **TrendingPage.vue** - 移除重复 CSS 选择器覆盖
 
-### 🔍 15 Agent 审计 — 项目质量全景报告
-
-全部 15 个 Agent 并行深度检查结果（报告均有 task_id 可追踪）:
-
-| Agent | 检查范围 | 发现问题 |
-|-------|---------|---------|
-| Auth 页面 (Login/Register/PasswordReset) | 登录、注册、找回密码 | 12 个问题 (1 HIGH) |
-| Post 页面 (Detail/Edit/Search) | 文章详情、编辑器、搜索 | 59 个问题 (11 HIGH) |
-| User 页面 Part1 (Profile等) | 个人中心、编辑资料、用户主页、改密 | 24 个问题 (3 HIGH) |
-| User 页面 Part2 (Drafts等6页) | 草稿、收藏、关注、粉丝、举报、通知 | 34 个问题 (5 HIGH) |
-| Circle + Messages | 校友圈、发布动态、详情、私信 | 22 个问题 (3 HIGH) |
-| Home/Search/Trending/Common | 首页、搜索、热搜、举报、404 | 25 个问题 (2 HIGH) |
-| Admin 后台 (5页) | 仪表盘、用户、文章、举报、统计 | 45 个问题 (7 HIGH) |
-| 组件+Layout (11个) | Navbar、Toast、Modal、PostCard等 | 39 个问题 (5 HIGH) |
-| API 层 (index.js + 17模块) | Axios、Token、所有API端点 | 18 个问题 (5 HIGH) |
-| Stores/Composables/Utils/Router | Pinia、Router守卫、工具函数 | 24 个问题 (2 HIGH) |
-| 后端核心 Service (5个) | BlogPost、Like、Collect、Comment、Tag | 26 个问题 (5 HIGH) |
-| 后端其他 Service (12个) | Circle、Follow、Message等 | 49 个问题 (3 HIGH) |
-| 后端 Controller (23个) | 全23个控制器 | 20 个问题 (4 HIGH) |
-| 后端 Entity/Mapper/Security | 实体、Mapper、DTO、VO、JWT、CORS | 26 个问题 (2 HIGH) |
-| 文档一致性 (8个文件) | README、CHANGELOG、AGENTS等 | 31 个问题 (4 HIGH) |
-
-**审计总计: 454 个问题** (72 HIGH / 164 MEDIUM / 218 LOW)
-**本次 v1.52 已修复: 12 个 CRITICAL + 多项功能性修复**
+### 🔧 代码质量
+- **PostDetail.vue** - `window.confirm()` 替换为 `useConfirm()` 组件化对话框
 
 ### 📝 文档更新
-- CHANGELOG.md - 追加 v1.52 完整变更记录
-- 版本号同步更新至 v1.52
+- CHANGELOG.md / README.md / campus_blog.md - 更新热搜改版和话题功能文档
+- `GET /trending/content` 端点文档补充
+- 全面审计报告：15 个 Agent 发现 454 个问题
+
+## v1.50 - 2026-05-15
 
 ### 🐛 前端 Bug 修复
 

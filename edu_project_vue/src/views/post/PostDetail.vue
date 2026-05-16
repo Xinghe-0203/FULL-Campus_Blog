@@ -60,6 +60,13 @@
             </router-link>
           </div>
           
+          <!-- 话题 -->
+          <div v-if="post.topicName" class="post-topic">
+            <router-link :to="`/search?keyword=${encodeURIComponent('#' + post.topicName)}`" class="topic-badge">
+              #{{ post.topicName }}
+            </router-link>
+          </div>
+
           <!-- 标签 -->
           <div v-if="post.tags && post.tags.length" class="post-tags">
             <span
@@ -700,6 +707,26 @@ watch(() => route.params.id, () => {
 .post-time {
   font-size: 0.75rem;
   color: var(--text-muted);
+}
+
+.post-topic {
+  margin-bottom: var(--spacing-md);
+}
+
+.topic-badge {
+  display: inline-block;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #f97316, #ef4444);
+  color: #fff;
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.topic-badge:hover {
+  opacity: 0.85;
 }
 
 .post-tags {
