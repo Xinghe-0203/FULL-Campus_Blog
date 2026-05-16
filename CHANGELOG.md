@@ -1,5 +1,18 @@
 # 变更日志
 
+## v1.56 - 2026-05-17
+
+### 🐛 MEDIUM 修复
+- **Report.vue** - 前端 targetType 白名单从 `['post','circle','comment']` 改为 `['post','comment','user']`，与后端对齐
+- **Profile.vue** - 统计数据现在正确显示文章数和获赞数（从 `/myPosts` 和 `/myLikes` 的 total 字段获取，不再显示 0）
+- **Profile.vue** - `switchTab` 每次切换都刷新数据，不再因数据已加载而返回陈旧内容
+- **StatisticsServiceImpl** - `getActiveUsersThisWeek()` 不再将同一用户在多个内容类型中重复计数，使用重叠估算去重
+
+### 🐛 LOW 修复
+- **FileUploader.vue** - 图片预览功能修复：添加文件时创建 `URL.createObjectURL` 预览，删除时释放 URL
+- **admin/Reports.vue** - 举报状态从两态（待处理/已处理）改为三态（待处理/已核实/已驳回）
+- **MyReports.vue** - 硬编码状态徽章颜色改为 CSS 变量，暗色模式适配
+
 ## v1.55 - 2026-05-16
 
 ### 🐛 HIGH 修复

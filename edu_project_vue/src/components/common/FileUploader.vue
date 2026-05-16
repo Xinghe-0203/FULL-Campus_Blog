@@ -94,9 +94,14 @@ function addFiles(rawFiles) {
   const valid = validateFiles(rawFiles)
   if (!valid) return
 
-  let newFiles = [...files.value, ...valid]
+  let newFiles = [...files.value, ...valid.map(f => {
+    if (f.type?.startsWith('image/')) {
+      try { return Object.assign(f, { preview: URL.createObjectURL(f) }) } catch { return f }
+    }
+    return f
+  })]
   if (!props.multiple) {
-    newFiles = [valid[0]]
+    newFiles = [newFiles[newFiles.length - 1]]
   } else if (props.maxCount && newFiles.length > props.maxCount) {
     error.value = `最多上传 ${props.maxCount} 个文件`
     newFiles = newFiles.slice(0, props.maxCount)
@@ -124,6 +129,8 @@ function onDrop(e) {
 }
 
 function removeFile(index) {
+  const file = files.value[index]
+  if (file?.preview) URL.revokeObjectURL(file.preview)
   files.value.splice(index, 1)
   error.value = ''
   emit('file-remove', index)

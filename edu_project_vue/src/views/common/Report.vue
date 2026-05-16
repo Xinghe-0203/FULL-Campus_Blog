@@ -61,7 +61,7 @@ const form = reactive({
 const handleSubmit = async () => {
   if (!form.reason) return
 
-  const validTypes = ['post', 'circle', 'comment']
+  const validTypes = ['post', 'comment', 'user']
   if (!validTypes.includes(route.params.type)) {
     toast.error('无效的举报类型')
     return

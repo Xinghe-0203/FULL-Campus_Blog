@@ -1,7 +1,7 @@
 # 校园博客论坛系统 / Campus Blog Forum System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-v1.55-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
+[![Version](https://img.shields.io/badge/version-v1.56-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-green)](https://spring.io/projects/spring-boot)
 [![Vue](https://img.shields.io/badge/Vue-3.4.21-brightgreen)](https://vuejs.org/)
@@ -887,7 +887,7 @@ SOFTWARE.
 
 ## 项目信息
 
-- **版本**: v1.55
+- **版本**: v1.56
 - **最后更新**: 2026-05-16
 - **开发者**: 刘畅
 - **GitHub**: https://github.com/Xinghe-0203/FULL-Campus_Blog

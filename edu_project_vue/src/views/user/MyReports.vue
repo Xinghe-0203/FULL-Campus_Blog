@@ -94,9 +94,9 @@ onMounted(() => fetchReports())
 .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .report-type { font-size: 0.75rem; background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 4px; }
 .report-status { font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; }
-.report-status.pending { background: #fff3e0; color: #e65100; }
-.report-status.resolved { background: #e8f5e9; color: #2e7d32; }
-.report-status.rejected { background: #fce4ec; color: #c62828; }
+.report-status.pending { background: var(--warning-light); color: var(--warning); }
+.report-status.resolved { background: var(--success-light); color: var(--success); }
+.report-status.rejected { background: var(--error-light); color: var(--error); }
 .report-reason { font-size: 0.9375rem; font-weight: 500; margin-bottom: 4px; }
 .report-time { font-size: 0.75rem; color: var(--text-muted); }
 .error-card { text-align: center; padding: 60px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; }

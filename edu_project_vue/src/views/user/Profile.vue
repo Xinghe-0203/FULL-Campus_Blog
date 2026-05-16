@@ -428,10 +428,10 @@ async function openConfirm(title, message, onConfirm) {
 function switchTab(key, index) {
   activeTab.value = key
   activeTabIndex.value = index
-  if (key === 'posts' && (posts.value.length === 0 || postsError.value)) fetchPosts()
-  else if (key === 'circle' && (circles.value.length === 0 || circlesError.value)) fetchCircles()
-  else if (key === 'likes' && (likes.value.length === 0 || likesError.value)) fetchLikes()
-  else if (key === 'comments' && (comments.value.length === 0 || commentsError.value)) fetchComments()
+  if (key === 'posts') fetchPosts()
+  else if (key === 'circle') fetchCircles()
+  else if (key === 'likes') fetchLikes()
+  else if (key === 'comments') fetchComments()
 }
 
 async function initLoad() {
@@ -445,9 +445,19 @@ async function initLoad() {
     user.value = userResponse.data
 
     const countsData = statsResponse.data || {}
+    let postCount = 0
+    let likeCount = 0
+    try {
+      const postsResp = await postApi.getMyPosts({ pageNum: 1, pageSize: 1 })
+      postCount = postsResp.data?.total || 0
+    } catch {}
+    try {
+      const likesResp = await likeApi.getMyLikes({ pageNum: 1, pageSize: 1 })
+      likeCount = likesResp.data?.total || 0
+    } catch {}
     stats.value = {
-      postCount: 0,
-      likeCount: 0,
+      postCount,
+      likeCount,
       ...countsData
     }
   } catch (error) {

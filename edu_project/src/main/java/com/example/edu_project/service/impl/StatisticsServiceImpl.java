@@ -136,10 +136,14 @@ public class StatisticsServiceImpl implements StatisticsService {
         Long postAuthors = blogPostMapper.countDistinctAuthorsSince(weekStart);
         Long commentAuthors = blogCommentMapper.countDistinctAuthorsSince(weekStart);
         Long circleAuthors = circlePostMapper.countDistinctAuthorsSince(weekStart);
-        long total = (postAuthors != null ? postAuthors : 0)
-                   + (commentAuthors != null ? commentAuthors : 0)
-                   + (circleAuthors != null ? circleAuthors : 0);
-        return total;
+        long postCount = postAuthors != null ? postAuthors : 0;
+        long commentCount = commentAuthors != null ? commentAuthors : 0;
+        long circleCount = circleAuthors != null ? circleAuthors : 0;
+        if (postCount == 0 && commentCount == 0) return circleCount;
+        if (postCount == 0 && circleCount == 0) return commentCount;
+        if (commentCount == 0 && circleCount == 0) return postCount;
+        double avgOverlap = (double)(Math.min(postCount, commentCount) + Math.min(postCount, circleCount) + Math.min(commentCount, circleCount)) / 3.0;
+        return Math.round(postCount + commentCount + circleCount - avgOverlap);
     }
 
     private StatisticsVO.PostStats getPostStats() {

@@ -65,8 +65,8 @@
               <td>{{ report.reason }}</td>
               <td>{{ report.reporterName }}</td>
               <td>
-                <span class="status" :class="report.status === 0 ? 'pending' : 'handled'">
-                  {{ report.status === 0 ? '待处理' : '已处理' }}
+                <span class="status" :class="report.status === 0 ? 'pending' : report.status === 2 ? 'resolved' : 'rejected'">
+                  {{ report.status === 0 ? '待处理' : report.status === 2 ? '已核实' : '已驳回' }}
                 </span>
               </td>
               <td>{{ formatDate(report.createTime) }}</td>
@@ -302,9 +302,14 @@ onMounted(() => {
   color: var(--warning);
 }
 
-.status.handled {
+.status.resolved {
   background: var(--success-light);
   color: var(--success);
+}
+
+.status.rejected {
+  background: var(--error-light);
+  color: var(--error);
 }
 
 .actions {
