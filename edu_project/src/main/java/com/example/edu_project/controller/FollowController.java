@@ -77,9 +77,8 @@ public class FollowController {
 
         if (userId != null) {
             FollowService.FollowCountsVO targetCounts = followService.getCounts(targetUserId);
-            FollowService.FollowCountsVO myCounts = followService.getCounts(userId);
             result.setFollowerCount(targetCounts.getFollowerCount());
-            result.setFollowingCount(myCounts.getFollowingCount());
+            result.setFollowingCount(targetCounts.getFollowingCount());
         }
 
         return Result.success(result);

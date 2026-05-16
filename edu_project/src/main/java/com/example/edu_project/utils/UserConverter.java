@@ -23,6 +23,7 @@ public class UserConverter {
         vo.setAvatar(user.getAvatar());
         vo.setCoverImage(user.getCoverImage());
         vo.setBio(user.getBio());
+        vo.setEmail(user.getEmail());
         vo.setRole(user.getRole());
         vo.setStatus(user.getStatus());
         vo.setCreateTime(user.getCreateTime());

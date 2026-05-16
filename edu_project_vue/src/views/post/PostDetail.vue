@@ -46,6 +46,14 @@
             >
               {{ isFollowing ? '已关注' : '关注' }}
             </button>
+            <router-link
+              v-if="userStore.isLoggedIn && userStore.userId !== post.userId"
+              :to="`/messages?userId=${post.userId}`"
+              class="btn btn-ghost btn-sm"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              私信
+            </router-link>
             <router-link v-if="userStore.isLoggedIn && userStore.userId === post.userId" :to="`/post-edit/${post.id}`" class="btn btn-ghost btn-sm">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               编辑
@@ -200,10 +208,10 @@
           <a 
             v-for="(item, index) in toc" 
             :key="item.id"
-            href="javascript:void(0)"
+            :href="`#${item.id}`"
             class="toc-link"
             :class="[`level-${item.level}`, { active: activeTocId === item.id }]"
-            @click="scrollToHeading(index)"
+            @click.prevent="scrollToHeading(index)"
           >
             {{ item.text }}
           </a>
@@ -352,6 +360,14 @@ const fetchPost = async () => {
       }
     }
 
+    // 获取分享数
+    try {
+      const shareResponse = await shareApi.getShareCount(route.params.id)
+      post.value.shareCount = shareResponse.data ?? 0
+    } catch (err) {
+      post.value.shareCount = 0
+    }
+
     // 提取目录 — 由下方 watch 自动执行
   } catch (err) {
     logger.error('Failed to fetch post', { error: err.message })
@@ -428,9 +444,9 @@ const toggleLike = async () => {
   }
   
   try {
-    await likeApi.toggleLike(route.params.id)
+    const likeResult = await likeApi.toggleLike(route.params.id)
     isLiked.value = !isLiked.value
-    post.value.likeCount += isLiked.value ? 1 : -1
+    post.value.likeCount = (post.value.likeCount || 0) + (isLiked.value ? 1 : -1)
   } catch (err) {
     logger.error('Failed to toggle like', { error: err.message })
     toast.error('操作失败')
@@ -447,7 +463,7 @@ const toggleCollect = async () => {
   try {
     await collectApi.toggleCollect(route.params.id)
     isCollected.value = !isCollected.value
-    post.value.collectCount += isCollected.value ? 1 : -1
+    post.value.collectCount = (post.value.collectCount || 0) + (isCollected.value ? 1 : -1)
   } catch (err) {
     logger.error('Failed to toggle collect', { error: err.message })
     toast.error('操作失败')

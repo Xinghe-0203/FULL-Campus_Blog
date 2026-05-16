@@ -60,4 +60,9 @@ public class UserVO {
     @Schema(description = "是否关注（当前用户是否关注此用户）")
     @JsonProperty("isFollowing")
     private Boolean isFollowing;
+
+    @JsonProperty("userId")
+    public Long getUserId() {
+        return id;
+    }
 }

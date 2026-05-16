@@ -62,8 +62,8 @@
           </router-link>
 
           <!-- 主题切换 -->
-            <button class="theme-toggle" @click="themeStore.toggleTheme" :title="themeStore.isDarkMode ? '切换亮色模式' : '切换暗色模式'">
-              <svg v-if="!themeStore.isDarkMode" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <button class="theme-toggle" @click="themeStore.toggleTheme" :title="themeStore.isDarkMode ? '切换亮色模式' : '切换暗色模式'">
+            <svg v-if="!themeStore.isDarkMode" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
             </svg>
             <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

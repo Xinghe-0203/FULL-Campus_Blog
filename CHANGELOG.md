@@ -2,25 +2,104 @@
 
 ## v1.49 - 2026-05-16
 
-### 🐛 Bug 修复
+### 🐛 前端 Bug 修复
 
-#### 前端编译错误
-- **PostEdit.vue** - 修复模板表达式中反引号/双引号导致 Vue 编译器解析失败问题（3处）
+#### 编译错误修复 (3处)
+- **PostEdit.vue** - 修复模板表达式中反引号/双引号导致 Vue 编译器解析失败
   - `insertMarkdown('\`', '\`')` → `insertCode()` 函数
   - `insertMarkdown('\`\`\`\n', '\n\`\`\`')` → `insertCodeBlock()` 函数
-  - `insertMarkdown('<div style="...">', '</div>')` → `insertAlignLeft/Center/Right()` 函数（HTML 属性双引号与 JS 字符串冲突）
+  - `insertMarkdown('<div style="...">', '</div>')` → `insertAlignLeft/Center/Right()` 函数
+- **Toast.vue** - 修复 `<TransitionGroup>` 在 `<Teleport>` 中导致 build 失败的问题
 
-#### 前端功能修复
+#### 私信功能修复 (CRITICAL)
+- **Messages.vue** - 修复私信无法使用、私信页面展示错误的多项问题
+  - 会话匹配：使用 `user.id` 而非 `conversationId` 匹配，解决从用户主页跳转私信不显示的问题
+  - 新建会话：若无历史会话自动创建虚拟会话并获取用户信息
+  - 发送消息：修复 `receiverId` 使用正确用户ID而非会话ID
+  - 消息顺序：后端返回倒序，前端反转后正确展示（旧→新）
+  - 消息发送后自动刷新获取真实会话ID
+  - 多余 `}` 和重复代码块导致页面空白的问题
+- **MessageServiceImpl.java** - 后端返回消息按时间倒序排列（最新在前），前端反转展示
+- **MessageVO.java** - 添加缺失的 `senderId`/`receiverId` 字段
+- **message.js** (API) - 补充4个缺失的私信API端点（received/sent/read/delete）
+
+#### Back按钮修复
+- **PostDetail.vue** - 修复返回按钮在 grid 布局中不显示（添加 `grid-column: 1 / -1`）
+- **Profile.vue** - 修复返回按钮在 2 列 grid 布局中不显示
 - **PostEdit.vue** - 添加缺失的"返回"按钮
-- **PostDetail.vue** - 修复返回按钮在 grid 布局中不显示的 CSS 问题（添加 `grid-column: 1 / -1`）
-- **Profile.vue** - 修复返回按钮在 2 列 grid 布局中不显示的 CSS 问题
 - **CirclePost.vue** - 添加缺失的"返回"按钮
+- **UserProfile/Messages.vue** - 添加 `goBack()` 函数（history 回退，无历史时跳首页）
 
-#### 后端修复
-- **CirclePostCreateRequest.java** - 移除 `content` 字段的 `@NotBlank` 校验，允许仅图片/视频的动态发布
+#### PostEdit.vue 编辑器修复
+- **Undo/Redo** - 修复 Undo/Redo 历史记录不生效问题（`saveHistory()` 改为在修改内容前调用）
+- **自动保存** - 添加打字 2 秒自动保存到历史记录
+- **草稿加载** - 支持从草稿列表跳转的 `?draft=draftId` 查询参数；加载草稿时补全tags/封面图
+- **标签创建** - 修复无标签时"创建标签"按钮不显示的问题（条件从 `allTags.length === 0` 改为输入框有内容）
+- **历史初始化** - 加载草稿/文章后正确初始化 Undo 历史
+
+#### 其他前端修复
+- **PostDetail.vue** - 添加从文章详情直接发私信的"私信"按钮；修复 `likeCount`/`collectCount` 可能变成 `NaN` 的问题
+- **Toast.vue** - 修复鼠标悬停暂停再恢复时进度条跳转到100%的问题
+- **Modal.vue** - 修复多模态框叠加时 body scroll 锁定计数不共享的问题
+- **UserProfile.vue** - 切换用户 profile 时重置校友圈数据，避免显示上一个用户的动态
+- **Profile.vue** - 切换 Tab 后自动重试加载（err状态下），添加 `goBack()` 函数
+- **Followers.vue** - 修复取消关注实际调用关注API的问题（添加 `isFollowing` 判断）
+- **MyReports.vue** - 修复 `targetType` 大小写不匹配后端、举报状态映射反转
+- **Search.vue** - 添加搜索建议 `@blur` 关闭；修复 `--bg-secondary` CSS变量缺失
+- **Statistics.vue** - 删除不存在的 `stats.tagStats?.totalTags` 引用
+- **TrendingPage.vue** - 修复分页判断逻辑（使用后端 `pages` 替代 `records.length`）
+- **PostSearch.vue** - 添加加载中spinner动画
+- **PostEdit.vue** - 图片上传后添加undo历史记录
+
+#### API 层补充
+- **media.js** - 补充6个缺失的媒体API端点（batch upload/delete/getById/bind/getByPost/list）
+- **circle.js** - 补充2个缺失的校友圈API端点（delete/search）
+- **message.js** - 补充4个缺失的私信API端点（received/sent/read/delete）
+- **stores/app.js** - 创建缺失的 Pinia app store（sidebarCollapsed/globalLoading/onlineStatus）
+
+#### CSS 修复
+- **main.css** - 添加全局缺失的 `--bg-secondary` CSS变量（light/dark模式）
+- **Navbar.vue** - 修复主题切换按钮缩进
+
+### 🐛 后端 Bug 修复
+
+#### CRITICAL - 点赞/收藏无法重复操作
+- **BlogLikeServiceImpl** - 修复 `toggleLike()` 未过滤 `is_deleted=1` 导致取消点赞后无法再次点赞的问题
+  - 查询时过滤软删除记录；软删除记录走恢复路径
+  - `getMyLikes()` / `checkLikeStatusBatch()` 补充 `isDeleted` 过滤
+- **BlogCollectServiceImpl** - 同上修复收藏toggle、列表、批量检查
+
+#### CRITICAL - 登录锁定 SQL 语法错误
+- **SysUserMapper.java** - `DATE_ADD(NOW(), #{lockMinutes}, 'MINUTE')` → `DATE_ADD(NOW(), INTERVAL #{lockMinutes} MINUTE)`（缺少 INTERVAL 关键字，会导致SQL运行时异常）
+
+#### 私信功能修复
+- **MessageVO.java** - 添加 `senderId`/`receiverId` 字段（`BeanUtils.copyProperties` 静默丢失）
+- **MessageServiceImpl.java** - 会话列表按 `lastMessageTime` 降序排序，添加空值保护
+
+#### 用户/关注修复
+- **UserConverter.java** - 补充 `email` 字段复制（UserVO.email 恒为 null）
+- **FollowController.java** - 修复 `checkFollow` 返回当前用户的 followingCount 而非目标用户的
+- **UserVO.java** - 添加 `@JsonProperty("userId") getUserId()` 方法，兼容前端 `item.userId` 引用
+
+#### 认证/安全修复
+- **JwtAuthenticationFilter.java** - 4项修复：
+  - 客户端 `X-Trace-Id` 未被存入 MDC
+  - MDC 未在请求结束后清理（内存泄漏）
+  - `/api/user/refresh` 路径重复检查
+  - catch 块中 `filterChain.doFilter()` 可能被调用两次
+- **SecurityConfig.java** - `GET /statistics/community` 和 `GET /media/post/**` 添加 `permitAll()` 公开访问
+- **MediaController.java** - 移除 `getPostMedia()` 上不必要的登录检查
+
+#### 其他后端修复
+- **TrendingServiceImpl.java** - 修复 `viewCount`/`likeCount`/`commentCount` 可能为 null 时的 NPE
+- **CollectStatusVO.java** - 添加缺失的 `collectCount` 字段
+
+### ✨ 新功能
+- **PostDetail.vue** - 文章详情页添加"私信"按钮，点击跳转 `/messages?userId=X`
 
 ### 📝 文档更新
-- CHANGELOG.md - 追加 v1.49 变更记录
+- CHANGELOG.md - 追加 v1.49 完整变更记录
+- 版本号同步更新至 v1.49
 
 ## v1.48 - 2026-05-15
 

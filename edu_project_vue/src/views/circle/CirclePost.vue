@@ -114,7 +114,10 @@ const form = reactive({
 })
 
 const handleUpload = async (e) => {
-  const files = Array.from(e.target.files).filter(f => f.size <= MAX_IMAGE_SIZE)
+  const allFiles = Array.from(e.target.files)
+  const oversized = allFiles.filter(f => f.size > MAX_IMAGE_SIZE)
+  for (const f of oversized) toast.warning(`${f.name} 超过10MB限制`)
+  const files = allFiles.filter(f => f.size <= MAX_IMAGE_SIZE)
   if (files.length === 0) return
   totalUploadCount.value = files.length
   currentUploadIndex.value = 0
@@ -204,6 +207,11 @@ const goBack = () => {
 }
 
 onMounted(() => {
+  if (!userStore.isLoggedIn) {
+    toast.warning('请先登录')
+    router.push('/login')
+    return
+  }
   document.title = '发布动态 - 校友圈'
 })
 </script>

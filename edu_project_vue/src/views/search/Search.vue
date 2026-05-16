@@ -9,6 +9,7 @@
             type="text" 
             placeholder="搜索文章、用户..."
             @keyup.enter="doSearch"
+            @blur="showSuggestions = false"
             maxlength="200"
           />
           <button class="btn btn-primary" @click="doSearch">搜索</button>
@@ -540,7 +541,7 @@ onUnmounted(() => {
   align-items: center;
   gap: var(--spacing-xs);
   padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--bg-secondary);
+  background: var(--background);
   border-radius: var(--radius);
   cursor: pointer;
   font-size: 0.875rem;

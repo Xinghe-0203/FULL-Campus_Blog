@@ -106,7 +106,11 @@ async function fetchData() {
 async function toggleFollow(user) {
   followLoadingId.value = user.id
   try {
-    await followApi.toggleFollow(user.id)
+    if (user.isFollowing) {
+      await followApi.unfollow(user.id)
+    } else {
+      await followApi.toggleFollow(user.id)
+    }
     user.isFollowing = !user.isFollowing
     toast.success(user.isFollowing ? '已关注' : '已取消关注')
   } catch (err) {

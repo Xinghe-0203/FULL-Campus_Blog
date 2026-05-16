@@ -97,8 +97,7 @@ async function handleSubmit() {
   }
 
   if (strengthResult.value.level === 'weak') {
-    toast.warning('密码强度太弱，请包含字母、数字或特殊字符')
-    return
+    toast.warning('密码强度较弱，建议包含字母、数字和特殊字符')
   }
 
   loading.value = true

@@ -253,7 +253,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             List<Message> messages = entry.getValue();
 
             // 按时间排序获取最新消息
-            messages.sort((a, b) -> b.getCreateTime().compareTo(a.getCreateTime()));
+            messages.sort((a, b) -> {
+                if (a.getCreateTime() == null && b.getCreateTime() == null) return 0;
+                if (a.getCreateTime() == null) return 1;
+                if (b.getCreateTime() == null) return -1;
+                return b.getCreateTime().compareTo(a.getCreateTime());
+            });
             Message lastMessage = messages.get(0);
 
             // 计算未读数（当前用户是接收者且未读的消息）
@@ -279,7 +284,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         }
 
         // 按最后消息时间排序
-        conversations.sort((a, b) -> b.getLastMessageTime().compareTo(a.getLastMessageTime()));
+        conversations.sort((a, b) -> {
+            if (a.getLastMessageTime() == null && b.getLastMessageTime() == null) return 0;
+            if (a.getLastMessageTime() == null) return 1;
+            if (b.getLastMessageTime() == null) return -1;
+            return b.getLastMessageTime().compareTo(a.getLastMessageTime());
+        });
         return conversations;
     }
 
@@ -298,8 +308,11 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
         Page<Message> messagePage = this.page(page, wrapper);
 
+        List<MessageVO> voList = convertToVOList(messagePage.getRecords(), userId);
+        Collections.reverse(voList);
+
         Page<MessageVO> voPage = new Page<>(messagePage.getCurrent(), messagePage.getSize(), messagePage.getTotal());
-        voPage.setRecords(convertToVOList(messagePage.getRecords(), userId));
+        voPage.setRecords(voList);
 
         return voPage;
     }

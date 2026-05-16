@@ -12,4 +12,7 @@ public class CollectStatusVO {
 
     @Schema(description = "是否已收藏")
     private Boolean collected;
+
+    @Schema(description = "文章收藏总数")
+    private Integer collectCount;
 }

@@ -131,7 +131,7 @@
           <div class="stat-list">
             <div class="stat-item">
               <span class="label">总标签数</span>
-              <span class="value">{{ stats.tagCount || stats.tagStats?.totalTags || 0 }}</span>
+              <span class="value">{{ stats.tagCount || 0 }}</span>
             </div>
           </div>
         </div>

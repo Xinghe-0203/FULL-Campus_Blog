@@ -15,6 +15,12 @@ public class MessageVO {
     @Schema(description = "私信ID")
     private Long id;
 
+    @Schema(description = "发送者用户ID")
+    private Long senderId;
+
+    @Schema(description = "接收者用户ID")
+    private Long receiverId;
+
     @Schema(description = "发送者用户信息")
     private UserVO sender;
 

@@ -238,7 +238,7 @@ const fetchHotPosts = async (reset = false) => {
     const data = res.data
     const records = data?.records || []
     hotPosts.value = reset ? records : [...hotPosts.value, ...records]
-    hasMorePosts.value = records.length >= PAGE_SIZE
+    hasMorePosts.value = (data?.pages || 0) > currentPage.value
   } catch (err) {
     logger.error('fetchHotPosts error', { error: err.message })
     throw err

@@ -375,6 +375,7 @@ const confirmRepost = async () => {
   try {
     await circleApi.repost(post.value.id, repostContent.value)
     closeRepostModal()
+    post.value.repostCount = (post.value.repostCount || 0) + 1
     toast.success('转发成功')
   } catch (err) {
     logger.error('repost error', { error: err.message })

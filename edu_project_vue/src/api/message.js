@@ -32,6 +32,42 @@ export const messageApi = {
   },
 
   /**
+   * 获取收到的私信列表（分页）
+   * @param {{pageNum?: number, pageSize?: number}} params - 分页参数
+   * @returns {Promise<{code: number, message: string, data: Object}>}
+   */
+  getReceivedMessages(params) {
+    return api.get('/message/received', { params })
+  },
+
+  /**
+   * 获取发送的私信列表（分页）
+   * @param {{pageNum?: number, pageSize?: number}} params - 分页参数
+   * @returns {Promise<{code: number, message: string, data: Object}>}
+   */
+  getSentMessages(params) {
+    return api.get('/message/sent', { params })
+  },
+
+  /**
+   * 标记私信为已读
+   * @param {number|string} messageId - 私信ID
+   * @returns {Promise<{code: number, message: string, data: Object}>}
+   */
+  markAsRead(messageId) {
+    return api.put(`/message/${messageId}/read`)
+  },
+
+  /**
+   * 删除私信
+   * @param {number|string} messageId - 私信ID
+   * @returns {Promise<{code: number, message: string, data: Object}>}
+   */
+  deleteMessage(messageId) {
+    return api.delete(`/message/${messageId}`)
+  },
+
+  /**
    * 标记会话中所有消息为已读
    * @param {number|string} partnerUserId - 会话对方用户ID
    * @returns {Promise<{code: number, message: string, data: Object}>}

@@ -1,6 +1,6 @@
 <template>
   <div class="user-profile-page">
-    <button class="back-btn" @click="$router.back()">
+    <button class="back-btn" @click="goBack">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       返回
     </button>
@@ -197,6 +197,14 @@ const router = useRouter()
 const userStore = useUserStore()
 const logger = useLogger('UserProfile')
 
+function goBack() {
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    router.push('/')
+  }
+}
+
 // XSS防护：对用户生成内容进行净化
 const sanitizeText = (text) => {
   if (!text) return ''
@@ -335,6 +343,9 @@ watch(() => route.params.id, () => {
   posts.value = []
   postsError.value = ''
   postsPage.value = 1
+  circles.value = []
+  circlesError.value = ''
+  circlesPage.value = 1
   initLoad()
   fetchPosts()
 })

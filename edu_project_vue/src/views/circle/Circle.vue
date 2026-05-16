@@ -327,10 +327,12 @@ const fetchPosts = async (reset = false) => {
     const mapped = list.map(p => ({ ...p, isLiked: p.isLiked || false, likeAnim: false }))
     posts.value = reset ? mapped : [...posts.value, ...mapped]
     hasMore.value = list.length >= 20
+    return true
   } catch (err) {
     logger.error('fetchPosts error', { error: err.message })
     error.value = err.response?.data?.message || err.message || '加载失败'
     if (reset) posts.value = []
+    return false
   } finally {
     loading.value = false
   }
@@ -342,14 +344,9 @@ const loadMore = async () => {
   if (loadingMore.value || loading.value || !hasMore.value) return
   loadingMore.value = true
   currentPage.value++
-  try {
-    await fetchPosts()
-  } catch {
-    currentPage.value--
-    hasMore.value = true
-  } finally {
-    loadingMore.value = false
-  }
+  const ok = await fetchPosts()
+  if (!ok) currentPage.value--
+  loadingMore.value = false
 }
 
 watch(activeTab, () => fetchPosts(true))

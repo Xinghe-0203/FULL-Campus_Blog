@@ -44,17 +44,6 @@ const isAdminPage = computed(() => route.path.startsWith('/admin'))
 // 在组件初始化时立即恢复用户状态（早于路由守卫执行）
 userStore.restoreFromStorage()
 
-// 路由加载动画
-router.beforeEach((to, from) => {
-  routeLoading.value = true
-})
-
-router.afterEach(() => {
-  leaveTimeout = setTimeout(() => {
-    routeLoading.value = false
-  }, 300)
-})
-
 const onBeforeLeave = () => {
   routeLoading.value = true
 }

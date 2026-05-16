@@ -14,7 +14,9 @@ export function addToast(message, type = 'info', duration = 3000, action = null)
     remaining: duration,
     paused: false,
     action,
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    _originalDuration: duration,
+    _activeMs: 0
   })
 
   toasts.value.push(item)
@@ -49,6 +51,7 @@ export function pauseToast(id) {
     timers.delete(id)
   }
   const elapsed = Date.now() - item.createdAt
+  item._activeMs += elapsed
   item.remaining = Math.max(0, item.remaining - elapsed)
 }
 
@@ -61,7 +64,6 @@ export function resumeToast(id) {
     return
   }
   item.createdAt = Date.now()
-  item.duration = item.remaining
   const timer = setTimeout(() => removeToast(id), item.remaining)
   timers.set(id, timer)
 }

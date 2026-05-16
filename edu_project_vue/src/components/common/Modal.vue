@@ -1,7 +1,9 @@
+<script>
+let bodyOverflowCount = 0
+</script>
+
 <script setup>
 import { watch, onBeforeUnmount } from 'vue'
-
-let bodyOverflowCount = 0
 
 const props = defineProps({
   show: { type: Boolean, default: false },

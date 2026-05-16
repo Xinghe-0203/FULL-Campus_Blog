@@ -166,10 +166,10 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
             return;
         }
 
-        // 计算热度评分
-        int score = post.getViewCount().intValue() * VIEW_WEIGHT
-                + post.getLikeCount() * LIKE_WEIGHT
-                + post.getCommentCount() * COMMENT_WEIGHT;
+        // 计算热度评分（使用 null-safe 取值）
+        int score = (post.getViewCount() != null ? post.getViewCount().intValue() : 0) * VIEW_WEIGHT
+                + (post.getLikeCount() != null ? post.getLikeCount() : 0) * LIKE_WEIGHT
+                + (post.getCommentCount() != null ? post.getCommentCount() : 0) * COMMENT_WEIGHT;
 
         // 查询是否已存在今天的趋势记录
         LocalDateTime now = LocalDateTime.now();
@@ -181,16 +181,14 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
         BlogTrending trending = new BlogTrending();
         trending.setPostId(postId);
         trending.setScore((double)score);
-        trending.setViewCount(post.getViewCount().intValue());
+        trending.setViewCount(post.getViewCount() != null ? post.getViewCount().intValue() : 0);
         trending.setLikeCount(post.getLikeCount());
         trending.setCommentCount(post.getCommentCount());
         trending.setStatDate(todayStart.toLocalDate());
 
         if (existingList.isEmpty()) {
-            // 新增记录
             baseMapper.insert(trending);
         } else {
-            // 更新已有记录
             trending.setId(existingList.get(0).getId());
             baseMapper.updateById(trending);
         }
@@ -240,15 +238,15 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
     }
 
     private void updatePostTrendingBatch(BlogPost post, LocalDateTime todayStart, BlogTrending existingTrending) {
-        // 计算热度评分
-        int score = post.getViewCount().intValue() * VIEW_WEIGHT
-                + post.getLikeCount() * LIKE_WEIGHT
-                + post.getCommentCount() * COMMENT_WEIGHT;
+        // 计算热度评分（使用 null-safe 取值）
+        int score = (post.getViewCount() != null ? post.getViewCount().intValue() : 0) * VIEW_WEIGHT
+                + (post.getLikeCount() != null ? post.getLikeCount() : 0) * LIKE_WEIGHT
+                + (post.getCommentCount() != null ? post.getCommentCount() : 0) * COMMENT_WEIGHT;
 
         BlogTrending trending = new BlogTrending();
         trending.setPostId(post.getId());
         trending.setScore((double)score);
-        trending.setViewCount(post.getViewCount().intValue());
+        trending.setViewCount(post.getViewCount() != null ? post.getViewCount().intValue() : 0);
         trending.setLikeCount(post.getLikeCount());
         trending.setCommentCount(post.getCommentCount());
         trending.setStatDate(todayStart.toLocalDate());

@@ -150,7 +150,7 @@
           <div v-if="filteredTags.length" class="suggested-tags">
             <button v-for="tag in filteredTags" :key="tag.id" class="suggested-tag" @click="addSuggestedTag(tag)">{{ tag.name }}</button>
           </div>
-          <div v-if="allTags.length === 0" class="no-tags">
+          <div v-if="tagInput.trim() && !allTags.find(t => t.name === tagInput.trim())" class="no-tags">
             <button class="btn btn-text btn-xs" @click="createTagAndAdd">创建「{{ tagInput }}」标签</button>
           </div>
         </div>
@@ -229,8 +229,8 @@ function insertMarkdown(before, after) {
   const start = ta.selectionStart, end = ta.selectionEnd
   const text = form.content
   const selected = text.substring(start, end)
-  form.content = text.substring(0, start) + before + selected + after + text.substring(end)
   saveHistory()
+  form.content = text.substring(0, start) + before + selected + after + text.substring(end)
   nextTick(() => { ta.focus(); ta.setSelectionRange(start + before.length, start + before.length + selected.length) })
 }
 
@@ -260,15 +260,15 @@ function insertLink() {
   const start = ta.selectionStart, end = ta.selectionEnd
   const selected = form.content.substring(start, end) || '链接文字'
   const linkText = `[${selected}](url)`
-  form.content = form.content.substring(0, start) + linkText + form.content.substring(end)
   saveHistory()
+  form.content = form.content.substring(0, start) + linkText + form.content.substring(end)
 }
 
 function insertTab(e) {
   const ta = e.target
   const start = ta.selectionStart, end = ta.selectionEnd
-  form.content = form.content.substring(0, start) + '  ' + form.content.substring(end)
   saveHistory()
+  form.content = form.content.substring(0, start) + '  ' + form.content.substring(end)
   nextTick(() => ta.setSelectionRange(start + 2, start + 2))
 }
 
@@ -281,18 +281,23 @@ const canUndo = computed(() => historyIndex.value > 0)
 const canRedo = computed(() => historyIndex.value < history.value.length - 1)
 
 function saveHistory() {
-  // Remove any redo history when new action is taken
+  if (history.value[historyIndex.value] === form.content) return
   if (historyIndex.value < history.value.length - 1) {
     history.value = history.value.slice(0, historyIndex.value + 1)
   }
   history.value.push(form.content)
   historyIndex.value = history.value.length - 1
-  // Limit history to 50 items
   if (history.value.length > 50) {
     history.value.shift()
     historyIndex.value--
   }
 }
+
+let historyTimer = null
+watch(() => form.content, () => {
+  clearTimeout(historyTimer)
+  historyTimer = setTimeout(() => saveHistory(), 2000)
+})
 
 function undoAction() {
   if (canUndo.value) {
@@ -315,8 +320,8 @@ function insertHeading(level) {
   if (!ta) return
   const start = ta.selectionStart
   const lineStart = form.content.lastIndexOf('\n', start - 1) + 1
-  form.content = form.content.substring(0, lineStart) + prefix + form.content.substring(lineStart)
   saveHistory()
+  form.content = form.content.substring(0, lineStart) + prefix + form.content.substring(lineStart)
   currentHeading.value = ''
 }
 
@@ -326,7 +331,6 @@ function clearFormat() {
   const start = ta.selectionStart, end = ta.selectionEnd
   if (start === end) return
   const selected = form.content.substring(start, end)
-  // Remove common formatting
   let cleaned = selected
     .replace(/\*\*(.+?)\*\*/g, '$1')
     .replace(/\*(.+?)\*/g, '$1')
@@ -334,8 +338,8 @@ function clearFormat() {
     .replace(/`(.+?)`/g, '$1')
     .replace(/<u>(.+?)<\/u>/g, '$1')
     .replace(/<mark>(.+?)<\/mark>/g, '$1')
-  form.content = form.content.substring(0, start) + cleaned + form.content.substring(end)
   saveHistory()
+  form.content = form.content.substring(0, start) + cleaned + form.content.substring(end)
 }
 
 async function uploadContentImage(e) {
@@ -349,6 +353,7 @@ async function uploadContentImage(e) {
       const ta = contentTextarea.value
       const start = ta?.selectionStart ?? form.content.length
       const md = `\n![图片](${url})\n`
+      saveHistory()
       form.content = form.content.substring(0, start) + md + form.content.substring(ta?.selectionEnd ?? start)
     }
     toast.success('图片已插入')
@@ -466,9 +471,29 @@ const fetchDraft = async () => {
       form.content = res.data.content || ''
       form.summary = res.data.summary || ''
       form.category = res.data.category || ''
+      selectedTags.value = res.data.tags || []
+      form.coverImage = res.data.coverImage || ''
     }
   } catch (err) {
     logger.error('fetch draft error', { error: err.message })
+    toast.error(err.response?.data?.message || '加载草稿失败')
+  }
+}
+
+const fetchDraftById = async (draftId) => {
+  try {
+    const res = await postApi.getDraft(draftId)
+    if (res.data) {
+      currentDraftId.value = draftId
+      form.title = res.data.title || ''
+      form.content = res.data.content || ''
+      form.summary = res.data.summary || ''
+      form.category = res.data.category || ''
+      selectedTags.value = res.data.tags || []
+      form.coverImage = res.data.coverImage || ''
+    }
+  } catch (err) {
+    logger.error('fetch draft by id error', { error: err.message })
     toast.error(err.response?.data?.message || '加载草稿失败')
   }
 }
@@ -546,15 +571,17 @@ function handleBeforeUnload(e) {
 onMounted(async () => {
   window.addEventListener('beforeunload', handleBeforeUnload)
   fetchTags()
+  isLoading.value = true
   if (route.params.id) {
-    isLoading.value = true
     await fetchPost()
-    isLoading.value = false
+  } else if (route.query.draft) {
+    await fetchDraftById(route.query.draft)
   } else {
-    isLoading.value = true
     await fetchDraft()
-    isLoading.value = false
   }
+  isLoading.value = false
+  history.value = [form.content]
+  historyIndex.value = 0
   dirty.value = false
 })
 

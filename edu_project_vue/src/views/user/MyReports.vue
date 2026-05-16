@@ -25,13 +25,12 @@
     <div v-else class="report-list">
       <div v-for="report in reports" :key="report.id" class="report-item card">
         <div class="report-header">
-          <span class="report-type">{{ report.targetType === 'POST' ? '文章' : report.targetType === 'COMMENT' ? '评论' : report.targetType === 'USER' ? '用户' : report.targetType }}</span>
-          <span class="report-status" :class="report.status === 0 ? 'pending' : report.status === 1 ? 'resolved' : 'rejected'">
-            {{ report.status === 0 ? '待处理' : report.status === 1 ? '已处理' : '已驳回' }}
+          <span class="report-type">{{ report.targetType === 'post' ? '文章' : report.targetType === 'comment' ? '评论' : report.targetType === 'user' ? '用户' : report.targetType }}</span>
+          <span class="report-status" :class="report.status === 0 ? 'pending' : report.status === 2 ? 'resolved' : 'rejected'">
+            {{ report.status === 0 ? '待处理' : report.status === 2 ? '已处理' : '已驳回' }}
           </span>
         </div>
         <p class="report-reason">{{ report.reason }}</p>
-        <p v-if="report.description" class="report-desc">{{ report.description }}</p>
         <span class="report-time">{{ formatRelativeTime(report.createTime) }}</span>
       </div>
       <div v-if="totalPages > 1" class="pagination">

@@ -91,15 +91,11 @@ public class MediaController {
     }
 
     /**
-     * 获取文章的媒体列表
+     * 获取文章的媒体列表（公开，已发布文章均可查看）
      */
     @Operation(summary = "获取文章的媒体列表")
     @GetMapping("/post/{postId}")
     public Result<List<MediaVO>> getPostMedia(@PathVariable Long postId) {
-        Long userId = SecurityUtils.getCurrentUserIdOrNull();
-        if (userId == null) {
-            throw new BusinessException(401, "请先登录");
-        }
         List<MediaVO> mediaList = mediaService.getPostMedia(postId);
         return Result.success(mediaList);
     }

@@ -1,14 +1,13 @@
 <template>
   <div class="messages-page">
     <div class="messages-container">
-      <button class="back-btn" @click="router.back()">
+      <button class="back-btn" @click="goBack">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
         返回
       </button>
       <button class="mobile-back-btn" @click="showMobileList = !showMobileList" v-if="activeConversation && !showMobileList">
         ← 会话列表
       </button>
-      <!-- 会话列表 -->
       <div class="conversation-list card" :class="{ show: showMobileList }">
         <div class="list-header">
           <h2>私信</h2>
@@ -21,9 +20,9 @@
             <p class="error-text">{{ conversationsError }}</p>
           </div>
           <div v-else-if="conversations.length > 0">
-            <div 
-              v-for="conv in conversations" 
-              :key="conv.conversationId"
+            <div
+              v-for="conv in conversations"
+              :key="conv.conversationId || `virtual-${conv.user?.id}`"
               class="conversation-item"
               :class="{ active: activeConversation?.conversationId === conv.conversationId }"
               @click="selectConversation(conv)"
@@ -44,8 +43,7 @@
           </div>
         </div>
       </div>
-      
-      <!-- 消息区域 -->
+
       <div class="message-area card">
         <template v-if="activeConversation">
           <div class="area-header">
@@ -58,8 +56,8 @@
             <p>加载中...</p>
           </div>
           <div v-else class="message-list" ref="messageList">
-            <div 
-              v-for="msg in messages" 
+            <div
+              v-for="msg in messages"
               :key="msg.id"
               class="message-item"
               :class="{ mine: msg.sender?.id === userStore.userId }"
@@ -72,9 +70,9 @@
             </div>
           </div>
           <div class="message-input">
-            <input 
-              v-model="newMessage" 
-              type="text" 
+            <input
+              v-model="newMessage"
+              type="text"
               maxlength="1000"
               placeholder="输入消息..."
               @keyup.enter="sendMessage"
@@ -98,6 +96,7 @@ import { useRoute, useRouter } from 'vue-router'
 import DOMPurify from 'dompurify'
 import { useUserStore } from '../../stores/user'
 import { messageApi } from '../../api/message'
+import { userApi } from '../../api/user'
 import { formatRelativeTime } from '../../utils'
 import { useLogger } from '../../utils/logger'
 import { toast } from '../../utils/toast'
@@ -107,7 +106,14 @@ const router = useRouter()
 const userStore = useUserStore()
 const logger = useLogger('Messages')
 
-// XSS防护：对用户生成内容进行净化
+function goBack() {
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    router.push('/')
+  }
+}
+
 const sanitizeText = (text) => {
   if (!text) return ''
   return DOMPurify.sanitize(text, { ALLOWED_TAGS: [] })
@@ -132,13 +138,37 @@ const fetchConversations = async (silent = false) => {
     const response = await messageApi.getConversations()
     const newConversations = response.data || []
 
-    // 更新会话列表，保留未读数状态
     conversations.value = newConversations
 
-    // 如果有userId参数且是首次加载，自动选择对应会话
     if (!silent && route.query.userId && !activeConversation.value) {
-      const conv = newConversations.find(c => c.conversationId === parseInt(route.query.userId))
-      if (conv) selectConversation(conv)
+      const targetUserId = parseInt(route.query.userId)
+      const conv = newConversations.find(c => c.user?.id === targetUserId)
+      if (conv) {
+        await selectConversation(conv)
+      } else {
+        try {
+          const userRes = await userApi.getUserById(targetUserId)
+          const targetUser = userRes.data || userRes
+          if (targetUser) {
+            const virtualConv = {
+              conversationId: null,
+              user: {
+                id: targetUser.id,
+                username: targetUser.username,
+                nickname: targetUser.nickname,
+                avatar: targetUser.avatar
+              },
+              lastMessage: '',
+              lastMessageTime: null,
+              unreadCount: 0
+            }
+            await selectConversation(virtualConv)
+          }
+        } catch (e) {
+          logger.error('Failed to start conversation with user', { error: e.message, userId: targetUserId })
+          toast.error('无法开始对话，用户不存在')
+        }
+      }
     }
   } catch (error) {
     logger.error('Failed to fetch conversations', { error: error.message })
@@ -152,13 +182,17 @@ const selectConversation = async (conv) => {
   showMobileList.value = false
   activeConversation.value = conv
   messagesError.value = ''
-  loadingMessages.value = true
+  messages.value = []
 
+  if (conv.conversationId == null) return
+
+  loadingMessages.value = true
   try {
     const response = await messageApi.getConversationMessages(conv.conversationId)
-    messages.value = response.data?.records || []
+    const records = response.data?.records || []
+    records.reverse()
+    messages.value = records
 
-    // 标记为已读
     if (conv.unreadCount > 0) {
       conv.unreadCount = 0
       try {
@@ -168,7 +202,6 @@ const selectConversation = async (conv) => {
       }
     }
 
-    // 滚动到底部
     await nextTick()
     if (messageList.value) {
       messageList.value.scrollTop = messageList.value.scrollHeight
@@ -183,29 +216,38 @@ const selectConversation = async (conv) => {
 
 const sendMessage = async () => {
   if (!newMessage.value.trim() || !activeConversation.value) return
-  if (newMessage.value.length > 1000) {
+  if (newMessage.value.trim().length > 1000) {
     toast.warning('消息内容不能超过1000个字符')
     return
   }
 
+  const receiverId = activeConversation.value.user?.id
+  if (!receiverId) return
+
   try {
     await messageApi.sendMessage({
-      receiverId: activeConversation.value.conversationId,
+      receiverId,
       content: newMessage.value
     })
 
-    // 添加到本地消息列表（后端会推送通知，这里乐观更新）
+    // 如果是新会话，发送后重载会话列表获取真实conversationId
+    if (activeConversation.value.conversationId == null) {
+      await fetchConversations(true)
+      const realConv = conversations.value.find(c => c.user?.id === receiverId)
+      if (realConv) activeConversation.value = realConv
+    }
+
+    // 添加到本地消息列表
     messages.value.push({
       id: Date.now(),
       sender: { id: userStore.userId, avatar: userStore.avatar, nickname: userStore.nickname || userStore.username },
       content: newMessage.value,
-      createTime: new Date().toISOString(),
+      createTime: new Date().toISOString().slice(0, 19),
       isRead: 1
     })
 
     newMessage.value = ''
 
-    // 滚动到底部
     await nextTick()
     if (messageList.value) {
       messageList.value.scrollTop = messageList.value.scrollHeight
@@ -217,7 +259,6 @@ const sendMessage = async () => {
 }
 
 const startPolling = () => {
-  // 每30秒轮询一次会话列表
   pollingInterval = setInterval(() => {
     fetchConversations(true)
   }, 30000)
@@ -457,11 +498,11 @@ onUnmounted(() => {
   .messages-container {
     grid-template-columns: 1fr;
   }
-  
+
   .conversation-list {
     display: none;
   }
-  
+
   .conversation-list.show {
     display: flex;
     position: fixed;

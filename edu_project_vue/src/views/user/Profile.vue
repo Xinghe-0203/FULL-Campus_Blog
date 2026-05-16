@@ -1,6 +1,6 @@
 <template>
   <div class="profile-page">
-    <button class="back-btn" @click="router.back()">
+    <button class="back-btn" @click="goBack">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       返回
     </button>
@@ -325,6 +325,14 @@ const userStore = useUserStore()
 const router = useRouter()
 const logger = useLogger('Profile')
 
+function goBack() {
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    router.push('/')
+  }
+}
+
 const pageError = ref('')
 const user = ref(null)
 const stats = ref({})
@@ -420,10 +428,10 @@ async function openConfirm(title, message, onConfirm) {
 function switchTab(key, index) {
   activeTab.value = key
   activeTabIndex.value = index
-  if (key === 'posts' && posts.value.length === 0 && !postsError.value) fetchPosts()
-  else if (key === 'circle' && circles.value.length === 0 && !circlesError.value) fetchCircles()
-  else if (key === 'likes' && likes.value.length === 0 && !likesError.value) fetchLikes()
-  else if (key === 'comments' && comments.value.length === 0 && !commentsError.value) fetchComments()
+  if (key === 'posts' && (posts.value.length === 0 || postsError.value)) fetchPosts()
+  else if (key === 'circle' && (circles.value.length === 0 || circlesError.value)) fetchCircles()
+  else if (key === 'likes' && (likes.value.length === 0 || likesError.value)) fetchLikes()
+  else if (key === 'comments' && (comments.value.length === 0 || commentsError.value)) fetchComments()
 }
 
 async function initLoad() {

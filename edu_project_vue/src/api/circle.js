@@ -14,6 +14,24 @@ export const circleApi = {
   },
 
   /**
+   * 删除动态
+   * @param {number|string} postId - 动态ID
+   * @returns {Promise<{code: number, message: string, data: Object}>}
+   */
+  deletePost(postId) {
+    return api.delete(`/circle/post/${postId}`)
+  },
+
+  /**
+   * 搜索动态
+   * @param {{keyword: string, pageNum?: number, pageSize?: number}} params - 搜索参数
+   * @returns {Promise<{code: number, message: string, data: Object}>}
+   */
+  searchPosts(params) {
+    return api.get('/circle/search', { params })
+  },
+
+  /**
    * 获取推荐动态
    * @param {{pageNum?: number, pageSize?: number}} params - 分页参数
    * @returns {Promise<{code: number, message: string, data: Object}>}

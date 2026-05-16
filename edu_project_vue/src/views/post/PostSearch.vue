@@ -10,6 +10,7 @@
       </div>
       
       <div v-if="loading" class="loading-state">
+        <div class="loading-spinner"></div>
         <p>加载中...</p>
       </div>
       <div v-else-if="error" class="error-state">
@@ -197,12 +198,13 @@ onMounted(() => {
 }
 
 .loading-state {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: var(--spacing-2xl);
-}
-
-.loading-state p {
   color: var(--text-muted);
+  gap: var(--spacing-md);
 }
 
 .error-state {

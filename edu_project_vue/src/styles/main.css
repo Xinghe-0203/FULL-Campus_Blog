@@ -53,6 +53,9 @@
   --transition: 200ms ease;
   --transition-slow: 300ms ease;
   
+  /* 次级背景 */
+  --bg-secondary: #F1F5F9;
+
   /* 骨架屏 */
   --skeleton-base: #E5E7EB;
   --skeleton-highlight: #F8FAFC;
@@ -79,6 +82,8 @@
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5), 0 4px 6px rgba(0, 0, 0, 0.4);
   
+  --bg-secondary: #1E293B;
+
   --skeleton-base: #334155;
   --skeleton-highlight: #1E293B;
 }
