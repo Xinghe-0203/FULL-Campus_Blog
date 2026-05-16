@@ -36,8 +36,8 @@
             </div>
             <div class="post-meta">
               <span class="post-author">
-                <img src="/default-avatar.png" alt="热门文章" class="author-avatar" />
-                <span>热门文章</span>
+                <img :src="post.avatar || '/default-avatar.png'" :alt="post.nickname || post.username" class="author-avatar" />
+                <router-link :to="`/user/${post.userId}`" class="author-name">{{ post.nickname || post.username || '匿名' }}</router-link>
               </span>
               <span class="post-time">{{ formatRelativeTime(post.createTime) }}</span>
               <div class="post-stats">
@@ -179,6 +179,17 @@ onMounted(() => {
   height: 24px;
   border-radius: var(--radius-full);
   object-fit: cover;
+}
+
+.author-name {
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.author-name:hover {
+  color: var(--primary);
 }
 
 .post-stats {

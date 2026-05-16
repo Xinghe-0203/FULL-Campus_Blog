@@ -468,6 +468,9 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void incrementViewCount(Long postId, String userKey) {
+        if (viewCountCache.size() >= MAX_VIEW_COUNT_CACHE_SIZE) {
+            cleanupViewCountCache();
+        }
         String cacheKey = userKey + "-" + postId;
         long now = System.currentTimeMillis();
         AtomicLong lastViewTime = viewCountCache.computeIfAbsent(cacheKey, k -> new AtomicLong(0));

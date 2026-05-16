@@ -96,7 +96,6 @@
 <script setup>
 import { ref, onMounted, nextTick, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import DOMPurify from 'dompurify'
 import { useUserStore } from '../../stores/user'
 import { messageApi } from '../../api/message'
 import { userApi } from '../../api/user'
@@ -115,11 +114,6 @@ function goBack() {
   } else {
     router.push('/')
   }
-}
-
-const sanitizeText = (text) => {
-  if (!text) return ''
-  return DOMPurify.sanitize(text, { ALLOWED_TAGS: [] })
 }
 
 const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44"><rect width="44" height="44" rx="22" fill="#e0e0e0"/><text x="22" y="28" text-anchor="middle" fill="#999" font-size="18" font-family="sans-serif">?</text></svg>')

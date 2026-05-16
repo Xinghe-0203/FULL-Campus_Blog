@@ -308,6 +308,7 @@ onMounted(() => {
 onUnmounted(() => {
   if (scrollTimer) clearTimeout(scrollTimer)
   if (notificationTimer) clearInterval(notificationTimer)
+  if (isMobileMenuOpen.value) document.body.style.overflow = ''
   window.removeEventListener('scroll', handleScroll)
   document.removeEventListener('click', handleClickOutside)
   document.removeEventListener('click', handleDocumentClick)

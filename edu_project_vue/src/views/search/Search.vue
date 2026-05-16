@@ -9,7 +9,7 @@
             type="text" 
             placeholder="搜索文章、用户..."
             @keyup.enter="doSearch"
-            @blur="showSuggestions = false"
+            @blur="hideSuggestions"
             maxlength="200"
           />
           <button class="btn btn-primary" @click="doSearch">搜索</button>
@@ -172,6 +172,10 @@ const selectSuggestion = (suggestion) => {
   doSearch()
 }
 
+const hideSuggestions = () => {
+  setTimeout(() => { showSuggestions.value = false }, 150)
+}
+
 const filters = [
   { label: '全部', value: 'all' },
   { label: '文章', value: 'posts' },
@@ -181,6 +185,7 @@ const filters = [
 const doSearch = async () => {
   if (!searchQuery.value.trim()) return
 
+  currentPage.value = 1
   error.value = ''
   loading.value = true
   hasSearched.value = true

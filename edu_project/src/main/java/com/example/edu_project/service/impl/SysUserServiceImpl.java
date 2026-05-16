@@ -124,13 +124,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         LambdaQueryWrapper<SysUser> usernameWrapper = new LambdaQueryWrapper<>();
         usernameWrapper.eq(SysUser::getUsername, request.getUsername());
         if (this.count(usernameWrapper) > 0) {
-            throw new BusinessException(400, "用户名已被注册");
+            throw new BusinessException(400, "注册失败，请稍后重试");
         }
 
         LambdaQueryWrapper<SysUser> emailWrapper = new LambdaQueryWrapper<>();
         emailWrapper.eq(SysUser::getEmail, request.getEmail());
         if (this.count(emailWrapper) > 0) {
-            throw new BusinessException(400, "该邮箱已被注册");
+            throw new BusinessException(400, "注册失败，请稍后重试");
         }
 
         SysUser user = new SysUser();

@@ -1,5 +1,21 @@
 # 变更日志
 
+## v1.55 - 2026-05-16
+
+### 🐛 HIGH 修复
+- **Search.vue** - `doSearch()` 不重置 `currentPage`，导致新搜索返回错误页码结果
+- **PostSearch.vue** - 热门文章列表硬编码 "热门文章" 为作者名，改为显示真实作者
+- **SysUserServiceImpl.java** - `registerWithVerifiedEmail` 泄露用户名/邮箱存在性（返回 "已被注册" → 统一为 "注册失败"）
+
+### 🐛 MEDIUM 修复
+- **PasswordChange.vue** - 弱密码只显示警告不阻止提交，后端拒绝导致双 toast；改为 `return` 阻止
+- **Navbar.vue** - 移动端菜单打开时 `document.body.style.overflow` 未在 `onUnmounted` 中重置
+- **BlogPostServiceImpl.java** - `MAX_VIEW_COUNT_CACHE_SIZE` 常量未执行，浏览缓存无上限
+
+### 🐛 LOW 修复
+- **Search.vue** - `@blur` 立即关闭建议下拉，触摸设备可能无法选中；改为150ms延迟关闭
+- **Messages.vue** - 移除未使用的 `DOMPurify` import 和 `sanitizeText` 函数（减少 bundle 体积）
+
 ## v1.54 - 2026-05-16
 
 ### 🔒 安全修复
