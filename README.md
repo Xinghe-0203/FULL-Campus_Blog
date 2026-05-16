@@ -853,7 +853,7 @@ SOFTWARE.
 - **新增返回按钮**：为Collections.vue、Drafts.vue、Followers.vue、Following.vue、MyReports.vue、PostSearch.vue添加返回按钮
 - **编辑器Undos/Redo功能**：为PostEdit.vue添加完整的撤销/重做功能
 
-### v1.48 (2026-05-15)
+### v1.49 (2026-05-16)
 - 修复验证码并发竞态问题（EmailServiceImpl添加synchronized同步块）
 - 修复前端Home.vue热门标签/文章/统计数据访问方式
 - **写入稳定设计要求**：

@@ -1,5 +1,9 @@
 <template>
   <div class="post-edit-page">
+    <button class="back-btn" @click="router.back()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      返回
+    </button>
     <div v-if="isLoading" class="loading-state">
       <div class="loading-spinner"></div>
       <p>加载中...</p>
@@ -51,8 +55,8 @@
             </div>
             <span class="toolbar-divider"></span>
             <div class="toolbar-group">
-              <button class="tool-btn" title="行内代码" @click="insertMarkdown('`', '`)"><code style="font-size:10px">&lt;&gt;</code></button>
-              <button class="tool-btn" title="代码块" @click="insertMarkdown('```\n', '\n```')"><code style="font-size:10px">&lt;/&gt;</code></button>
+              <button class="tool-btn" title="行内代码" @click="insertCode"><code style="font-size:10px">&lt;&gt;</code></button>
+              <button class="tool-btn" title="代码块" @click="insertCodeBlock"><code style="font-size:10px">&lt;/&gt;</code></button>
             </div>
             <span class="toolbar-divider"></span>
             <div class="toolbar-group">
@@ -68,9 +72,9 @@
             </div>
             <span class="toolbar-divider"></span>
             <div class="toolbar-group">
-              <button class="tool-btn" title="居左" @click="insertMarkdown('<div style="text-align:left">', '</div>')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg></button>
-              <button class="tool-btn" title="居中" @click="insertMarkdown('<div style="text-align:center">', '</div>')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg></button>
-              <button class="tool-btn" title="居右" @click="insertMarkdown('<div style="text-align:right">', '</div>')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/></svg></button>
+              <button class="tool-btn" title="居左" @click="insertAlignLeft"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg></button>
+              <button class="tool-btn" title="居中" @click="insertAlignCenter"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg></button>
+              <button class="tool-btn" title="居右" @click="insertAlignRight"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/></svg></button>
             </div>
             <span class="toolbar-divider"></span>
             <div class="toolbar-group">
@@ -228,6 +232,26 @@ function insertMarkdown(before, after) {
   form.content = text.substring(0, start) + before + selected + after + text.substring(end)
   saveHistory()
   nextTick(() => { ta.focus(); ta.setSelectionRange(start + before.length, start + before.length + selected.length) })
+}
+
+function insertCode() {
+  insertMarkdown('`', '`')
+}
+
+function insertCodeBlock() {
+  insertMarkdown('```\n', '\n```')
+}
+
+function insertAlignLeft() {
+  insertMarkdown('<div style=\u0022text-align:left\u0022>', '</div>')
+}
+
+function insertAlignCenter() {
+  insertMarkdown('<div style=\u0022text-align:center\u0022>', '</div>')
+}
+
+function insertAlignRight() {
+  insertMarkdown('<div style=\u0022text-align:right\u0022>', '</div>')
 }
 
 function insertLink() {
@@ -640,6 +664,9 @@ onBeforeRouteLeave((to, from) => {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
+.back-btn:hover { background: var(--border); color: var(--text-primary); }
 
 @media (max-width: 900px) {
   .edit-container { grid-template-columns: 1fr; }

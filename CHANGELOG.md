@@ -1,5 +1,27 @@
 # 变更日志
 
+## v1.49 - 2026-05-16
+
+### 🐛 Bug 修复
+
+#### 前端编译错误
+- **PostEdit.vue** - 修复模板表达式中反引号/双引号导致 Vue 编译器解析失败问题（3处）
+  - `insertMarkdown('\`', '\`')` → `insertCode()` 函数
+  - `insertMarkdown('\`\`\`\n', '\n\`\`\`')` → `insertCodeBlock()` 函数
+  - `insertMarkdown('<div style="...">', '</div>')` → `insertAlignLeft/Center/Right()` 函数（HTML 属性双引号与 JS 字符串冲突）
+
+#### 前端功能修复
+- **PostEdit.vue** - 添加缺失的"返回"按钮
+- **PostDetail.vue** - 修复返回按钮在 grid 布局中不显示的 CSS 问题（添加 `grid-column: 1 / -1`）
+- **Profile.vue** - 修复返回按钮在 2 列 grid 布局中不显示的 CSS 问题
+- **CirclePost.vue** - 添加缺失的"返回"按钮
+
+#### 后端修复
+- **CirclePostCreateRequest.java** - 移除 `content` 字段的 `@NotBlank` 校验，允许仅图片/视频的动态发布
+
+### 📝 文档更新
+- CHANGELOG.md - 追加 v1.49 变更记录
+
 ## v1.48 - 2026-05-15
 
 ### 🔒 安全修复

@@ -1,5 +1,9 @@
 <template>
   <div class="circle-post-page">
+    <button class="back-btn" @click="router.back()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      返回
+    </button>
     <div class="post-container">
       <div class="post-card card">
         <div class="card-header">
@@ -210,6 +214,9 @@ onMounted(() => {
   margin: 0 auto;
   padding: 16px;
 }
+
+.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
+.back-btn:hover { background: var(--border); color: var(--text-primary); }
 
 .post-card {
   border-radius: 16px;

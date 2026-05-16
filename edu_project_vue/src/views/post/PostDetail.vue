@@ -600,7 +600,7 @@ watch(() => route.params.id, () => {
 
 .report-btn { opacity: 0.4; }
 .report-btn:hover { opacity: 0.8; color: #ef4444; }
-.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
+.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; grid-column: 1 / -1; }
 .back-btn:hover { background: var(--border); color: var(--text-primary); }
 
 .post-detail-page {
