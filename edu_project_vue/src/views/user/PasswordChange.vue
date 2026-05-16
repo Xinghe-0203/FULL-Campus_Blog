@@ -199,7 +199,7 @@ async function handleSubmit() {
 .form-error {
   display: block;
   font-size: 0.6875rem;
-  color: #F44336;
+  color: var(--error);
   margin-top: 4px;
 }
 

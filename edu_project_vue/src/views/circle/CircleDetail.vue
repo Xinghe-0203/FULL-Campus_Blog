@@ -65,6 +65,10 @@
                 <span class="repost-author">{{ post.repostPost.userNickname || post.repostPost.userUsername }}</span>
               </div>
               <p class="repost-text">{{ post.repostPost.content }}</p>
+              <div v-if="post.repostPost.images && post.repostPost.images.length" class="repost-images mini">
+                <img v-for="(img, idx) in post.repostPost.images.slice(0, 3)" :key="idx" :src="img" class="repost-img" />
+                <span v-if="post.repostPost.images.length > 3" class="repost-more">+{{ post.repostPost.images.length - 3 }}</span>
+              </div>
             </div>
           </div>
 
@@ -188,7 +192,7 @@
                 </div>
                 <p class="repost-original-text">{{ post.content }}</p>
               </div>
-              <textarea v-model="repostContent" class="post-textarea" placeholder="说说你的看法..." rows="4"></textarea>
+              <textarea v-model="repostContent" class="post-textarea" placeholder="说说你的看法..." rows="4" maxlength="2000"></textarea>
               <div class="char-count" :class="{ warn: repostContent.length > 1800 }">{{ repostContent.length }}/2000</div>
             </div>
             <div class="modal-footer">
@@ -480,7 +484,8 @@ onMounted(() => {
 .grid-1 { grid-template-columns: 1fr; max-width: 400px; }
 .grid-2 { grid-template-columns: 1fr 1fr; }
 .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
-.grid-4, .grid-5, .grid-6, .grid-7, .grid-8, .grid-9 { grid-template-columns: 1fr 1fr 1fr; }
+.grid-4 { grid-template-columns: 1fr 1fr; }
+.grid-5, .grid-6, .grid-7, .grid-8, .grid-9 { grid-template-columns: 1fr 1fr 1fr; }
 
 .img-wrap {
   position: relative;
@@ -573,6 +578,31 @@ onMounted(() => {
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.repost-images.mini {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.repost-img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.repost-more {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eee;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #666;
 }
 
 .feed-stats {

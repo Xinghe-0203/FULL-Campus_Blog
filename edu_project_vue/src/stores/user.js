@@ -343,7 +343,16 @@ export const useUserStore = defineStore('user', () => {
    * @returns {void}
    */
   function updateUserInfo(userData) {
-    user.value = { ...user.value, ...userData }
+    const allowedFields = ['id', 'username', 'nickname', 'avatar', 'email', 'role',
+      'coverImage', 'bio', 'gender', 'birthday', 'phone', 'school', 'major', 'grade',
+      'signature', 'status', 'createdAt']
+    const filteredData = {}
+    for (const key of allowedFields) {
+      if (key in userData) {
+        filteredData[key] = userData[key]
+      }
+    }
+    user.value = { ...user.value, ...filteredData }
     saveToStorage()
     logger.info('User info updated', { userId: user.value?.id })
   }

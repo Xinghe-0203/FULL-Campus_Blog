@@ -60,8 +60,12 @@
         <div v-if="error" class="error-state">
           <p>{{ error }}</p>
         </div>
-        <div v-else-if="loading && results.length === 0" class="loading-state">
-          <p>搜索中...</p>
+        <div v-else-if="loading && results.length === 0" class="loading-skeleton">
+          <div v-for="i in 3" :key="i" class="result-item card">
+            <div class="skeleton-title-line w-70"></div>
+            <div class="skeleton-title-line w-90"></div>
+            <div class="skeleton-text-line w-40"></div>
+          </div>
         </div>
         <template v-else>
           <div class="results-header">
@@ -488,16 +492,44 @@ onUnmounted(() => {
 }
 
 .error-state p {
-  color: #F44336;
+  color: var(--error);
 }
 
-.loading-state {
-  text-align: center;
-  padding: var(--spacing-2xl);
+.loading-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
 }
 
-.loading-state p {
-  color: var(--text-muted);
+.loading-skeleton .result-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skeleton-title-line {
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-text-line {
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-title-line.w-70 { width: 70%; }
+.skeleton-title-line.w-90 { width: 90%; }
+.skeleton-text-line.w-40 { width: 40%; }
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .load-more {

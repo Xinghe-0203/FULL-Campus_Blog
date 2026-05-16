@@ -116,7 +116,7 @@
       </article>
       
       <!-- 评论区 -->
-      <div class="comment-section card">
+      <div v-if="post" class="comment-section card">
         <h3 class="section-title">评论 ({{ comments.length }})</h3>
         
         <!-- 评论输入框 -->
@@ -200,7 +200,7 @@
     </div>
     
     <!-- 侧边栏 -->
-    <aside class="post-sidebar">
+    <aside v-if="post" class="post-sidebar">
       <!-- 目录 -->
       <div v-if="toc.length > 0" class="toc-card card">
         <h3 class="sidebar-title">目录</h3>
@@ -549,6 +549,9 @@ const sharePost = async () => {
     // 调用API记录分享
     await shareApi.recordShare(route.params.id, 'web')
 
+    // 本地更新分享数
+    post.value.shareCount = (post.value.shareCount || 0) + 1
+
     // 复制链接到剪贴板
     const url = window.location.href
     if (navigator.clipboard) {
@@ -653,6 +656,8 @@ watch(() => route.params.id, () => {
   color: var(--text-primary);
   margin-bottom: var(--spacing-lg);
   line-height: 1.3;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .post-author {
@@ -915,6 +920,10 @@ watch(() => route.params.id, () => {
   color: var(--text-muted);
 }
 
+.error-hint {
+  color: var(--error);
+}
+
 /* 侧边栏 */
 .post-sidebar {
   position: sticky;
@@ -1071,6 +1080,25 @@ watch(() => route.params.id, () => {
   
   .post-actions {
     flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+
+  .post-cover {
+    height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .post-cover {
+    height: 160px;
+  }
+
+  .post-content {
+    padding: var(--spacing-md);
+  }
+
+  .comment-section {
+    padding: var(--spacing-md);
   }
 }
 </style>

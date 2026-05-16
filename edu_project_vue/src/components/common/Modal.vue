@@ -33,7 +33,7 @@ watch(() => props.show, (val) => {
     }
     document.removeEventListener('keydown', handleKeydown)
   }
-})
+}, { immediate: true })
 
 onBeforeUnmount(() => {
   bodyOverflowCount = Math.max(0, bodyOverflowCount - 1)

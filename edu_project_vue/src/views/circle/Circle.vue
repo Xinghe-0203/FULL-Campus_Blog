@@ -723,11 +723,6 @@ onBeforeUnmount(() => {
 .grid-8 { grid-template-columns: 1fr 1fr 1fr; }
 .grid-9 { grid-template-columns: 1fr 1fr 1fr; }
 
-.grid-4 .img-wrap:nth-child(1),
-.grid-4 .img-wrap:nth-child(2) {
-  grid-column: span 1;
-}
-
 .img-wrap {
   position: relative;
   aspect-ratio: 1;
@@ -1124,6 +1119,7 @@ onBeforeUnmount(() => {
   background: transparent;
   font-family: inherit;
   min-height: 100px;
+  box-sizing: border-box;
 }
 
 .post-textarea:focus {

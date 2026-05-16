@@ -125,35 +125,41 @@
           <h3>举报详情 #{{ detailData?.id }}</h3>
           <button class="dialog-close" @click="detailDialog = false">×</button>
         </div>
-        <div class="dialog-body" v-if="detailData">
-          <div class="detail-row">
-            <span class="detail-label">举报类型</span>
-            <span class="detail-value">{{ detailData.targetType }}</span>
+        <div class="dialog-body">
+          <div v-if="detailLoading" class="dialog-loading">
+            <span class="loading-spinner"></span>
+            <p>加载中...</p>
           </div>
-          <div class="detail-row">
-            <span class="detail-label">举报原因</span>
-            <span class="detail-value">{{ detailData.reason }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">详细说明</span>
-            <span class="detail-value">{{ detailData.description || '无' }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">举报人</span>
-            <span class="detail-value">{{ detailData.reporterName }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">被举报内容ID</span>
-            <span class="detail-value">{{ detailData.targetId }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">状态</span>
-            <span class="detail-value">{{ detailData.status === 0 ? '待处理' : '已处理' }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">举报时间</span>
-            <span class="detail-value">{{ formatDate(detailData.createTime) }}</span>
-          </div>
+          <template v-else-if="detailData">
+            <div class="detail-row">
+              <span class="detail-label">举报类型</span>
+              <span class="detail-value">{{ detailData.targetType }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">举报原因</span>
+              <span class="detail-value">{{ detailData.reason }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">详细说明</span>
+              <span class="detail-value">{{ detailData.description || '无' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">举报人</span>
+              <span class="detail-value">{{ detailData.reporterName }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">被举报内容ID</span>
+              <span class="detail-value">{{ detailData.targetId }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">状态</span>
+              <span class="detail-value">{{ detailData.status === 0 ? '待处理' : '已处理' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">举报时间</span>
+              <span class="detail-value">{{ formatDate(detailData.createTime) }}</span>
+            </div>
+          </template>
         </div>
         <div class="dialog-footer">
           <button class="btn btn-ghost" @click="detailDialog = false">关闭</button>
@@ -180,6 +186,7 @@ const currentPage = ref(1)
 const totalPages = ref(1)
 const detailDialog = ref(false)
 const detailData = ref(null)
+const detailLoading = ref(false)
 const loading = ref(true)
 const error = ref('')
 
@@ -219,13 +226,17 @@ const handleReport = async (report, status) => {
 }
 
 const viewDetail = async (report) => {
+  detailLoading.value = true
+  detailDialog.value = true
+  detailData.value = null
   try {
     const response = await adminApi.getReportById(report.id)
     detailData.value = response.data || report
-    detailDialog.value = true
   } catch (err) {
     logger.error('Failed to fetch report detail', { error: err.message })
     toast.error('获取详情失败')
+  } finally {
+    detailLoading.value = false
   }
 }
 
@@ -374,6 +385,17 @@ onMounted(() => {
   color: var(--text-primary);
 }
 
+.dialog-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl) 0;
+  gap: var(--spacing-md);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
 .dialog-footer {
   margin-top: var(--spacing-lg);
   padding-top: var(--spacing-md);
@@ -388,7 +410,7 @@ onMounted(() => {
 .sk-line {
   height: 14px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -404,10 +426,17 @@ onMounted(() => {
   100% { background-position: -200% 0; }
 }
 
+.empty-cell {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
 .error-state {
   text-align: center;
   padding: 60px 20px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .error-state h3 {

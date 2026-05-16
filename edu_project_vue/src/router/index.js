@@ -247,9 +247,29 @@ router.beforeEach((to, from) => {
   }
 })
 
+// 路由错误处理
+router.onError((error) => {
+  logger.error('Router navigation error', { error: error.message })
+
+  // 处理异步组件加载失败（chunk load errors）
+  if (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk')) {
+    toast.error('页面加载失败，请刷新重试')
+    router.push({ name: 'Home' })
+    return
+  }
+
+  // 处理导航失败
+  toast.error('页面导航失败，请重试')
+})
+
 // 路由后置守卫
 router.afterEach((to, from) => {
   logger.debug('Navigation completed', { to: to.path })
+
+  // 检测导航是否失败（from与to相同表示导航被拦截或失败）
+  if (from.name && to.path === from.path && to.hash !== from.hash) {
+    logger.warn('Navigation aborted or failed', { from: from.fullPath, to: to.fullPath })
+  }
 })
 
 export default router

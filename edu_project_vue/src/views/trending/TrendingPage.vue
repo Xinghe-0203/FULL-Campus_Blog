@@ -56,14 +56,14 @@
         </div>
 
         <div v-else-if="activeTab === 'posts' && hotPosts.length === 0" class="empty-state">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.2">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
           </svg>
           <p>暂无热门文章</p>
         </div>
 
         <div v-else-if="activeTab === 'tags' && !tagsLoading && hotTags.length === 0" class="empty-state">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.2">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
             <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
             <line x1="7" y1="7" x2="7.01" y2="7"/>
           </svg>
@@ -71,7 +71,7 @@
         </div>
 
         <div v-else-if="activeTab === 'topics' && !topicsLoading && hotTopics.length === 0" class="empty-state">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.2">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
             <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
             <line x1="4" y1="22" x2="4" y2="15"/>
           </svg>
@@ -153,7 +153,7 @@
               <p class="topic-desc" v-if="topic.description">{{ topic.description }}</p>
               <span class="topic-count">{{ topic.postCount || 0 }} 篇讨论</span>
             </div>
-            <svg class="topic-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2">
+            <svg class="topic-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="9 18 15 12 9 6"/>
             </svg>
           </div>
@@ -348,7 +348,7 @@ onMounted(() => {
 
 .header-subtitle {
   font-size: 0.85rem;
-  color: #999;
+  color: var(--text-muted);
   margin: 2px 0 0;
 }
 
@@ -356,7 +356,7 @@ onMounted(() => {
   display: flex;
   gap: 4px;
   margin-bottom: 20px;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
   border-radius: 12px;
   padding: 3px;
 }
@@ -373,19 +373,19 @@ onMounted(() => {
   background: transparent;
   border: none;
   border-radius: 10px;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .tab-btn.active {
-  background: #fff;
-  color: #1a1a1a;
+  background: var(--surface);
+  color: var(--text-primary);
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
 .tab-btn:hover:not(.active) {
-  color: #333;
+  color: var(--text-primary);
 }
 
 .loading-section {
@@ -398,14 +398,14 @@ onMounted(() => {
   display: flex;
   gap: 14px;
   padding: 16px;
-  background: #fafafa;
+  background: var(--surface);
   border-radius: 12px;
 }
 
 .skeleton-rank {
   width: 32px;
   height: 32px;
-  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 8px;
@@ -418,7 +418,7 @@ onMounted(() => {
 
 .skeleton-title {
   height: 16px;
-  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 4px;
@@ -428,7 +428,7 @@ onMounted(() => {
 
 .skeleton-meta {
   height: 12px;
-  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 4px;
@@ -443,7 +443,7 @@ onMounted(() => {
 .error-state {
   text-align: center;
   padding: 60px 20px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .error-state h3 {
@@ -454,7 +454,7 @@ onMounted(() => {
 .empty-state {
   text-align: center;
   padding: 80px 20px;
-  color: #ccc;
+  color: var(--text-muted);
 }
 
 .empty-state p {
@@ -479,7 +479,7 @@ onMounted(() => {
 }
 
 .rank-item:hover {
-  background: #f8f9fa;
+  background: var(--background);
 }
 
 .rank-number {
@@ -492,8 +492,8 @@ onMounted(() => {
   font-weight: 700;
   font-size: 13px;
   border-radius: 8px;
-  background: #f0f0f0;
-  color: #999;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
   position: relative;
 }
 
@@ -515,7 +515,7 @@ onMounted(() => {
 .rank-title {
   font-size: 15px;
   font-weight: 500;
-  color: #1a1a1a;
+  color: var(--text-primary);
   line-height: 1.4;
   display: flex;
   align-items: center;
@@ -543,18 +543,18 @@ onMounted(() => {
   gap: 12px;
   margin-top: 6px;
   font-size: 12px;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .rank-score {
-  color: #f59e0b;
+  color: var(--warning);
   font-weight: 600;
 }
 
 .rank-views,
 .rank-likes,
 .rank-comments {
-  color: #bbb;
+  color: var(--text-muted);
 }
 
 .load-more {
@@ -565,17 +565,17 @@ onMounted(() => {
 .btn-outline {
   padding: 8px 24px;
   background: transparent;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   border-radius: 20px;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-outline:hover {
-  background: #f5f5f5;
-  border-color: #ccc;
+  background: var(--background);
+  border-color: var(--text-muted);
 }
 
 .tag-cloud-section {
@@ -633,7 +633,44 @@ onMounted(() => {
 }
 
 .topic-card:hover {
-  background: #f8f9fa;
+  background: var(--background);
+}
+
+.topic-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--primary-light);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.topic-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.topic-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topic-count {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.topic-arrow {
+  flex-shrink: 0;
 }
 
 .topic-icon {

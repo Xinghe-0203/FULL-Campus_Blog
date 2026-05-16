@@ -118,6 +118,19 @@ function clearSecurityStorage() {
 let isRefreshing = false
 let failedQueue = []
 
+// 请求重试配置
+const MAX_RETRIES = 2
+const RETRY_DELAY = 1000
+const RETRYABLE_CODES = ['ECONNABORTED', 'ERR_NETWORK', 'ERR_CONNECTION_REFUSED', 'ERR_CONNECTION_RESET']
+
+function isRetryableError(error) {
+  return !error.response && (
+    RETRYABLE_CODES.includes(error.code) ||
+    error.message === 'Network Error' ||
+    error.code === 'ERR_CANCELED'
+  )
+}
+
 const api = axios.create({
   baseURL: '/api',
   timeout: 15000
@@ -196,10 +209,25 @@ api.interceptors.response.use(
       message: error.response?.data?.message || error.message
     })
     
+    // 网络错误重试（无响应、超时等）
+    if (isRetryableError(error)) {
+      originalRequest._networkRetryCount = (originalRequest._networkRetryCount || 0) + 1
+      if (originalRequest._networkRetryCount <= MAX_RETRIES) {
+        logger.warn('Retrying request', {
+          url: originalRequest.url,
+          attempt: originalRequest._networkRetryCount,
+          maxRetries: MAX_RETRIES
+        })
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * originalRequest._networkRetryCount))
+        return api(originalRequest)
+      }
+    }
+
     // 400 - 请求参数错误
     if (error.response?.status === 400) {
       const message = error.response?.data?.message || '请求参数错误'
       logger.warn('Bad request', { url: originalRequest?.url, message })
+      error.userMessage = message
       return Promise.reject(error)
     }
 
@@ -207,6 +235,7 @@ api.interceptors.response.use(
     if (error.response?.status === 403) {
       const message = error.response?.data?.message || '没有访问权限'
       logger.warn('Forbidden', { url: originalRequest?.url, message })
+      error.userMessage = message
       return Promise.reject(error)
     }
 
@@ -214,6 +243,7 @@ api.interceptors.response.use(
     if (error.response?.status === 404) {
       const message = error.response?.data?.message || '请求的资源不存在'
       logger.warn('Not found', { url: originalRequest?.url, message })
+      error.userMessage = message
       return Promise.reject(error)
     }
 
@@ -221,7 +251,23 @@ api.interceptors.response.use(
     if (error.response?.status === 500) {
       const message = error.response?.data?.message || '服务器内部错误，请稍后再试'
       logger.error('Server error', { url: originalRequest?.url, message })
+      error.userMessage = message
       return Promise.reject(error)
+    }
+
+    // 无响应的网络错误（超时、断网等，排除已重试的请求）
+    if (!error.response && originalRequest._networkRetryCount && originalRequest._networkRetryCount > MAX_RETRIES) {
+      const message = error.message || '网络异常，请检查网络连接'
+      logger.error('Network error after retries exhausted', { url: originalRequest?.url, message, retries: originalRequest._networkRetryCount })
+      error.userMessage = message
+      return Promise.reject(error)
+    }
+
+    // 兜底: 未知错误
+    if (error.response?.data?.message) {
+      error.userMessage = error.response.data.message
+    } else if (!error.userMessage) {
+      error.userMessage = error.message || '请求失败'
     }
 
     // 401错误处理（Token过期）

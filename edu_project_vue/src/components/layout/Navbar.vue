@@ -131,7 +131,7 @@
                   </svg>
                   私信
                   <span v-if="userStore.unreadMessages > 0" class="dropdown-badge">
-                    {{ userStore.unreadMessages }}
+                    {{ userStore.unreadMessages > 99 ? '99+' : userStore.unreadMessages }}
                   </span>
                 </router-link>
                 <div class="dropdown-divider"></div>
@@ -192,13 +192,13 @@
           <router-link to="/notifications" class="mobile-nav-link" @click="closeMobileMenu">
             消息通知
             <span v-if="userStore.unreadNotifications > 0" class="mobile-badge">
-              {{ userStore.unreadNotifications }}
+              {{ userStore.unreadNotifications > 99 ? '99+' : userStore.unreadNotifications }}
             </span>
           </router-link>
           <router-link to="/messages" class="mobile-nav-link" @click="closeMobileMenu">
             私信
             <span v-if="userStore.unreadMessages > 0" class="mobile-badge">
-              {{ userStore.unreadMessages }}
+              {{ userStore.unreadMessages > 99 ? '99+' : userStore.unreadMessages }}
             </span>
           </router-link>
           <button class="mobile-nav-link danger" @click="handleLogout">退出登录</button>

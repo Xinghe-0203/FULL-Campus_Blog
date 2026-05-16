@@ -30,7 +30,7 @@
             </div>
           </div>
 
-          <textarea v-model="form.content" class="post-textarea" placeholder="分享你的校园生活..." rows="6" maxlength="2000"></textarea>
+          <textarea v-model="form.content" class="post-textarea" placeholder="分享你的校园生活..." rows="6" maxlength="2000" @input="autoResize" ref="textareaRef"></textarea>
           <div class="char-count" :class="{ warn: form.content.length > 1800 }">{{ form.content.length }}/2000</div>
 
           <div v-if="form.images.length" class="uploaded-images">
@@ -102,6 +102,15 @@ const fileInput = ref(null)
 const videoInput = ref(null)
 const currentUploadIndex = ref(0)
 const totalUploadCount = ref(0)
+const textareaRef = ref(null)
+
+const autoResize = () => {
+  const el = textareaRef.value
+  if (el) {
+    el.style.height = 'auto'
+    el.style.height = el.scrollHeight + 'px'
+  }
+}
 
 const visibilityOptions = { 0: '公开', 1: '关注者可见', 2: '仅自己' }
 

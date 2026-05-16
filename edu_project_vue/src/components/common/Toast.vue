@@ -64,8 +64,8 @@ function updateProgress() {
       styles[t.id] = t._progress ?? 100
     } else {
       const activeMs = t._activeMs + (now - t.createdAt)
-      const total = t._originalDuration || t.duration
-      const pct = Math.max(0, (1 - activeMs / total) * 100)
+      const total = t._originalDuration || t.duration || 3000
+      const pct = total > 0 ? Math.max(0, (1 - activeMs / total) * 100) : 100
       styles[t.id] = pct
       t._progress = pct
     }
@@ -96,7 +96,7 @@ onBeforeUnmount(() => {
   position: fixed;
   top: 80px;
   right: 20px;
-  z-index: 10000;
+  z-index: 11000;
   display: flex;
   flex-direction: column;
   gap: 10px;

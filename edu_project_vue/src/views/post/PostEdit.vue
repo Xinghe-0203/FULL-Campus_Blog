@@ -603,7 +603,7 @@ onBeforeRouteLeave((to, from) => {
 .edit-container { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
 .editor-header { grid-column: 1 / -1; padding: 16px 20px; }
 .header-top { display: flex; align-items: center; gap: 12px; }
-.title-input { flex: 1; border: none; font-size: 1.5rem; font-weight: 700; background: transparent; color: var(--text-primary); }
+.title-input { flex: 1; border: none; font-size: 1.5rem; font-weight: 700; background: transparent; color: var(--text-primary); overflow-wrap: break-word; word-break: break-word; }
 .title-input:focus { outline: none; }
 .title-input::placeholder { color: var(--text-muted); }
 .header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
@@ -701,5 +701,23 @@ onBeforeRouteLeave((to, from) => {
   .header-top { flex-direction: column; align-items: stretch; }
   .header-actions { justify-content: flex-end; }
   .post-edit-page { padding: 12px; }
+}
+
+@media (max-width: 768px) {
+  .editor-body {
+    min-height: 300px;
+  }
+
+  .content-input {
+    min-height: 300px;
+    padding: 16px;
+    font-size: 0.9375rem;
+  }
+
+  .toolbar {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 </style>

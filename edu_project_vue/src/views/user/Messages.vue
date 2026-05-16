@@ -24,10 +24,10 @@
               v-for="conv in conversations"
               :key="conv.conversationId || `virtual-${conv.user?.id}`"
               class="conversation-item"
-              :class="{ active: activeConversation?.conversationId === conv.conversationId }"
+              :class="{ active: activeConversation?.conversationId != null ? activeConversation.conversationId === conv.conversationId : activeConversation?.user?.id === conv.user?.id }"
               @click="selectConversation(conv)"
             >
-              <img :src="conv.user?.avatar || '/default-avatar.png'" :alt="conv.user?.nickname || conv.user?.username" class="conv-avatar" />
+              <img :src="conv.user?.avatar || defaultAvatar" :alt="conv.user?.nickname || conv.user?.username" class="conv-avatar" @error="onAvatarError" />
               <div class="conv-info">
                 <span class="conv-name">{{ conv.user?.nickname || conv.user?.username }}</span>
                 <span class="conv-last-message">{{ conv.lastMessage }}</span>
@@ -60,9 +60,9 @@
               v-for="msg in messages"
               :key="msg.id"
               class="message-item"
-              :class="{ mine: msg.sender?.id === userStore.userId }"
+              :class="{ mine: msg.sender?.id == userStore.userId }"
             >
-              <img :src="msg.sender?.avatar || '/default-avatar.png'" :alt="msg.sender?.nickname" class="msg-avatar" />
+              <img :src="msg.sender?.avatar || defaultAvatar" :alt="msg.sender?.nickname" class="msg-avatar" @error="onAvatarError" />
               <div class="msg-content">
                 <p class="msg-text" v-html="sanitizeText(msg.content)"></p>
                 <span class="msg-time">{{ formatRelativeTime(msg.createTime) }}</span>
@@ -117,6 +117,14 @@ function goBack() {
 const sanitizeText = (text) => {
   if (!text) return ''
   return DOMPurify.sanitize(text, { ALLOWED_TAGS: [] })
+}
+
+const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44"><rect width="44" height="44" rx="22" fill="#e0e0e0"/><text x="22" y="28" text-anchor="middle" fill="#999" font-size="18" font-family="sans-serif">?</text></svg>')
+
+const onAvatarError = (e) => {
+  if (e.target.src !== defaultAvatar) {
+    e.target.src = defaultAvatar
+  }
 }
 
 const showMobileList = ref(true)
@@ -202,10 +210,7 @@ const selectConversation = async (conv) => {
       }
     }
 
-    await nextTick()
-    if (messageList.value) {
-      messageList.value.scrollTop = messageList.value.scrollHeight
-    }
+    await scrollToBottom()
   } catch (error) {
     logger.error('Failed to fetch messages', { error: error.message })
     messagesError.value = '加载消息失败'
@@ -215,8 +220,9 @@ const selectConversation = async (conv) => {
 }
 
 const sendMessage = async () => {
-  if (!newMessage.value.trim() || !activeConversation.value) return
-  if (newMessage.value.trim().length > 1000) {
+  const content = newMessage.value.trim()
+  if (!content || !activeConversation.value) return
+  if (content.length > 1000) {
     toast.warning('消息内容不能超过1000个字符')
     return
   }
@@ -225,10 +231,7 @@ const sendMessage = async () => {
   if (!receiverId) return
 
   try {
-    await messageApi.sendMessage({
-      receiverId,
-      content: newMessage.value
-    })
+    await messageApi.sendMessage({ receiverId, content })
 
     // 如果是新会话，发送后重载会话列表获取真实conversationId
     if (activeConversation.value.conversationId == null) {
@@ -241,26 +244,44 @@ const sendMessage = async () => {
     messages.value.push({
       id: Date.now(),
       sender: { id: userStore.userId, avatar: userStore.avatar, nickname: userStore.nickname || userStore.username },
-      content: newMessage.value,
+      content,
       createTime: new Date().toISOString().slice(0, 19),
       isRead: 1
     })
 
-    newMessage.value = ''
-
-    await nextTick()
-    if (messageList.value) {
-      messageList.value.scrollTop = messageList.value.scrollHeight
-    }
+    await scrollToBottom()
   } catch (error) {
     logger.error('Failed to send message', { error: error.message })
     toast.error('发送失败')
+  } finally {
+    newMessage.value = ''
+  }
+}
+
+const scrollToBottom = async () => {
+  await nextTick()
+  if (messageList.value) {
+    messageList.value.scrollTop = messageList.value.scrollHeight
   }
 }
 
 const startPolling = () => {
-  pollingInterval = setInterval(() => {
-    fetchConversations(true)
+  pollingInterval = setInterval(async () => {
+    await fetchConversations(true)
+    if (activeConversation.value && activeConversation.value.conversationId != null) {
+      try {
+        const response = await messageApi.getConversationMessages(activeConversation.value.conversationId)
+        const records = response.data?.records || []
+        records.reverse()
+        const wasAtBottom = messageList.value && (messageList.value.scrollTop + messageList.value.clientHeight >= messageList.value.scrollHeight - 50)
+        messages.value = records
+        if (wasAtBottom) {
+          await scrollToBottom()
+        }
+      } catch (e) {
+        logger.warn('Failed to refresh messages', { error: e.message })
+      }
+    }
   }, 30000)
 }
 
@@ -414,6 +435,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+  min-height: 200px;
 }
 
 .message-item {

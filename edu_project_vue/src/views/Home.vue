@@ -559,6 +559,7 @@ onMounted(() => {
 .filter-tab {
   position: relative;
   z-index: 1;
+  flex: 1;
   padding: 6px 18px;
   font-size: 0.8125rem;
   font-weight: 500;
@@ -568,6 +569,7 @@ onMounted(() => {
   border-radius: 6px;
   cursor: pointer;
   transition: color var(--transition-fast);
+  text-align: center;
 }
 
 .filter-tab:hover {
@@ -958,7 +960,7 @@ onMounted(() => {
 
 .sidebar {
   position: sticky;
-  top: 88px;
+  top: 84px;
 }
 
 .sidebar-card {

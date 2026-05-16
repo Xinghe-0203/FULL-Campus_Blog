@@ -12,13 +12,18 @@
         </button>
       </div>
       
-      <div v-if="error" class="empty-state">
-        <p class="error-text">{{ error }}</p>
-        <button class="btn btn-primary" @click="fetchNotifications">重试</button>
+      <div v-if="error" class="error-card card">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="error-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p>{{ error }}</p>
+        <button class="btn btn-primary" @click="fetchNotifications">重新加载</button>
       </div>
       
-      <div v-if="loading && notifications.length === 0" class="empty-state">
-        <p>加载中...</p>
+      <div v-if="loading && notifications.length === 0" class="skeleton-list">
+        <div v-for="n in 3" :key="n" class="skeleton-card-item">
+          <div class="skeleton skeleton-card-title"></div>
+          <div class="skeleton skeleton-card-text"></div>
+          <div class="skeleton skeleton-card-meta"></div>
+        </div>
       </div>
       
       <div v-else-if="notifications.length > 0" class="notification-list">
@@ -53,8 +58,9 @@
         </button>
       </div>
       
-      <div v-else-if="notifications.length === 0" class="empty-state">
-        <p>暂无通知</p>
+      <div v-else-if="notifications.length === 0" class="empty-state card">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <p class="empty-title">暂无通知</p>
       </div>
     </div>
   </div>
@@ -213,13 +219,13 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
-.back-btn:hover { background: var(--border); color: var(--text-primary); }
 .notifications-page {
   max-width: 700px;
   margin: 0 auto;
   padding: var(--spacing-lg);
 }
+.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
+.back-btn:hover { background: var(--border); color: var(--text-primary); }
 
 .page-header {
   display: flex;
@@ -302,17 +308,46 @@ onUnmounted(() => {
   background: rgba(239, 68, 68, 0.1);
 }
 
+.error-card {
+  text-align: center;
+  padding: 60px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.error-card p { color: var(--text-secondary); font-size: 0.875rem; }
+.error-icon { color: var(--text-muted); opacity: 0.5; }
+
 .empty-state {
   text-align: center;
   padding: var(--spacing-2xl);
 }
+.empty-icon { color: var(--text-muted); opacity: 0.3; margin-bottom: 16px; }
+.empty-title { font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
 
-.empty-state p {
-  color: var(--text-muted);
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
+.skeleton-card-item {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.skeleton-card-title { width: 60%; height: 18px; margin-bottom: 8px; }
+.skeleton-card-text { width: 90%; height: 14px; margin-bottom: 6px; }
+.skeleton-card-meta { width: 180px; height: 14px; margin-top: 4px; }
 
 .load-more {
   text-align: center;
   padding: var(--spacing-lg);
+}
+
+@media (max-width: 768px) {
+  .notifications-page { padding: 16px; }
+  .notification-item { padding: 12px; gap: 10px; }
+  .sender-avatar { width: 36px; height: 36px; }
 }
 </style>

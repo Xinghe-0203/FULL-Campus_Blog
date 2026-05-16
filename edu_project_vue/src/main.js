@@ -18,7 +18,13 @@ const app = createApp(App)
 const logger = useLogger('App')
 
 // 使用Pinia状态管理
-app.use(createPinia())
+const pinia = createPinia()
+app.use(pinia)
+
+// 在路由初始化前恢复用户认证状态，确保路由守卫能正确判断登录态
+import { useUserStore } from './stores/user'
+const userStore = useUserStore(pinia)
+userStore.restoreFromStorage()
 
 // 使用路由
 app.use(router)

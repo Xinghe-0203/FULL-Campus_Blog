@@ -101,6 +101,72 @@
 - CHANGELOG.md - 追加 v1.49 完整变更记录
 - 版本号同步更新至 v1.49
 
+## v1.50 - 2026-05-16
+
+### 🐛 导航白屏修复 (CRITICAL)
+- **App.vue** - 修复页面跳转时只显示顶栏、下方白屏的问题
+  - 添加 `onErrorCaptured` 错误边界，捕获路由组件加载失败并显示重试按钮
+  - 替换 3px 进度条为居中全屏加载动画（spinner + "加载中..."）
+  - 添加 `@enter-cancelled` / `@leave-cancelled` 事件处理，防止加载状态卡死
+  - 导航开始时立即重置滚动位置
+- **router/index.js** - 添加 `router.onError` 全局处理异步组件加载失败（显示 toast + 跳转首页）
+
+### 🐛 私信功能深度修复
+- **Messages.vue** - 10项修复：
+  - `sender.id` 类型比较 `===` → `==`（Long vs String 匹配失败）
+  - 空消息区域添加 `min-height: 200px` 防止折叠
+  - 默认头像改为内联 SVG data-URI + `@error` 降级处理
+  - `sendMessage` 提取 `trim()` 后的 content，确保结构匹配后端
+  - 抽取 `scrollToBottom()` 辅助函数，统一初始/发送/轮询时滚动
+  - 活跃会话高亮：虚拟会话时按 `user.id` 比较
+  - 轮询时同时刷新活跃会话消息（仅用户已在底部时自动滚动）
+  - 发送失败后 `finally` 清空输入框
+- **main.js** - Pinia 初始化提前到 `app.use(router)` 之前，消除路由守卫竞态条件
+
+### 🐛 基础设施修复
+- **api/index.js** - 添加请求失败自动重试机制（2次重试 + 指数退避）+ 错误消息传播
+- **stores/user.js** - `updateUserInfo` 添加字段白名单过滤，防止敏感字段（password）被存储
+- **router/index.js** - 添加导航失败检测
+
+### 🎨 全页面显示优化
+
+#### Navbar/App/Home
+- **App.vue** - 移除多余的 `padding-top` media query 覆盖，统一 60px 匹配导航栏高度
+- **Home.vue** - 修复筛选 Tab 指示器对齐；修复侧边栏 sticky 位置
+- **Navbar.vue** - 所有未读数徽章统一为 `99+` 封顶显示
+
+#### 文章相关页面
+- **PostDetail.vue** - 评论区和侧边栏条件渲染（无文章时隐藏）；分享计数即时更新；长标题换行处理；移动端响应式（封面高度/内边距）
+- **PostEdit.vue** - 长标题换行处理；移动端编辑器高度从 460px 降到 300px；工具栏横向滚动支持
+- **PostSearch.vue** - 硬编码颜色/间距替换为 CSS 变量
+
+#### 用户页面
+- **Profile/Collections/Following.vue** - 移除 40-50 行未使用的模态框 CSS
+- **PasswordChange.vue** - 硬编码颜色 → `var(--error)`
+- **MyReports.vue** - 错误/空状态改为卡片+图标；修复分页；移动端适配
+- **Notifications.vue** - 加载骨架屏；错误/空状态卡片化；移动端适配
+
+#### 校友圈页面
+- **Circle.vue** - textarea 添加 `box-sizing: border-box`
+- **CircleDetail.vue** - 4图grid修复为2列；转发模态添加字符限制；转发卡片添加缩略图
+- **CirclePost.vue** - 文本域自动高度调整
+
+#### 管理后台
+- **Dashboard/Users/Posts/Reports/Statistics.vue** - 骨架屏硬编码颜色 → CSS变量；错误状态颜色修复；`empty-cell` 样式补充
+
+#### 其他
+- **Search.vue** - 搜索中状态改为骨架屏；错误颜色替换
+- **TrendingPage.vue** - 13处暗色模式修复（所有硬编码颜色 → CSS变量）
+- **Toast.vue** - z-index 提升至 11000（确保在 Modal 之上）；永久 toast 进度条全宽显示
+- **Modal.vue** - `show` watcher 添加 `immediate: true`，修复初始为 true 时不锁定滚动
+
+### 🔧 后端验证
+- **MessageController/MessageServiceImpl** - 验证所有字段与前端匹配（ConversationVO.conversationId = partner userId，MessageVO.sender，顺序反转等）
+
+### 📝 文档更新
+- CHANGELOG.md - 追加 v1.50 完整变更记录
+- 版本号同步更新至 v1.50
+
 ## v1.48 - 2026-05-15
 
 ### 🔒 安全修复
