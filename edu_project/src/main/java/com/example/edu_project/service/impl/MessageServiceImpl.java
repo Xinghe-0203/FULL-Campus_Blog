@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.edu_project.common.exception.BusinessException;
+import com.example.edu_project.config.CaffeineCacheConfig;
 import com.example.edu_project.entity.BlogNotification;
 import com.example.edu_project.entity.Message;
 import com.example.edu_project.entity.SysUser;
@@ -18,6 +19,8 @@ import com.example.edu_project.utils.UserConverter;
 import com.example.edu_project.vo.ConversationVO;
 import com.example.edu_project.vo.MessageVO;
 import com.example.edu_project.vo.UserVO;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +50,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadMsg:' + #receiverId")
     public MessageVO sendMessage(Long senderId, Long receiverId, String content) {
         if (senderId == null) {
             throw new BusinessException(401, "请先登录");
@@ -152,6 +156,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadMsg:' + #userId")
     public void markAsRead(Long messageId, Long userId) {
         Message message = this.getById(messageId);
         if (message == null) {
@@ -167,6 +172,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadMsg:' + #userId")
     public void deleteMessage(Long messageId, Long userId) {
         Message message = this.getById(messageId);
         if (message == null) {
@@ -182,6 +188,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadMsg:' + #userId")
     public void markConversationAsRead(Long userId, Long partnerUserId) {
         // 检查是否存在会话（双方互发过消息）
         LambdaQueryWrapper<Message> existWrapper = new LambdaQueryWrapper<>();
@@ -201,6 +208,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     @Override
+    @Cacheable(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadMsg:' + #userId")
     @Transactional(readOnly = true)
     public Long getUnreadCount(Long userId) {
         LambdaQueryWrapper<Message> wrapper = new LambdaQueryWrapper<>();
@@ -210,6 +218,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     @Override
+    @Cacheable(value = CaffeineCacheConfig.USER_CACHE, key = "'conversations:' + #userId", unless = "#result.size() > 100")
     @Transactional(readOnly = true)
     public List<ConversationVO> getConversations(Long userId) {
         // 查询当前用户发送或接收的所有消息，限制最近30天

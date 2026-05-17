@@ -1,39 +1,74 @@
 <template>
   <div class="post-edit-page">
-    <button class="back-btn" @click="router.back()">
+    <button class="back-btn glass" @click="router.back()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       返回
     </button>
-    <div v-if="isLoading" class="loading-state">
+    
+    <div v-if="isLoading" class="loading-state glass">
       <div class="loading-spinner"></div>
       <p>加载中...</p>
     </div>
+    
     <div v-else class="edit-container">
-      <div class="editor-header card">
+      <!-- 编辑器头部 -->
+      <div class="editor-header glass">
         <div class="header-top">
           <input v-model="form.title" type="text" class="title-input" placeholder="请输入文章标题..." maxlength="200" />
           <div class="header-actions">
-            <span class="save-status" :class="saveStatus">{{ saveStatusText }}</span>
-            <button class="btn btn-ghost btn-sm" @click="saveDraft" :disabled="saving || !form.title && !form.content">保存草稿</button>
-            <button class="btn btn-secondary btn-sm" @click="showPreview = !showPreview">{{ showPreview ? '✏️ 编辑' : '👁️ 预览' }}</button>
-            <button class="btn btn-primary btn-sm" @click="publishPost" :disabled="publishing || !form.title.trim() || !form.content.trim()">{{ publishing ? '发布中...' : '发布' }}</button>
+            <span class="save-status" :class="saveStatus">
+              <svg v-if="saveStatus === 'saving'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+              <svg v-else-if="saveStatus === 'saved'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              {{ saveStatusText }}
+            </span>
+            <button class="btn btn-ghost btn-sm" @click="saveDraft" :disabled="saving || !form.title && !form.content">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              保存草稿
+            </button>
+            <button class="btn btn-secondary btn-sm" @click="showPreview = !showPreview">
+              <svg v-if="!showPreview" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              {{ showPreview ? '编辑' : '预览' }}
+            </button>
+            <button class="btn btn-primary btn-sm" @click="publishPost" :disabled="publishing || !form.title.trim() || !form.content.trim()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              {{ publishing ? '发布中...' : '发布' }}
+            </button>
           </div>
         </div>
         <div class="header-meta">
-          <span>字数：{{ wordCount }}</span>
-          <span>·</span>
-          <span>预计阅读：{{ readingTime }}分钟</span>
-          <span v-if="form.category" class="meta-category">· 分类：{{ categoryLabel(form.category) }}</span>
-          <span v-if="route.params.id && postInfo.createTime" class="meta-time">· 创建于 {{ formatTime(postInfo.createTime) }}</span>
+          <span class="meta-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+            字数：{{ wordCount }}
+          </span>
+          <span class="meta-sep">·</span>
+          <span class="meta-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            预计阅读：{{ readingTime }}分钟
+          </span>
+          <span v-if="form.category" class="meta-item meta-category">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            分类：{{ categoryLabel(form.category) }}
+          </span>
+          <span v-if="route.params.id && postInfo.createTime" class="meta-item meta-time">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            创建于 {{ formatTime(postInfo.createTime) }}
+          </span>
         </div>
       </div>
 
-      <div class="editor-body card">
-        <div v-if="!showPreview" class="editor-main">
-          <div class="toolbar">
+      <!-- 编辑器主体 -->
+      <div class="editor-main-wrapper">
+        <div class="editor-body glass">
+          <!-- 工具栏 -->
+          <div class="toolbar" v-if="!showPreview">
             <div class="toolbar-group">
-              <button class="tool-btn" title="撤销 (Ctrl+Z)" @click="undoAction" :disabled="!canUndo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
-              <button class="tool-btn" title="重做 (Ctrl+Y)" @click="redoAction" :disabled="!canRedo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 14 20 9 15 4"/><path d="M4 20v-7a4 4 0 0 0 4-4h12"/></svg></button>
+              <button class="tool-btn" title="撤销 (Ctrl+Z)" @click="undoAction" :disabled="!canUndo">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+              </button>
+              <button class="tool-btn" title="重做 (Ctrl+Y)" @click="redoAction" :disabled="!canRedo">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 14 20 9 15 4"/><path d="M4 20v-7a4 4 0 0 0 4-4h12"/></svg>
+              </button>
             </div>
             <span class="toolbar-divider"></span>
             <div class="toolbar-group">
@@ -47,45 +82,66 @@
             </div>
             <span class="toolbar-divider"></span>
             <div class="toolbar-group">
-              <button class="tool-btn" title="粗体 (Ctrl+B)" @click="insertMarkdown('**', '**')"><b>B</b></button>
-              <button class="tool-btn" title="斜体 (Ctrl+I)" @click="insertMarkdown('*', '*')"><i>I</i></button>
-              <button class="tool-btn" title="删除线" @click="insertMarkdown('~~', '~~')"><s>S</s></button>
-              <button class="tool-btn" title="下划线 (Ctrl+U)" @click="insertMarkdown('<u>', '</u>')"><span style="text-decoration:underline">U</span></button>
-              <button class="tool-btn" title="高亮" @click="insertMarkdown('<mark>', '</mark>')"><span style="background:yellow;color:black;padding:0 2px;border-radius:2px">H</span></button>
+              <button class="tool-btn" title="粗体 (Ctrl+B)" @click="insertMarkdown('**', '**')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>
+              </button>
+              <button class="tool-btn" title="斜体 (Ctrl+I)" @click="insertMarkdown('*', '*')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+              </button>
+              <button class="tool-btn" title="删除线" @click="insertMarkdown('~~', '~~')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4H9a3 3 0 0 0-3 3v0a3 3 0 0 0 3 3h6a3 3 0 0 1 3 3v0a3 3 0 0 1-3 3H8"/><line x1="4" y1="12" x2="20" y2="12"/></svg>
+              </button>
+              <button class="tool-btn" title="高亮" @click="insertMarkdown('<mark>', '</mark>')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              </button>
             </div>
             <span class="toolbar-divider"></span>
             <div class="toolbar-group">
-              <button class="tool-btn" title="行内代码" @click="insertCode"><code style="font-size:10px">&lt;&gt;</code></button>
-              <button class="tool-btn" title="代码块" @click="insertCodeBlock"><code style="font-size:10px">&lt;/&gt;</code></button>
+              <button class="tool-btn" title="行内代码" @click="insertCode">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              </button>
+              <button class="tool-btn" title="代码块" @click="insertCodeBlock">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="14 8 18 12 14 16"/><polyline points="10 16 6 12 10 8"/></svg>
+              </button>
             </div>
             <span class="toolbar-divider"></span>
             <div class="toolbar-group">
-              <button class="tool-btn" title="标题2" @click="insertMarkdown('## ', '')"><span style="font-size:11px;font-weight:700">H2</span></button>
-              <button class="tool-btn" title="标题3" @click="insertMarkdown('### ', '')"><span style="font-size:10px;font-weight:700">H3</span></button>
-              <button class="tool-btn" title="引用" @click="insertMarkdown('> ', '')"><span style="font-size:12px">❝</span></button>
+              <button class="tool-btn" title="引用" @click="insertMarkdown('> ', '')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z"/></svg>
+              </button>
             </div>
             <span class="toolbar-divider"></span>
             <div class="toolbar-group">
-              <button class="tool-btn" title="无序列表" @click="insertMarkdown('- ', '')"><span style="font-size:14px">•</span></button>
-              <button class="tool-btn" title="有序列表" @click="insertMarkdown('1. ', '')"><span style="font-size:12px">1.</span></button>
-              <button class="tool-btn" title="任务列表" @click="insertMarkdown('- [ ] ', '')"><span style="font-size:12px">☐</span></button>
+              <button class="tool-btn" title="无序列表" @click="insertMarkdown('- ', '')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="5" cy="6" r="1" fill="currentColor"/><circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="5" cy="18" r="1" fill="currentColor"/></svg>
+              </button>
+              <button class="tool-btn" title="有序列表" @click="insertMarkdown('1. ', '')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><text x="3" y="8" font-size="7" fill="currentColor" stroke="none">1</text><text x="3" y="14" font-size="7" fill="currentColor" stroke="none">2</text><text x="3" y="20" font-size="7" fill="currentColor" stroke="none">3</text></svg>
+              </button>
+              <button class="tool-btn" title="任务列表" @click="insertMarkdown('- [ ] ', '')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="M12 7h9"/><rect x="3" y="13" width="6" height="6" rx="1"/><path d="M12 15h9"/></svg>
+              </button>
             </div>
             <span class="toolbar-divider"></span>
             <div class="toolbar-group">
-              <button class="tool-btn" title="居左" @click="insertAlignLeft"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg></button>
-              <button class="tool-btn" title="居中" @click="insertAlignCenter"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg></button>
-              <button class="tool-btn" title="居右" @click="insertAlignRight"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/></svg></button>
+              <button class="tool-btn" title="链接" @click="insertLink">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              </button>
+              <button class="tool-btn" title="上传图片" @click="$refs.imageInput.click()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </button>
+              <button class="tool-btn" title="表格" @click="insertMarkdown('\n| 列1 | 列2 | 列3 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |\n', '')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+              </button>
             </div>
             <span class="toolbar-divider"></span>
             <div class="toolbar-group">
-              <button class="tool-btn" title="链接" @click="insertLink"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
-              <button class="tool-btn" title="上传图片" @click="$refs.imageInput.click()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
-              <button class="tool-btn" title="表格" @click="insertMarkdown('\n| 列1 | 列2 | 列3 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |\n', '')"><span style="font-size:11px">⊞</span></button>
-            </div>
-            <span class="toolbar-divider"></span>
-            <div class="toolbar-group">
-              <button class="tool-btn" title="分割线" @click="insertMarkdown('\n---\n', '')"><span style="font-size:14px">—</span></button>
-              <button class="tool-btn" title="清除格式" @click="clearFormat"><span style="font-size:10px">⌫</span></button>
+              <button class="tool-btn" title="分割线" @click="insertMarkdown('\n---\n', '')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="12" x2="22" y2="12"/></svg>
+              </button>
+              <button class="tool-btn" title="清除格式" @click="clearFormat">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 14l2-2m0 0l2-2m0 0l-2-2m0 0l-2-2"/><path d="M7 10l-2 2m0 0l-2 2m0 0l2 2m0 0l2 2"/><path d="M12 2v20"/></svg>
+              </button>
             </div>
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" ref="imageInput" hidden @change="uploadContentImage" />
             <div v-if="uploadingImage" class="upload-progress">
@@ -93,41 +149,78 @@
               <span class="upload-progress-text">上传中... {{ uploadProgress }}%</span>
             </div>
           </div>
-          <textarea v-model="form.content" class="content-input" placeholder="请输入文章内容（支持Markdown语法）..." @keydown.tab.prevent="insertTab" @keydown.ctrl.z.prevent="undoAction" @keydown.ctrl.y.prevent="redoAction" @keydown.ctrl.b.prevent="insertMarkdown('**', '**')" @keydown.ctrl.i.prevent="insertMarkdown('*', '*')" @keydown.ctrl.u.prevent="insertMarkdown('<u>', '</u>')" @keydown.shift.space.prevent="insertMarkdown('<mark>', '</mark>')" ref="contentTextarea" maxlength="50000"></textarea>
-        </div>
-        <div v-else class="editor-preview">
-          <div v-if="form.content" class="markdown-body" v-html="renderedContent"></div>
-          <div v-else class="empty-preview">暂无内容可预览</div>
+
+          <!-- 编辑器/预览区 -->
+          <div class="editor-content">
+            <textarea 
+              v-if="!showPreview" 
+              v-model="form.content" 
+              class="content-input" 
+              placeholder="请输入文章内容（支持Markdown语法）..." 
+              @keydown.tab.prevent="insertTab" 
+              @keydown.ctrl.z.prevent="undoAction" 
+              @keydown.ctrl.y.prevent="redoAction" 
+              @keydown.ctrl.b.prevent="insertMarkdown('**', '**')" 
+              @keydown.ctrl.i.prevent="insertMarkdown('*', '*')" 
+              @keydown.ctrl.u.prevent="insertMarkdown('<u>', '</u>')" 
+              @keydown.shift.space.prevent="insertMarkdown('<mark>', '</mark>')" 
+              ref="contentTextarea" 
+              maxlength="50000"
+            ></textarea>
+            <div v-else class="editor-preview">
+              <div v-if="form.content" class="markdown-body" v-html="renderedContent"></div>
+              <div v-else class="empty-preview">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span>暂无内容可预览</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
+      <!-- 侧边栏 -->
       <div class="editor-sidebar">
-        <div class="sidebar-section card">
-          <h3 class="sidebar-title">文章信息</h3>
+        <!-- 文章信息 -->
+        <div class="sidebar-section glass">
+          <h3 class="sidebar-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            文章信息
+          </h3>
           <div class="form-group">
             <label class="form-label">摘要</label>
-            <textarea v-model="form.summary" class="summary-input" placeholder="文章摘要（选填，用于列表展示）" maxlength="500" rows="3"></textarea>
+            <textarea v-model="form.summary" class="summary-input form-input" placeholder="文章摘要（选填，用于列表展示）" maxlength="500" rows="3"></textarea>
             <span class="char-hint">{{ form.summary.length }}/500</span>
           </div>
         </div>
 
-        <div class="sidebar-section card">
-          <h3 class="sidebar-title">封面图</h3>
+        <!-- 封面图 -->
+        <div class="sidebar-section glass">
+          <h3 class="sidebar-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            封面图
+          </h3>
           <div class="cover-upload">
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" @change="handleCoverUpload" ref="coverInput" hidden />
             <div v-if="form.coverImage" class="cover-preview">
               <img :src="form.coverImage" alt="封面图" />
-              <button class="remove-cover" @click="removeCover">✕</button>
+              <button class="remove-cover" @click="removeCover">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
             <button v-else class="upload-btn" @click="$refs.coverInput.click()">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
               <span>点击上传封面图</span>
+              <span class="upload-hint">支持 JPG、PNG、GIF、WebP</span>
             </button>
           </div>
         </div>
 
-        <div class="sidebar-section card">
-          <h3 class="sidebar-title">分类</h3>
+        <!-- 分类 -->
+        <div class="sidebar-section glass">
+          <h3 class="sidebar-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            分类
+          </h3>
           <select v-model="form.category" class="form-input">
             <option value="">请选择分类</option>
             <option value="tech">技术</option>
@@ -137,26 +230,39 @@
           </select>
         </div>
 
-        <div class="sidebar-section card">
-          <h3 class="sidebar-title">标签</h3>
+        <!-- 标签 -->
+        <div class="sidebar-section glass">
+          <h3 class="sidebar-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            标签
+          </h3>
           <div class="tag-input-container">
             <div class="selected-tags">
               <span v-for="tag in selectedTags" :key="tag.id || tag.name" class="tag-badge">
-                {{ tag.name }}<button class="remove-tag" @click="removeTag(tag)">✕</button>
+                {{ tag.name }}
+                <button class="remove-tag" @click="removeTag(tag)">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
               </span>
             </div>
             <input v-model="tagInput" type="text" class="tag-input" placeholder="输入标签搜索..." @keyup.enter="addTag" @input="filterTags" maxlength="50" />
           </div>
           <div v-if="filteredTags.length" class="suggested-tags">
-            <button v-for="tag in filteredTags" :key="tag.id" class="suggested-tag" @click="addSuggestedTag(tag)">{{ tag.name }}</button>
+            <button v-for="tag in filteredTags" :key="tag.id" class="suggested-tag" @click="addSuggestedTag(tag)">
+              {{ tag.name }}
+            </button>
           </div>
           <div v-if="tagInput.trim() && !allTags.find(t => t.name === tagInput.trim())" class="no-tags">
             <button class="btn btn-text btn-xs" @click="createTagAndAdd">创建「{{ tagInput }}」标签</button>
           </div>
         </div>
 
-        <div class="sidebar-section card">
-          <h3 class="sidebar-title">话题</h3>
+        <!-- 话题 -->
+        <div class="sidebar-section glass">
+          <h3 class="sidebar-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h16M4 15h16M10 3l-2 6M14 15l-2 6M14 3l2 6M10 15l-2 6"/></svg>
+            话题
+          </h3>
           <select v-model="form.topicId" class="form-input">
             <option :value="null">不选择话题</option>
             <option v-for="topic in topics" :key="topic.id" :value="topic.id">{{ topic.name }}</option>
@@ -200,7 +306,7 @@ const savedTopicName = ref('')
 const currentDraftId = ref(null)
 const contentTextarea = ref(null)
 const coverInput = ref(null)
-const saveStatus = ref('') // '' | 'saving' | 'saved'
+const saveStatus = ref('')
 const uploadingImage = ref(false)
 const uploadProgress = ref(0)
 const isLoading = ref(false)
@@ -288,7 +394,7 @@ function insertTab(e) {
   nextTick(() => ta.setSelectionRange(start + 2, start + 2))
 }
 
-// Undo/Redo functionality
+// Undo/Redo
 const history = ref([''])
 const historyIndex = ref(0)
 const currentHeading = ref('')
@@ -632,82 +738,54 @@ onBeforeRouteLeave((to, from) => {
 </script>
 
 <style scoped>
-.post-edit-page { max-width: 1100px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-.edit-container { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
-.editor-header { grid-column: 1 / -1; padding: 16px 20px; }
-.header-top { display: flex; align-items: center; gap: 12px; }
-.title-input { flex: 1; border: none; font-size: 1.5rem; font-weight: 700; background: transparent; color: var(--text-primary); overflow-wrap: break-word; word-break: break-word; }
-.title-input:focus { outline: none; }
-.title-input::placeholder { color: var(--text-muted); }
-.header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.save-status { font-size: 0.75rem; color: var(--text-muted); min-width: 60px; text-align: right; }
-.save-status.saving { color: var(--primary); }
-.save-status.saved { color: #4CAF50; }
-.header-meta { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 0.75rem; color: var(--text-muted); }
-.meta-category, .meta-time { color: var(--text-muted); }
+/* 主页面 */
+.post-edit-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
 
-.editor-body { grid-column: 1; min-height: 500px; padding: 0; overflow: hidden; }
-.toolbar { display: flex; align-items: center; gap: 2px; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--bg-secondary, #f8f9fa); flex-wrap: wrap; }
-.toolbar-group { display: flex; align-items: center; gap: 2px; }
-.tool-btn { width: 32px; height: 32px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 0.875rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; transition: background 0.2s; flex-shrink: 0; }
-.tool-btn:hover:not(:disabled) { background: var(--border); color: var(--text-primary); }
-.tool-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.tool-btn b { font-size: 0.875rem; }
-.tool-btn i { font-size: 0.875rem; }
-.tool-btn s { font-size: 0.75rem; }
-.tool-btn code { font-size: 0.625rem; }
-.toolbar-divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
-.h-icon { font-size: 0.75rem; font-weight: 700; }
-.font-size-select { width: auto; height: 28px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: transparent; font-size: 0.75rem; color: var(--text-secondary); cursor: pointer; }
-.font-size-select:focus { outline: none; border-color: var(--primary); }
-.upload-progress { position: relative; width: 100px; height: 20px; background: var(--border); border-radius: 4px; overflow: hidden; margin-left: 8px; flex-shrink: 0; }
-.upload-progress-bar { position: absolute; left: 0; top: 0; height: 100%; background: var(--primary); transition: width 0.3s; }
-.upload-progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
-.content-input { width: 100%; min-height: 460px; padding: 20px; border: none; font-size: 1rem; line-height: 1.8; color: var(--text-primary); background: transparent; resize: vertical; }
-.content-input:focus { outline: none; }
-.editor-preview { padding: 20px; min-height: 460px; }
+/* 返回按钮 */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all var(--transition);
+  width: fit-content;
+}
 
-.editor-sidebar { grid-column: 2; display: flex; flex-direction: column; gap: 16px; }
-.sidebar-section { padding: 16px; }
-.sidebar-title { font-size: 0.8125rem; font-weight: 600; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-.form-group { margin-bottom: 0; }
-.form-label { display: block; font-size: 0.75rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
-.summary-input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem; color: var(--text-primary); background: transparent; resize: vertical; line-height: 1.5; }
-.summary-input:focus { outline: none; border-color: var(--primary); }
-.char-hint { display: block; text-align: right; font-size: 0.6875rem; color: var(--text-muted); margin-top: 4px; }
-.form-input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem; background: transparent; color: var(--text-primary); }
-.form-input:focus { outline: none; border-color: var(--primary); }
+.back-btn:hover {
+  background: var(--glass-hover);
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateX(-2px);
+}
 
-.cover-upload { margin-top: 4px; }
-.cover-preview { position: relative; display: inline-block; width: 100%; }
-.cover-preview img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 8px; }
-.remove-cover { position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; background: #ef4444; color: #fff; border: none; border-radius: 50%; cursor: pointer; font-size: 0.875rem; display: flex; align-items: center; justify-content: center; }
-.upload-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px; background: var(--bg-secondary, #f8f9fa); border: 2px dashed var(--border); border-radius: 8px; color: var(--text-muted); cursor: pointer; transition: all 0.2s; width: 100%; }
-.upload-btn:hover { border-color: var(--primary); color: var(--primary); }
-
-.tag-input-container { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; min-height: 40px; }
-.selected-tags { display: flex; flex-wrap: wrap; gap: 4px; }
-.tag-badge { display: flex; align-items: center; gap: 3px; padding: 2px 8px; background: var(--primary-light, #e8f0fe); color: var(--primary, #1a73e8); border-radius: 6px; font-size: 0.75rem; }
-.remove-tag { background: none; border: none; color: inherit; cursor: pointer; font-size: 0.875rem; padding: 0; line-height: 1; opacity: 0.7; }
-.remove-tag:hover { opacity: 1; }
-.tag-input { flex: 1; min-width: 80px; border: none; font-size: 0.8125rem; background: transparent; color: var(--text-primary); }
-.tag-input:focus { outline: none; }
-.suggested-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-.suggested-tag { padding: 2px 10px; font-size: 0.75rem; background: var(--bg-secondary, #f8f9fa); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.2s; }
-.suggested-tag:hover { border-color: var(--primary); color: var(--primary); }
-.no-tags { margin-top: 8px; }
-.btn-text { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.75rem; padding: 4px 0; }
-.btn-text:hover { text-decoration: underline; }
-.btn-xs { font-size: 0.75rem; }
-
-.empty-preview { display: flex; align-items: center; justify-content: center; height: 300px; color: var(--text-muted); }
-
+/* 加载状态 */
 .loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80px 20px;
+  gap: var(--spacing-md);
+  padding: var(--spacing-3xl);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   color: var(--text-muted);
 }
 
@@ -718,22 +796,621 @@ onBeforeRouteLeave((to, from) => {
   border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 16px;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
-.back-btn:hover { background: var(--border); color: var(--text-primary); }
+/* 编辑容器 */
+.edit-container {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: var(--spacing-lg);
+  align-items: start;
+}
 
+/* 编辑器头部 */
+.editor-header {
+  grid-column: 1 / -1;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  box-shadow: var(--glass-shadow-wet);
+  position: relative;
+  overflow: hidden;
+}
+
+.editor-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.title-input {
+  flex: 1;
+  border: none;
+  font-size: 1.75rem;
+  font-weight: 800;
+  background: transparent;
+  color: var(--text-primary);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.title-input:focus {
+  outline: none;
+}
+
+.title-input::placeholder {
+  color: var(--text-muted);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  min-width: 70px;
+  text-align: right;
+  transition: all var(--transition);
+}
+
+.save-status.saving {
+  color: var(--primary);
+}
+
+.save-status.saved {
+  color: var(--success);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.meta-sep {
+  opacity: 0.5;
+}
+
+.meta-category, .meta-time {
+  color: var(--text-secondary);
+}
+
+/* 编辑器主体 */
+.editor-main-wrapper {
+  grid-column: 1;
+}
+
+.editor-body {
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  box-shadow: var(--glass-shadow-wet);
+  overflow: hidden;
+  min-height: 500px;
+  position: relative;
+}
+
+.editor-body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 工具栏 */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--surface);
+  flex-wrap: wrap;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tool-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.tool-btn:hover:not(:disabled) {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.tool-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--glass-border);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.font-size-select {
+  width: auto;
+  height: 28px;
+  padding: 0 var(--spacing-sm);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.font-size-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.upload-progress {
+  position: relative;
+  width: 100px;
+  height: 20px;
+  background: var(--border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-left: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.upload-progress-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-start), var(--primary-end));
+  transition: width 0.3s ease;
+  border-radius: var(--radius-full);
+}
+
+.upload-progress-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.625rem;
+  color: var(--text-inverse);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* 编辑器内容区 */
+.editor-content {
+  position: relative;
+}
+
+.content-input {
+  width: 100%;
+  min-height: 460px;
+  padding: var(--spacing-lg);
+  border: none;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--text-primary);
+  background: transparent;
+  resize: vertical;
+  font-family: var(--font-mono), monospace;
+}
+
+.content-input:focus {
+  outline: none;
+}
+
+.content-input::placeholder {
+  color: var(--text-muted);
+}
+
+.editor-preview {
+  padding: var(--spacing-lg);
+  min-height: 460px;
+}
+
+.empty-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  height: 300px;
+  color: var(--text-muted);
+}
+
+/* 侧边栏 */
+.editor-sidebar {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.sidebar-section {
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  box-shadow: var(--glass-shadow-wet);
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  pointer-events: none;
+}
+
+.sidebar-section:hover {
+  background: var(--glass-hover);
+  box-shadow: var(--shadow-md), var(--glass-shadow-wet);
+}
+
+.sidebar-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--glass-border);
+  color: var(--text-primary);
+}
+
+.form-group {
+  margin-bottom: 0;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.summary-input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  background: var(--glass-bg);
+  resize: vertical;
+  line-height: 1.5;
+  transition: all var(--transition);
+}
+
+.summary-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.char-hint {
+  display: block;
+  text-align: right;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.form-input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  transition: all var(--transition);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* 封面图上传 */
+.cover-upload {
+  margin-top: var(--spacing-sm);
+}
+
+.cover-preview {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.cover-preview img {
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  transition: transform var(--transition);
+}
+
+.cover-preview:hover img {
+  transform: scale(1.02);
+}
+
+.remove-cover {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: var(--error);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-md);
+}
+
+.remove-cover:hover {
+  background: var(--error-hover, #DC2626);
+  transform: scale(1.1);
+}
+
+.upload-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xl);
+  background: var(--surface);
+  border: 2px dashed var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+  width: 100%;
+}
+
+.upload-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.upload-hint {
+  font-size: 0.6875rem;
+  opacity: 0.7;
+}
+
+/* 标签选择 */
+.tag-input-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  min-height: 40px;
+  background: var(--glass-bg);
+  transition: all var(--transition);
+}
+
+.tag-input-container:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.remove-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.6;
+  transition: all var(--transition);
+  border-radius: var(--radius-full);
+}
+
+.remove-tag:hover {
+  opacity: 1;
+  background: var(--primary);
+  color: white;
+}
+
+.tag-input {
+  flex: 1;
+  min-width: 80px;
+  border: none;
+  font-size: 0.8125rem;
+  background: transparent;
+  color: var(--text-primary);
+  padding: 2px 4px;
+}
+
+.tag-input:focus {
+  outline: none;
+}
+
+.tag-input::placeholder {
+  color: var(--text-muted);
+}
+
+.suggested-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: var(--spacing-sm);
+}
+
+.suggested-tag {
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  background: var(--surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.suggested-tag:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.no-tags {
+  margin-top: var(--spacing-sm);
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 4px 0;
+}
+
+.btn-text:hover {
+  text-decoration: underline;
+}
+
+.btn-xs {
+  font-size: 0.75rem;
+}
+
+/* 响应式 */
 @media (max-width: 900px) {
-  .edit-container { grid-template-columns: 1fr; }
-  .editor-sidebar { grid-column: 1; }
-  .header-top { flex-direction: column; align-items: stretch; }
-  .header-actions { justify-content: flex-end; }
-  .post-edit-page { padding: 12px; }
+  .edit-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .editor-sidebar {
+    grid-column: 1;
+  }
+  
+  .header-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .header-actions {
+    justify-content: flex-end;
+  }
+  
+  .post-edit-page {
+    padding: var(--spacing-md);
+  }
+  
+  .title-input {
+    font-size: 1.375rem;
+  }
 }
 
 @media (max-width: 768px) {
@@ -743,7 +1420,7 @@ onBeforeRouteLeave((to, from) => {
 
   .content-input {
     min-height: 300px;
-    padding: 16px;
+    padding: var(--spacing-md);
     font-size: 0.9375rem;
   }
 
@@ -751,6 +1428,23 @@ onBeforeRouteLeave((to, from) => {
     overflow-x: auto;
     flex-wrap: nowrap;
     -webkit-overflow-scrolling: touch;
+  }
+  
+  .editor-header {
+    padding: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .header-actions {
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+  
+  .save-status {
+    width: 100%;
+    text-align: left;
+    order: -1;
   }
 }
 </style>

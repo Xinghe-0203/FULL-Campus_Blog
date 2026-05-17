@@ -70,34 +70,54 @@ function handleClick() {
 
 <style scoped>
 .post-card {
-  background: var(--surface);
-  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow);
+  box-shadow: var(--glass-shadow);
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all var(--transition-slow);
 }
 
 .post-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  background: var(--glass-hover);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--primary-light);
+}
+
+.post-card:active {
+  transform: translateY(-1px);
 }
 
 .post-card-image {
   width: 100%;
-  height: 180px;
+  height: 200px;
   overflow: hidden;
+  position: relative;
+}
+
+.post-card-image::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.1), transparent);
+  pointer-events: none;
 }
 
 .post-card-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--transition-slow);
+  transition: transform var(--duration-slow) cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .post-card:hover .post-card-image img {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 .post-card-body {
@@ -114,6 +134,11 @@ function handleClick() {
   -webkit-box-orient: vertical;
   overflow: hidden;
   margin-bottom: var(--spacing-sm);
+  transition: color var(--transition);
+}
+
+.post-card:hover .post-card-title {
+  color: var(--primary);
 }
 
 .post-card-summary {
@@ -139,6 +164,8 @@ function handleClick() {
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--glass-border);
 }
 
 .post-card-author {
@@ -154,6 +181,11 @@ function handleClick() {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color var(--transition);
+}
+
+.post-card:hover .post-card-author-name {
+  color: var(--text-primary);
 }
 
 .post-card-date {
@@ -175,6 +207,11 @@ function handleClick() {
   gap: 4px;
   font-size: 0.8125rem;
   color: var(--text-muted);
+  transition: color var(--transition);
+}
+
+.post-card:hover .stat {
+  color: var(--text-secondary);
 }
 
 .stat svg {
@@ -183,10 +220,24 @@ function handleClick() {
 
 @media (max-width: 768px) {
   .post-card-image {
-    height: 140px;
+    height: 160px;
   }
   .post-card-body {
     padding: var(--spacing-md);
+  }
+  .post-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+@media (max-width: 480px) {
+  .post-card-image {
+    height: 140px;
+  }
+  .post-card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
   }
 }
 </style>

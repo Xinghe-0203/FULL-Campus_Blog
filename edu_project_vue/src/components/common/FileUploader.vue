@@ -154,26 +154,40 @@ defineExpose({ files, reset: () => { files.value = []; error.value = '' } })
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 32px 24px;
-  border: 2px dashed var(--border);
-  border-radius: var(--radius);
+  gap: var(--spacing-md);
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  border: 2px dashed var(--glass-border);
+  border-radius: var(--radius-lg);
   color: var(--text-muted);
   cursor: pointer;
-  transition: all var(--transition);
-  background: var(--background);
+  transition: all var(--transition-slow);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
 }
 
 .upload-zone:hover {
   border-color: var(--primary);
   color: var(--primary);
   background: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.upload-zone svg {
+  transition: transform var(--transition-spring);
+}
+
+.upload-zone:hover svg {
+  transform: translateY(-4px);
 }
 
 .is-dragover .upload-zone {
   border-color: var(--primary);
   color: var(--primary);
   background: var(--primary-light);
+  transform: scale(1.02);
+  box-shadow: var(--shadow-glow-primary);
 }
 
 .is-disabled {
@@ -183,6 +197,7 @@ defineExpose({ files, reset: () => { files.value = []; error.value = '' } })
 
 .upload-text {
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .upload-hint {
@@ -191,20 +206,28 @@ defineExpose({ files, reset: () => { files.value = []; error.value = '' } })
 }
 
 .file-list {
-  margin-top: 12px;
+  margin-top: var(--spacing-md);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
 .file-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
+  transition: all var(--transition);
+}
+
+.file-item:hover {
+  background: var(--glass-hover);
+  transform: translateX(2px);
 }
 
 .file-preview {
@@ -213,6 +236,7 @@ defineExpose({ files, reset: () => { files.value = []; error.value = '' } })
   border-radius: var(--radius-sm);
   object-fit: cover;
   flex-shrink: 0;
+  border: 1px solid var(--glass-border);
 }
 
 .file-icon {
@@ -223,6 +247,8 @@ defineExpose({ files, reset: () => { files.value = []; error.value = '' } })
   justify-content: center;
   color: var(--text-muted);
   flex-shrink: 0;
+  background: var(--primary-light);
+  border-radius: var(--radius-sm);
 }
 
 .file-info {
@@ -255,7 +281,7 @@ defineExpose({ files, reset: () => { files.value = []; error.value = '' } })
   justify-content: center;
   font-size: 1.25rem;
   background: none;
-  border: none;
+  border: 1px solid transparent;
   color: var(--text-muted);
   cursor: pointer;
   border-radius: var(--radius);
@@ -263,13 +289,25 @@ defineExpose({ files, reset: () => { files.value = []; error.value = '' } })
 }
 
 .file-remove:hover {
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--error-light);
   color: var(--error);
+  border-color: var(--error-light);
+  transform: rotate(90deg);
 }
 
 .upload-error {
-  margin-top: 8px;
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
   font-size: 0.8125rem;
   color: var(--error);
+  background: var(--error-light);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--error-light);
+}
+
+@media (max-width: 640px) {
+  .upload-zone {
+    padding: var(--spacing-xl) var(--spacing-md);
+  }
 }
 </style>

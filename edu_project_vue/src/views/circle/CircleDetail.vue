@@ -1,12 +1,13 @@
 <template>
   <div class="circle-detail-page">
     <div class="detail-container">
-      <button class="back-btn" @click="router.back()">
+      <button class="back-btn glass" @click="router.back()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
         返回
       </button>
+
       <div v-if="loading" class="loading-skeleton">
-        <div class="skeleton-card card">
+        <div class="skeleton-card glass">
           <div class="skeleton-header">
             <div class="skeleton-avatar"></div>
             <div class="skeleton-info">
@@ -19,7 +20,7 @@
         </div>
       </div>
 
-      <div v-else-if="error" class="error-state">
+      <div v-else-if="error" class="error-state glass">
         <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
@@ -28,7 +29,7 @@
       </div>
 
       <div v-else-if="post" class="detail-content">
-        <div class="feed-card card">
+        <div class="feed-card glass">
           <div class="feed-header">
             <router-link :to="`/user/${post.userId}`" class="feed-author">
               <img :src="post.userAvatar || '/default-avatar.png'" :alt="post.userUsername" class="author-avatar" />
@@ -37,10 +38,10 @@
                 <span class="feed-time">{{ formatRelativeTime(post.createTime) }}</span>
               </div>
             </router-link>
-            <span class="visibility-badge" :title="visibilityLabel(post.visibility)">
-              <span v-if="post.visibility === 0">🌏</span>
-              <span v-else-if="post.visibility === 1">👥</span>
-              <span v-else>🔒</span>
+            <span class="visibility-badge glass-badge" :title="visibilityLabel(post.visibility)">
+              <svg v-if="post.visibility === 0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <svg v-else-if="post.visibility === 1" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
+              <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </span>
           </div>
 
@@ -48,14 +49,25 @@
             <p class="feed-text">{{ post.content }}</p>
 
             <div v-if="post.topicNames && post.topicNames.length" class="topic-tags">
-              <router-link v-for="tn in post.topicNames" :key="tn" :to="`/search?keyword=${'#' + tn}`" class="topic-tag-link">#{{ tn }}</router-link>
+              <router-link v-for="tn in post.topicNames" :key="tn" :to="`/search?keyword=${'#' + tn}`" class="topic-tag-link glass-chip">#{{ tn }}</router-link>
             </div>
 
-            <div v-if="post.images && post.images.length" class="feed-images" :class="`grid-${Math.min(post.images.length, 9)}`">
+            <div v-if="post.tags && post.tags.length" class="free-tags">
+              <span v-for="(tag, idx) in post.tags" :key="idx" class="free-tag glass-chip">{{ tag }}</span>
+            </div>
+
+            <div v-if="post.location" class="location-display">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>{{ post.location }}</span>
+            </div>
+
+            <div v-if="post.images && post.images.length" class="feed-images" :class="getImageGridClass(post.images.length)">
               <div v-for="(image, idx) in post.images" :key="idx" class="img-wrap" :class="{ 'is-video': isVideo(image) }" @click="openImagePreview(post.images, idx)">
                 <img v-if="!isVideo(image)" :src="image" alt="" class="feed-image" loading="lazy" />
                 <video v-else :src="image" class="feed-image" muted></video>
-                <span v-if="isVideo(image)" class="play-icon">▶</span>
+                <span v-if="isVideo(image)" class="play-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </span>
               </div>
             </div>
 
@@ -63,60 +75,71 @@
               <video v-for="(video, idx) in post.videos" :key="'v-'+idx" :src="video" class="feed-video" controls preload="metadata"></video>
             </div>
 
-            <div v-if="post.repostPost" class="repost-card" @click="router.push(`/circle/${post.repostPost.id}`)">
+            <div v-if="post.repostPost" class="repost-card glass-inner" @click="router.push(`/circle/${post.repostPost.id}`)">
               <div class="repost-header">
                 <img :src="post.repostPost.userAvatar || '/default-avatar.png'" class="repost-avatar" />
                 <span class="repost-author">{{ post.repostPost.userNickname || post.repostPost.userUsername }}</span>
               </div>
+              <p v-if="post.repostContent" class="repost-user-content">{{ post.repostContent }}</p>
               <p class="repost-text">{{ post.repostPost.content }}</p>
               <div v-if="post.repostPost.images && post.repostPost.images.length" class="repost-images mini">
                 <img v-for="(img, idx) in post.repostPost.images.slice(0, 3)" :key="idx" :src="img" class="repost-img" />
                 <span v-if="post.repostPost.images.length > 3" class="repost-more">+{{ post.repostPost.images.length - 3 }}</span>
               </div>
             </div>
+            <div v-else-if="post.originalPostHidden" class="repost-hidden-notice">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span>原内容已隐藏</span>
+            </div>
           </div>
 
           <div class="feed-stats">
-            <span>{{ formatDate(post.createTime) }}</span>
-            <span v-if="post.likeCount || post.commentCount || post.repostCount">
-              {{ post.likeCount || 0 }} 赞 · {{ post.commentCount || 0 }} 评论 · {{ post.repostCount || 0 }} 转发
+            <span class="post-date">{{ formatDate(post.createTime) }}</span>
+            <span v-if="post.likeCount || post.commentCount || post.repostCount || post.viewCount" class="post-stats-text">
+              {{ formatNumber(post.likeCount) }} 赞 · {{ formatNumber(post.commentCount) }} 评论 · {{ formatNumber(post.repostCount) }} 转发 · {{ formatNumber(post.viewCount || 0) }} 浏览
             </span>
           </div>
 
           <div class="feed-actions">
             <button class="action-btn" :class="{ liked: isLiked }" @click="toggleLike">
-              <svg class="like-icon" :class="{ 'animate-pop': likeAnim }" width="20" height="20" viewBox="0 0 24 24" :fill="isLiked ? '#ef4444' : 'none'" stroke="currentColor" stroke-width="2">
+              <svg class="like-icon" :class="{ 'animate-pop': likeAnim }" width="20" height="20" viewBox="0 0 24 24" :fill="isLiked ? 'var(--accent)' : 'none'" stroke="currentColor" stroke-width="2">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
               </svg>
-              <span>{{ post.likeCount || 0 }}</span>
+              <span>{{ formatNumber(post.likeCount) }}</span>
             </button>
             <button class="action-btn active-comment">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
-              <span>{{ post.commentCount || 0 }}</span>
+              <span>{{ formatNumber(post.commentCount) }}</span>
             </button>
             <button class="action-btn" @click="openRepostModal">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
               </svg>
-              <span>{{ post.repostCount || 0 }}</span>
+              <span>{{ formatNumber(post.repostCount) }}</span>
             </button>
           </div>
         </div>
 
-        <div class="comment-section card">
-          <h3 class="section-title">评论 ({{ post.commentCount ?? comments.length }})</h3>
+        <div class="comment-section glass">
+          <h3 class="section-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:6px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            评论 ({{ post.commentCount ?? comments.length }})
+          </h3>
 
           <div v-if="userStore.isLoggedIn" class="comment-form">
             <img :src="userStore.avatar || '/default-avatar.png'" class="comment-form-avatar" />
             <div class="comment-form-body">
-              <div v-if="replyTarget" class="reply-indicator">
-                <span>回复 @{{ replyTarget.replyToUsername }}</span>
-                <button class="cancel-reply" @click="cancelReply">✕</button>
-              </div>
-              <textarea v-model="commentContent" :placeholder="replyTarget ? `回复 @${replyTarget.replyToUsername}...` : '写下你的评论...'" rows="2" @input="autoResizeComment" maxlength="500"></textarea>
+              <transition name="slide">
+                <div v-if="replyTarget" class="reply-indicator glass-chip">
+                  <span>回复 @{{ replyTarget.replyToUsername }}</span>
+                  <button class="cancel-reply" @click="cancelReply">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>
+              </transition>
+              <textarea v-model="commentContent" :placeholder="replyTarget ? `回复 @${replyTarget.replyToUsername}...` : '写下你的评论...'" rows="2" @input="autoResizeComment" maxlength="500" class="comment-textarea"></textarea>
               <div class="comment-form-bottom">
                 <span class="char-count">{{ commentContent.length }}/500</span>
                 <button class="btn btn-primary btn-sm" @click="submitComment" :disabled="!commentContent.trim() || submitting">
@@ -125,7 +148,7 @@
               </div>
             </div>
           </div>
-          <div v-else class="login-hint">
+          <div v-else class="login-hint glass">
             <router-link to="/login">登录</router-link>后参与评论
           </div>
 
@@ -140,11 +163,12 @@
           </div>
 
           <div v-else-if="comments.length === 0" class="no-comments">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <p>暂无评论，快来抢沙发吧~</p>
           </div>
 
           <div v-else class="comment-list">
-            <div v-for="comment in comments" :key="comment.id" class="comment-item">
+            <div v-for="comment in comments" :key="comment.id" class="comment-item glass-inner">
               <img :src="comment.user?.avatar || '/default-avatar.png'" :alt="comment.user?.username" class="comment-avatar" />
               <div class="comment-body">
                 <div class="comment-header">
@@ -153,8 +177,14 @@
                 </div>
                 <div class="comment-content">{{ comment.content }}</div>
                 <div class="comment-actions">
-                  <button class="comment-action-btn" @click="startReply(comment)">回复</button>
-                  <button v-if="comment.user?.id === userStore.userId" class="comment-action-btn danger" @click="deleteComment(comment.id)">删除</button>
+                  <button class="comment-action-btn" @click="startReply(comment)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                    回复
+                  </button>
+                  <button v-if="comment.user?.id === userStore.userId" class="comment-action-btn danger" @click="deleteComment(comment.id)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    删除
+                  </button>
                 </div>
 
                 <div v-if="comment.replies && comment.replies.length" class="nested-replies">
@@ -183,13 +213,15 @@
     <teleport to="body">
       <transition name="modal">
         <div v-if="showRepostModal" class="modal-overlay" @click.self="closeRepostModal">
-          <div class="modal-content card">
+          <div class="modal-content glass">
             <div class="modal-header">
               <h3>转发动态</h3>
-              <button class="close-btn" @click="closeRepostModal">✕</button>
+              <button class="close-btn" @click="closeRepostModal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
             <div class="modal-body">
-              <div v-if="post" class="repost-original-card">
+              <div v-if="post" class="repost-original-card glass-inner">
                 <div class="repost-original-header">
                   <img :src="post.userAvatar || '/default-avatar.png'" class="repost-original-avatar" />
                   <span class="repost-original-name">{{ post.userNickname || post.userUsername }}</span>
@@ -220,7 +252,7 @@ import { useRoute, useRouter } from 'vue-router'
 import ImagePreview from '../../components/common/ImagePreview.vue'
 import { circleApi } from '../../api/circle'
 import { useUserStore } from '../../stores/user'
-import { formatRelativeTime, formatDate } from '../../utils'
+import { formatRelativeTime, formatDate, formatNumber } from '../../utils'
 import { useLogger } from '../../utils/logger'
 import { toast } from '../../utils/toast'
 
@@ -257,6 +289,15 @@ const visibilityLabel = (v) => {
   if (v === 0) return '公开'
   if (v === 1) return '关注者可见'
   return '仅自己可见'
+}
+
+const getImageGridClass = (count) => {
+  const n = Math.min(count, 9)
+  if (n === 1) return 'grid-1'
+  if (n === 2) return 'grid-2'
+  if (n === 3) return 'grid-3'
+  if (n === 4) return 'grid-4'
+  return 'grid-multi'
 }
 
 const fetchPost = async () => {
@@ -419,39 +460,72 @@ watch(() => route.params.id, () => {
 </script>
 
 <style scoped>
-.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
-.back-btn:hover { background: var(--border); color: var(--text-primary); }
 .circle-detail-page {
-  max-width: 600px;
+  max-width: 640px;
   margin: 0 auto;
-  padding: 16px;
+  padding: var(--spacing-md);
+  min-height: 100vh;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition);
+  box-shadow: var(--glass-shadow);
+  margin-bottom: var(--spacing-md);
+}
+
+.back-btn:hover {
+  background: var(--glass-hover);
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .feed-card {
-  padding: 18px;
-  margin-bottom: 14px;
-  border-radius: 16px;
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-slow);
 }
 
 .feed-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: var(--spacing-md);
 }
 
 .feed-author {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--spacing-sm);
   text-decoration: none;
 }
 
 .author-avatar {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
+  border: 2px solid var(--glass-border);
+  transition: all var(--transition);
+}
+
+.feed-author:hover .author-avatar {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
 }
 
 .author-info {
@@ -461,34 +535,77 @@ watch(() => route.params.id, () => {
 
 .author-name {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--text-primary);
 }
 
 .feed-time {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-muted);
   margin-top: 2px;
 }
 
 .visibility-badge {
-  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
   cursor: default;
 }
 
+.visibility-badge.glass-badge {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+}
+
 .feed-text {
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--text-primary);
   line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
+.topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.topic-tag-link {
+  display: inline-block;
+  padding: 2px 10px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all var(--transition);
+}
+
+.topic-tag-link:hover {
+  background: var(--primary);
+  color: var(--text-inverse);
+  transform: translateY(-1px);
+}
+
+.topic-tag-link.glass-chip {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
 .feed-images {
   display: grid;
-  gap: 4px;
-  margin-top: 14px;
-  border-radius: 12px;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-md);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -496,13 +613,13 @@ watch(() => route.params.id, () => {
 .grid-2 { grid-template-columns: 1fr 1fr; }
 .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
 .grid-4 { grid-template-columns: 1fr 1fr; }
-.grid-5, .grid-6, .grid-7, .grid-8, .grid-9 { grid-template-columns: 1fr 1fr 1fr; }
+.grid-multi { grid-template-columns: repeat(3, 1fr); }
 
 .img-wrap {
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--bg-secondary);
   cursor: pointer;
 }
@@ -511,11 +628,11 @@ watch(() => route.params.id, () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform var(--transition-slow);
 }
 
 .img-wrap:hover .feed-image {
-  transform: scale(1.03);
+  transform: scale(1.05);
 }
 
 .play-icon {
@@ -525,19 +642,26 @@ watch(() => route.params.id, () => {
   transform: translate(-50%, -50%);
   width: 44px;
   height: 44px;
-  background: rgba(0,0,0,0.6);
-  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 20px;
   pointer-events: none;
+  transition: all var(--transition);
+}
+
+.img-wrap:hover .play-icon {
+  background: var(--primary);
+  transform: translate(-50%, -50%) scale(1.1);
 }
 
 .feed-videos {
-  margin-top: 12px;
-  border-radius: 12px;
+  margin-top: var(--spacing-md);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -546,45 +670,49 @@ watch(() => route.params.id, () => {
   max-height: 400px;
   object-fit: contain;
   background: #000;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
 }
 
 .repost-card {
-  margin-top: 14px;
-  padding: 14px;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all var(--transition);
+}
+
+.repost-card.glass-inner {
+  background: var(--surface);
+  border: 1px solid var(--border);
 }
 
 .repost-card:hover {
-  background: var(--border);
+  background: var(--primary-light);
+  border-color: var(--primary);
 }
 
 .repost-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
 }
 
 .repost-avatar {
   width: 24px;
   height: 24px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
 }
 
 .repost-author {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-secondary);
 }
 
 .repost-text {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-primary);
   line-height: 1.5;
   white-space: pre-wrap;
@@ -593,15 +721,15 @@ watch(() => route.params.id, () => {
 
 .repost-images.mini {
   display: flex;
-  gap: 4px;
-  margin-top: 8px;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
 }
 
 .repost-img {
   width: 60px;
   height: 60px;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .repost-more {
@@ -610,92 +738,174 @@ watch(() => route.params.id, () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-secondary);
-  border-radius: 6px;
-  font-size: 13px;
+  background: var(--skeleton-base);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
   color: var(--text-secondary);
+}
+
+.location-display {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.location-display svg {
+  color: var(--primary);
+}
+
+.free-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+}
+
+.free-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  box-shadow: var(--glass-shadow);
+}
+
+.free-tag.glass-chip {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.repost-user-content {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: var(--spacing-xs);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px dashed var(--glass-border);
+}
+
+.repost-hidden-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-md);
+  background: var(--skeleton-base);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.repost-hidden-notice svg {
+  opacity: 0.5;
 }
 
 .feed-stats {
   display: flex;
   justify-content: space-between;
-  padding: 10px 0;
-  font-size: 12px;
+  padding: var(--spacing-sm) 0;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 10px;
+  border-bottom: 1px solid var(--glass-border);
+  margin-bottom: var(--spacing-sm);
 }
 
 .feed-actions {
   display: flex;
-  gap: 12px;
+  gap: var(--spacing-sm);
 }
 
 .action-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 20px;
-  background: var(--bg-secondary);
-  border: none;
-  border-radius: 20px;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition);
   flex: 1;
-  justify-content: center;
+  box-shadow: var(--glass-shadow);
 }
 
 .action-btn:hover {
-  background: var(--border);
+  background: var(--glass-hover);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .action-btn.liked {
-  color: var(--error);
-  background: rgba(239, 68, 68, 0.1);
+  color: var(--accent);
+  background: var(--accent-light);
+  border-color: var(--accent);
 }
 
 .action-btn.active-comment {
   color: var(--primary);
   background: var(--primary-light);
+  border-color: var(--primary);
 }
 
 .like-icon.animate-pop {
-  animation: likePop 0.4s ease;
+  animation: likePop 0.4s var(--transition-spring);
 }
 
 @keyframes likePop {
   0% { transform: scale(1); }
-  25% { transform: scale(1.3); }
-  50% { transform: scale(0.9); }
+  25% { transform: scale(1.4); }
+  50% { transform: scale(0.85); }
+  75% { transform: scale(1.1); }
   100% { transform: scale(1); }
 }
 
 .comment-section {
-  padding: 18px;
-  border-radius: 16px;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-md);
 }
 
 .section-title {
-  font-size: 15px;
+  font-size: 1rem;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: var(--spacing-lg);
   color: var(--text-primary);
+  display: flex;
+  align-items: center;
 }
 
 .comment-form {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
 }
 
 .comment-form-avatar {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
   flex-shrink: 0;
+  border: 2px solid var(--glass-border);
 }
 
 .comment-form-body {
@@ -703,91 +913,84 @@ watch(() => route.params.id, () => {
 }
 
 .reply-indicator {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 12px;
+  padding: var(--spacing-xs) var(--spacing-sm);
   background: var(--primary-light);
-  border-radius: 8px 8px 0 0;
-  font-size: 13px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
   color: var(--primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.reply-indicator.glass-chip {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
 }
 
 .cancel-reply {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
-  font-size: 14px;
   color: var(--text-muted);
   cursor: pointer;
-  padding: 0 4px;
+  padding: 2px;
+  border-radius: var(--radius-xs);
+  transition: all var(--transition);
 }
 
 .cancel-reply:hover {
   color: var(--error);
+  background: var(--error-light);
 }
 
-.comment-form-body textarea {
+.comment-textarea {
   width: 100%;
-  padding: 10px 14px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  font-size: 14px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
   font-family: inherit;
   resize: none;
   outline: none;
-  transition: border-color 0.2s;
+  transition: all var(--transition);
   box-sizing: border-box;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
 }
 
-.comment-form-body textarea:focus {
+.comment-textarea:focus {
   border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
+  background: var(--glass-hover);
 }
 
 .comment-form-bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 8px;
+  margin-top: var(--spacing-sm);
 }
 
 .comment-form-bottom .char-count {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-muted);
-}
-
-.btn-primary {
-  padding: 8px 20px;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-primary:hover {
-  background: var(--primary-hover);
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-primary.btn-sm {
-  padding: 6px 16px;
-  font-size: 13px;
 }
 
 .login-hint {
   text-align: center;
-  padding: 14px;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  margin-bottom: 20px;
-  font-size: 14px;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-lg);
+  font-size: 0.875rem;
   color: var(--text-muted);
 }
 
@@ -797,23 +1000,41 @@ watch(() => route.params.id, () => {
   text-decoration: none;
 }
 
+.login-hint a:hover {
+  text-decoration: underline;
+}
+
 .comment-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--spacing-md);
 }
 
 .comment-item {
   display: flex;
-  gap: 10px;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  transition: all var(--transition);
+}
+
+.comment-item.glass-inner {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.comment-item:hover {
+  transform: translateX(2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .comment-avatar {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
   flex-shrink: 0;
+  border: 2px solid var(--glass-border);
 }
 
 .comment-body {
@@ -824,12 +1045,12 @@ watch(() => route.params.id, () => {
 .comment-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
 }
 
 .comment-author {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-primary);
   text-decoration: none;
@@ -840,12 +1061,12 @@ watch(() => route.params.id, () => {
 }
 
 .comment-time {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-muted);
 }
 
 .comment-content {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-primary);
   line-height: 1.5;
   word-break: break-word;
@@ -853,17 +1074,20 @@ watch(() => route.params.id, () => {
 
 .comment-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 4px;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xs);
 }
 
 .comment-action-btn {
+  display: inline-flex;
+  align-items: center;
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 0.75rem;
   cursor: pointer;
   padding: 2px 0;
+  transition: all var(--transition);
 }
 
 .comment-action-btn:hover {
@@ -875,15 +1099,15 @@ watch(() => route.params.id, () => {
 }
 
 .nested-replies {
-  margin-top: 10px;
-  padding: 10px 0 0 14px;
-  border-left: 2px solid var(--border);
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm) 0 0 var(--spacing-md);
+  border-left: 2px solid var(--glass-border);
 }
 
 .reply-item {
   display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
 }
 
 .reply-item:last-child {
@@ -893,9 +1117,10 @@ watch(() => route.params.id, () => {
 .reply-avatar {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
   flex-shrink: 0;
+  border: 2px solid var(--glass-border);
 }
 
 .reply-body {
@@ -905,39 +1130,44 @@ watch(() => route.params.id, () => {
 
 .no-comments {
   text-align: center;
-  padding: 30px;
+  padding: var(--spacing-xl);
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
+}
+
+.no-comments svg {
+  margin-bottom: var(--spacing-sm);
+  opacity: 0.5;
 }
 
 .loading-skeleton {
-  padding: 18px;
+  padding: var(--spacing-lg);
 }
 
 .skeleton-card {
-  padding: 18px;
-  border-radius: 16px;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
 }
 
 .skeleton-header {
   display: flex;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
 }
 
 .skeleton-avatar {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
 .skeleton-info { flex: 1; }
-.skeleton-name { width: 100px; height: 14px; background: var(--skeleton-base); border-radius: 4px; margin-bottom: 6px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
-.skeleton-time { width: 60px; height: 12px; background: var(--skeleton-base); border-radius: 4px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
-.skeleton-text { height: 14px; background: var(--skeleton-base); border-radius: 4px; margin-bottom: 8px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-name { width: 100px; height: 14px; background: var(--skeleton-base); border-radius: var(--radius-xs); margin-bottom: var(--spacing-sm); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-time { width: 60px; height: 12px; background: var(--skeleton-base); border-radius: var(--radius-xs); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-text { height: 14px; background: var(--skeleton-base); border-radius: var(--radius-xs); margin-bottom: var(--spacing-sm); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
 .skeleton-text.short { width: 60%; }
 
 @keyframes shimmer {
@@ -948,19 +1178,19 @@ watch(() => route.params.id, () => {
 .comment-skeleton {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 10px 0;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
 }
 
 .comment-skeleton-item {
   display: flex;
-  gap: 10px;
+  gap: var(--spacing-sm);
 }
 
 .cs-avatar {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--skeleton-base);
   flex-shrink: 0;
   animation: shimmer 1.5s infinite;
@@ -968,38 +1198,41 @@ watch(() => route.params.id, () => {
 }
 
 .cs-body { flex: 1; }
-.cs-name { width: 80px; height: 12px; background: var(--skeleton-base); border-radius: 4px; margin-bottom: 8px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
-.cs-text { width: 100%; height: 12px; background: var(--skeleton-base); border-radius: 4px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.cs-name { width: 80px; height: 12px; background: var(--skeleton-base); border-radius: var(--radius-xs); margin-bottom: var(--spacing-sm); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.cs-text { width: 100%; height: 12px; background: var(--skeleton-base); border-radius: var(--radius-xs); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
 
 .error-state {
   text-align: center;
-  padding: 60px 20px;
-  color: var(--text-secondary);
+  padding: var(--spacing-3xl) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-md);
 }
 
 .error-state h3 {
-  margin: 12px 0 16px;
-  font-size: 16px;
+  margin: var(--spacing-md) 0 var(--spacing-lg);
+  font-size: 1rem;
 }
 
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
-  padding: 20px;
+  z-index: var(--z-modal);
+  padding: var(--spacing-lg);
 }
 
 .modal-content {
   width: 100%;
-  max-width: 520px;
-  max-height: 80vh;
+  max-width: 540px;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   overflow: hidden;
 }
 
@@ -1007,36 +1240,37 @@ watch(() => route.params.id, () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .modal-header h3 {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
 }
 
 .close-btn {
-  background: var(--bg-secondary);
-  border: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  font-size: 14px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  width: 32px;
+  height: 32px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
 }
 
 .close-btn:hover {
-  background: var(--border);
+  background: var(--error-light);
+  color: var(--error);
+  border-color: var(--error);
 }
 
 .modal-body {
-  padding: 20px;
+  padding: var(--spacing-lg);
   overflow-y: auto;
   flex: 1;
 }
@@ -1045,34 +1279,40 @@ watch(() => route.params.id, () => {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
-  padding: 14px 20px;
-  border-top: 1px solid var(--border);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-top: 1px solid var(--glass-border);
 }
 
 .post-textarea {
   width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px;
-  font-size: 15px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: var(--spacing-md);
+  font-size: 0.9375rem;
   font-family: inherit;
   resize: vertical;
   outline: none;
   box-sizing: border-box;
-  transition: border-color 0.2s;
+  transition: all var(--transition);
   min-height: 80px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
 }
 
 .post-textarea:focus {
   border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
+  background: var(--glass-hover);
 }
 
 .char-count {
   text-align: right;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  margin-top: 8px;
+  margin-top: var(--spacing-sm);
 }
 
 .char-count.warn {
@@ -1080,64 +1320,52 @@ watch(() => route.params.id, () => {
 }
 
 .repost-original-card {
-  padding: 14px;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  margin-bottom: 14px;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.repost-original-card.glass-inner {
+  background: var(--surface);
   border: 1px solid var(--border);
 }
 
 .repost-original-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
 }
 
 .repost-original-avatar {
   width: 24px;
   height: 24px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
 }
 
 .repost-original-name {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-secondary);
 }
 
 .repost-original-text {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-.btn-ghost {
-  padding: 8px 20px;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.btn-ghost:hover {
-  background: var(--bg-secondary);
-}
-
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-slow) ease;
 }
 
 .modal-enter-active .modal-content,
 .modal-leave-active .modal-content {
-  transition: transform 0.3s ease;
+  transition: transform var(--transition-slow) ease;
 }
 
 .modal-enter-from,
@@ -1147,108 +1375,27 @@ watch(() => route.params.id, () => {
 
 .modal-enter-from .modal-content,
 .modal-leave-to .modal-content {
-  transform: scale(0.95);
+  transform: scale(0.95) translateY(10px);
 }
 
-.preview-overlay {
-  background: rgba(0,0,0,0.85);
-  z-index: 3000;
-  cursor: zoom-out;
+.slide-enter-active,
+.slide-leave-active {
+  transition: all var(--transition) ease;
 }
 
-.preview-image {
-  max-width: 90vw;
-  max-height: 85vh;
-  object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 
-.preview-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.15);
-  border: none;
-  color: #fff;
-  font-size: 24px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-
-.preview-nav:hover {
-  background: rgba(255,255,255,0.3);
-}
-
-.preview-nav.prev { left: 20px; }
-.preview-nav.next { right: 20px; }
-
-.preview-close {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.15);
-  border: none;
-  color: #fff;
-  font-size: 18px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-
-.preview-close:hover {
-  background: rgba(255,255,255,0.3);
-}
-
-.preview-counter {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #fff;
-  font-size: 14px;
-  background: rgba(0,0,0,0.5);
-  padding: 6px 16px;
-  border-radius: 20px;
-}
-
-.topic-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.topic-tag-link {
-  display: inline-block;
-  padding: 3px 10px;
-  background: var(--primary-light);
-  color: var(--primary);
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: background 0.2s;
-}
-
-.topic-tag-link:hover {
-  background: var(--primary-light);
-  color: var(--primary-hover);
-}
-
-@media (max-width: 600px) {
-  .circle-detail-page { padding: 12px; }
-  .feed-card, .comment-section { padding: 14px; }
+@media (max-width: 640px) {
+  .circle-detail-page {
+    padding: var(--spacing-sm);
+  }
+  .feed-card,
+  .comment-section {
+    padding: var(--spacing-md);
+  }
 }
 </style>

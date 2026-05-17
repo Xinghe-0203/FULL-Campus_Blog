@@ -17,18 +17,21 @@ function handleAfterEnter() {
 </script>
 
 <style>
-.page-enter-active,
+.page-enter-active {
+  transition: opacity var(--duration-normal) ease, transform var(--duration-normal) cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 .page-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: opacity var(--duration-fast) ease, transform var(--duration-fast) ease;
 }
 
 .page-enter-from {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(12px) scale(0.98);
 }
 
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(-8px) scale(0.99);
 }
 </style>

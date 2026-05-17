@@ -3,7 +3,13 @@
     <div class="footer-container">
       <div class="footer-content">
         <div class="footer-brand">
-          <span class="brand-icon">📚</span>
+          <span class="brand-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              <path d="M10 2v8l3-2 3 2V2"/>
+            </svg>
+          </span>
           <span class="brand-text">校园博客</span>
         </div>
         <div class="footer-links">
@@ -27,10 +33,13 @@ const currentYear = computed(() => new Date().getFullYear())
 
 <style scoped>
 .footer {
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  padding: var(--spacing-lg) 0;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-top: 1px solid var(--glass-border);
+  padding: var(--spacing-xl) 0;
   margin-top: var(--spacing-2xl);
+  box-shadow: var(--glass-shadow);
 }
 
 .footer-container {
@@ -56,7 +65,13 @@ const currentYear = computed(() => new Date().getFullYear())
 }
 
 .brand-icon {
-  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  transition: transform var(--transition-spring);
+}
+
+.footer-brand:hover .brand-icon {
+  transform: rotate(-5deg) scale(1.1);
 }
 
 .footer-links {
@@ -68,17 +83,21 @@ const currentYear = computed(() => new Date().getFullYear())
   font-size: 0.875rem;
   color: var(--text-secondary);
   text-decoration: none;
-  transition: color var(--transition);
+  transition: all var(--transition);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
 }
 
 .footer-links a:hover {
   color: var(--primary);
+  background: var(--primary-light);
+  transform: translateY(-1px);
 }
 
 .footer-bottom {
   text-align: center;
   padding-top: var(--spacing-md);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--glass-border);
 }
 
 .footer-bottom p {
@@ -87,15 +106,34 @@ const currentYear = computed(() => new Date().getFullYear())
 }
 
 @media (max-width: 768px) {
+  .footer {
+    padding: var(--spacing-lg) 0;
+  }
+
   .footer-content {
     flex-direction: column;
     gap: var(--spacing-md);
+    text-align: center;
   }
   
   .footer-links {
     flex-wrap: wrap;
     justify-content: center;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+
+  .footer-links a {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-container {
+    padding: 0 var(--spacing-md);
+  }
+
+  .footer-brand {
+    font-size: 1rem;
   }
 }
 </style>

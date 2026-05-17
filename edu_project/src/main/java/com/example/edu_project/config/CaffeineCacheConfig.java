@@ -12,41 +12,25 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Caffeine 本地缓存配置类
+ * Caffeine 本地缓存配置 v2.0 - 性能优化版
  *
  * 缓存策略：
- * - hotTagsCache: 热门标签缓存，5分钟过期
- * - categoryCache: 分类缓存，10分钟过期
- * - userCache: 用户缓存，5分钟过期
- * - trendingCache: 趋势缓存，1分钟过期
+ * - hotTagsCache: 热门标签缓存，10分钟过期，最大1000条
+ * - categoryCache: 分类缓存，30分钟过期，最大500条
+ * - userCache: 用户缓存，10分钟过期，最大5000条
+ * - trendingCache: 趋势缓存，5分钟过期，最大1000条
+ * - statsCache: 统计缓存，15分钟过期，最大200条
  */
 @Configuration
 @EnableCaching
 public class CaffeineCacheConfig {
 
-    /**
-     * 热门标签缓存名称
-     */
     public static final String HOT_TAGS_CACHE = "hotTagsCache";
-
-    /**
-     * 分类缓存名称
-     */
     public static final String CATEGORY_CACHE = "categoryCache";
-
-    /**
-     * 用户缓存名称
-     */
     public static final String USER_CACHE = "userCache";
-
-    /**
-     * 趋势缓存名称
-     */
     public static final String TRENDING_CACHE = "trendingCache";
+    public static final String STATS_CACHE = "statsCache";
 
-    /**
-     * 配置 Caffeine 缓存管理器，为每个具名缓存使用差异化配置
-     */
     @Bean
     public CacheManager cacheManager() {
         SimpleCacheManager cacheManager = new SimpleCacheManager();
@@ -54,48 +38,44 @@ public class CaffeineCacheConfig {
                 new CaffeineCache(HOT_TAGS_CACHE, hotTagsCache().build()),
                 new CaffeineCache(CATEGORY_CACHE, categoryCache().build()),
                 new CaffeineCache(USER_CACHE, userCache().build()),
-                new CaffeineCache(TRENDING_CACHE, trendingCache().build())
+                new CaffeineCache(TRENDING_CACHE, trendingCache().build()),
+                new CaffeineCache(STATS_CACHE, statsCache().build())
         ));
         return cacheManager;
     }
 
-    /**
-     * 热门标签缓存配置（5分钟过期）
-     */
     public Caffeine<Object, Object> hotTagsCache() {
         return Caffeine.newBuilder()
-                .maximumSize(500)
-                .expireAfterWrite(5, TimeUnit.MINUTES)
-                .recordStats();
-    }
-
-    /**
-     * 分类缓存配置（10分钟过期）
-     */
-    public Caffeine<Object, Object> categoryCache() {
-        return Caffeine.newBuilder()
-                .maximumSize(100)
+                .maximumSize(1000)
                 .expireAfterWrite(10, TimeUnit.MINUTES)
                 .recordStats();
     }
 
-    /**
-     * 用户缓存配置（5分钟过期）
-     */
+    public Caffeine<Object, Object> categoryCache() {
+        return Caffeine.newBuilder()
+                .maximumSize(500)
+                .expireAfterWrite(30, TimeUnit.MINUTES)
+                .recordStats();
+    }
+
     public Caffeine<Object, Object> userCache() {
+        return Caffeine.newBuilder()
+                .maximumSize(5000)
+                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .recordStats();
+    }
+
+    public Caffeine<Object, Object> trendingCache() {
         return Caffeine.newBuilder()
                 .maximumSize(1000)
                 .expireAfterWrite(5, TimeUnit.MINUTES)
                 .recordStats();
     }
 
-    /**
-     * 趋势缓存配置（1分钟过期）
-     */
-    public Caffeine<Object, Object> trendingCache() {
+    public Caffeine<Object, Object> statsCache() {
         return Caffeine.newBuilder()
                 .maximumSize(200)
-                .expireAfterWrite(1, TimeUnit.MINUTES)
+                .expireAfterWrite(15, TimeUnit.MINUTES)
                 .recordStats();
     }
 }

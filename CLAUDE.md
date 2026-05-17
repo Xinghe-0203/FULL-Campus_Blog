@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Version**: v2.0 | **GitHub**: https://github.com/Xinghe-0203/FULL-Campus_Blog
+
 ---
 
 ## 代码修改规范
@@ -35,7 +37,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **后端**: Spring Boot 3 + MyBatis Plus + Java 21
 - **前端**: Vue 3 + Vite + Pinia
 - **数据库**: MySQL 8 (22张表，逻辑删除 `is_deleted`)
-- **缓存**: Caffeine (1000条/5分钟)
+- **缓存**: Caffeine (5个缓存实例)
 - **API文档**: Knife4j (http://localhost:8825/api/doc.html)
 
 ### 数据流
@@ -47,6 +49,10 @@ Controller → Service → Mapper → MyBatis Plus → MySQL
 
 ### 认证
 JWT双Token: Access(24h) + Refresh(7d)，Refresh仅用于刷新AccessToken
+
+### 性能优化
+- **数据库索引**: 16个索引覆盖高频查询
+- **Caffeine缓存**: 5个缓存实例 (用户/帖子/标签/评论/配置)
 
 ### 关键文件
 | 文件 | 用途 |

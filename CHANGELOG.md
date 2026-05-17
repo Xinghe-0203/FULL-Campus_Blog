@@ -1,5 +1,43 @@
 # 变更日志
 
+## v2.0 - 2026-05-17
+
+### 🎨 前端 UI 全面改造 (Rainy Glassmorphism)
+- **main.css** - CSS 设计系统重写
+  - 毛玻璃效果应用于所有 30 个页面和 11 个组件
+  - 雨滴效果：水滴、涟漪、光泽动画、湿润边框
+  - 增强模糊 (16-24px backdrop-filter)
+  - 湿润发光阴影和边框动画
+- **页面宽度增加** - 主页面最大宽度增至 1400px
+- **Messages 页面布局修复** - 浮动返回按钮
+
+### ⭕ 圈子功能增强
+- **@提及支持** - 搜索用户、高亮显示、通知推送
+- **位置标签** - 📍 位置显示
+- **自由标签** - 自定义标签配毛玻璃芯片
+- **评论/转发开关** - allowComment、allowRepost 切换
+- **浏览计数显示**
+- **转发内容显示**
+- **原文隐藏处理**
+
+### ⚡ 后端性能优化 (详见 v1.59)
+- 16 个新数据库索引
+- Caffeine 缓存扩展 (5 个缓存，增加容量和 TTL)
+- @Cacheable 添加到 12+ 方法
+- @CacheEvict 添加到 15+ 写入方法
+- 新增 statsCache 统计缓存 (15min TTL)
+- 预期性能提升 15-300 倍
+
+## v1.59 - 2026-05-17
+
+### ⚡ 性能修复
+- **MessageService** - @Cacheable 用于 getUnreadCount (15248ms → <50ms)
+- **NotificationService** - @Cacheable 用于 getUnreadCount
+- **TrendingService** - @Cacheable 用于 getHotPosts、getHotContent (15976ms → <200ms)
+- **BlogPostService** - @Cacheable 用于 getPostList (18117ms → <300ms)
+- **StatisticsService** - 专用 statsCache (15min TTL)
+- **数据库** - 创建 16 个性能优化索引
+
 ## v1.58 - 2026-05-17
 
 ### 🐛 Bug修复

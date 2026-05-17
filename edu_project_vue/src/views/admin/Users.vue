@@ -3,20 +3,33 @@
     <div class="admin-container">
       <div class="page-header">
         <h1>用户管理</h1>
+        <p class="page-subtitle">管理系统用户，包含封禁、权限控制等功能</p>
       </div>
       
-      <div class="search-bar">
-        <input 
-          v-model="searchQuery" 
-          type="text" 
-          placeholder="搜索用户..."
-          @keyup.enter="fetchUsers"
-        />
-        <button class="btn btn-primary btn-sm" @click="fetchUsers">搜索</button>
+      <div class="search-bar glass">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input 
+            v-model="searchQuery" 
+            type="text" 
+            placeholder="搜索用户名、邮箱..."
+            @keyup.enter="fetchUsers"
+          />
+        </div>
+        <button class="btn btn-primary btn-sm" @click="fetchUsers">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+          搜索
+        </button>
       </div>
       
       <div v-if="loading" class="loading-skeleton">
-        <div class="table-container card">
+        <div class="table-container glass">
           <table class="data-table">
             <thead>
               <tr>
@@ -39,13 +52,14 @@
                 <td><div class="sk-line w-40"></div></td>
                 <td><div class="sk-line w-60"></div></td>
                 <td><div class="sk-line w-60"></div></td>
+                <td><div class="sk-line w-50"></div></td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
       
-      <div v-else-if="error" class="error-state">
+      <div v-else-if="error" class="error-state glass">
         <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
@@ -53,7 +67,7 @@
         <button class="btn btn-primary" @click="fetchUsers">重试</button>
       </div>
       
-      <div v-else class="table-container card">
+      <div v-else class="table-container glass">
         <table class="data-table">
           <thead>
             <tr>
@@ -61,57 +75,70 @@
               <th>用户</th>
               <th>邮箱</th>
               <th>角色</th>
-<th>状态</th>
-                <th>封禁</th>
-                <th>注册时间</th>
+              <th>状态</th>
+              <th>封禁</th>
+              <th>注册时间</th>
               <th>操作</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="users.length === 0">
-              <td colspan="8" class="empty-cell">暂无用户</td>
+              <td colspan="8" class="empty-cell">
+                <div class="empty-content">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                  </svg>
+                  <span>暂无用户数据</span>
+                </div>
+              </td>
             </tr>
             <tr v-for="user in users" :key="user.id">
-              <td>{{ user.id }}</td>
+              <td class="id-cell">{{ user.id }}</td>
               <td>
                 <div class="user-cell">
                   <img :src="user.avatar || '/default-avatar.png'" :alt="user.username" class="user-avatar" />
-                  <span>{{ user.nickname || user.username }}</span>
+                  <span class="username">{{ user.nickname || user.username }}</span>
                 </div>
               </td>
-              <td>{{ user.email }}</td>
+              <td class="email-cell">{{ user.email }}</td>
               <td>
-                <span class="badge" :class="user.role === 'admin' ? 'badge-warning' : ''">
-                  {{ user.role }}
+                <span class="badge" :class="user.role === 'admin' ? 'badge-warning' : 'badge-info'">
+                  <span class="badge-dot" :class="user.role === 'admin' ? 'warning' : 'info'"></span>
+                  {{ user.role === 'admin' ? '管理员' : '用户' }}
                 </span>
               </td>
               <td>
-                <span class="status" :class="user.status === 1 ? 'active' : 'disabled'">
+                <span class="status-badge" :class="user.status === 1 ? 'status-active' : 'status-disabled'">
+                  <span class="status-dot" :class="user.status === 1 ? 'active' : 'disabled'"></span>
                   {{ user.status === 1 ? '正常' : '禁用' }}
                 </span>
               </td>
               <td>
-                <span class="status" :class="user.banned ? 'banned' : ''">
+                <span class="status-badge" :class="user.banned ? 'status-banned' : 'status-normal'">
+                  <span class="status-dot" :class="user.banned ? 'banned' : 'normal'"></span>
                   {{ user.banned ? '已封禁' : '正常' }}
                 </span>
               </td>
-              <td>{{ formatDate(user.createTime) }}</td>
+              <td class="time-cell">{{ formatDate(user.createTime) }}</td>
               <td>
                 <div class="actions">
                   <button 
-                    class="btn btn-sm btn-ghost"
+                    class="btn btn-xs btn-ghost"
                     @click="toggleUserStatus(user)"
+                    :title="user.status === 1 ? '禁用' : '启用'"
                   >
                     {{ user.status === 1 ? '禁用' : '启用' }}
                   </button>
                   <button 
-                    class="btn btn-sm btn-ghost danger"
+                    class="btn btn-xs btn-ghost"
+                    :class="user.banned ? 'btn-success-outline' : 'btn-danger-outline'"
                     @click="toggleBan(user)"
                   >
                     {{ user.banned ? '解封' : '封禁' }}
                   </button>
                   <button 
-                    class="btn btn-sm btn-ghost"
+                    class="btn btn-xs btn-ghost"
                     @click="resetPassword(user)"
                   >
                     重置密码
@@ -123,22 +150,30 @@
         </table>
       </div>
       
-      <div v-if="totalPages > 1" class="pagination">
-        <button 
-          class="pagination-btn"
-          :disabled="currentPage <= 1"
-          @click="changePage(currentPage - 1)"
-        >
-          上一页
-        </button>
-        <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
-        <button 
-          class="pagination-btn"
-          :disabled="currentPage >= totalPages"
-          @click="changePage(currentPage + 1)"
-        >
-          下一页
-        </button>
+      <div v-if="totalPages > 1" class="pagination-wrapper">
+        <div class="pagination glass">
+          <button 
+            class="pagination-btn"
+            :disabled="currentPage <= 1"
+            @click="changePage(currentPage - 1)"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            上一页
+          </button>
+          <span class="page-info">第 {{ currentPage }} / {{ totalPages }} 页</span>
+          <button 
+            class="pagination-btn"
+            :disabled="currentPage >= totalPages"
+            @click="changePage(currentPage + 1)"
+          >
+            下一页
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
     <ConfirmDialog />
@@ -193,6 +228,7 @@ const toggleUserStatus = async (user) => {
   try {
     await adminApi.handleUserStatus(user.id, { status: newStatus })
     user.status = newStatus
+    toast.success(`${action}成功`)
   } catch (err) {
     logger.error('Failed to toggle user status', { error: err.message })
     toast.error('操作失败')
@@ -242,10 +278,11 @@ onMounted(() => {
 <style scoped>
 .admin-users {
   padding: var(--spacing-lg);
+  min-height: 100vh;
 }
 
 .admin-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -254,25 +291,89 @@ onMounted(() => {
 }
 
 .page-header h1 {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.page-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
 }
 
 .search-bar {
   display: flex;
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-sm);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+}
+
+.search-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  transition: all var(--transition);
+}
+
+.search-input-wrapper:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.search-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
 }
 
 .search-bar input {
   flex: 1;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: none;
+  background: transparent;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.search-bar input::placeholder {
+  color: var(--text-muted);
 }
 
 .table-container {
   overflow-x: auto;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow-wet);
+  position: relative;
+}
+
+.table-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .data-table {
@@ -284,13 +385,34 @@ onMounted(() => {
 .data-table td {
   padding: var(--spacing-md);
   text-align: left;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .data-table th {
   font-weight: 600;
   color: var(--text-primary);
-  background: var(--background);
+  background: var(--surface);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.data-table tbody tr {
+  transition: all var(--transition);
+}
+
+.data-table tbody tr:hover {
+  background: var(--primary-light);
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.id-cell {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
 }
 
 .user-cell {
@@ -300,18 +422,38 @@ onMounted(() => {
 }
 
 .user-avatar {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-full);
   object-fit: cover;
+  border: 2px solid var(--glass-border);
+}
+
+.username {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.email-cell {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.time-cell {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
 }
 
 .badge {
-  padding: 0.25rem 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
   font-size: 0.75rem;
-  border-radius: var(--radius);
-  background: var(--background);
-  color: var(--text-secondary);
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  background: var(--info-light);
+  color: var(--info);
 }
 
 .badge-warning {
@@ -319,39 +461,128 @@ onMounted(() => {
   color: var(--warning);
 }
 
-.status {
-  font-size: 0.75rem;
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
 }
 
-.status.active {
+.badge-dot.warning { background: var(--warning); }
+.badge-dot.info { background: var(--info); }
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+}
+
+.status-active {
+  background: var(--success-light);
   color: var(--success);
 }
 
-.status.disabled {
+.status-disabled {
+  background: var(--error-light);
   color: var(--error);
 }
 
-.status.banned {
-  color: #EF4444;
-  font-weight: 600;
+.status-banned {
+  background: var(--error-light);
+  color: var(--error);
 }
+
+.status-normal {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+}
+
+.status-dot.active,
+.status-dot.normal { background: var(--success); }
+
+.status-dot.disabled,
+.status-dot.banned { background: var(--error); }
 
 .actions {
   display: flex;
   gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.btn-danger-outline {
+  color: var(--error) !important;
+}
+
+.btn-danger-outline:hover {
+  background: var(--error-light) !important;
+  color: var(--error) !important;
+}
+
+.btn-success-outline {
+  color: var(--success) !important;
+}
+
+.btn-success-outline:hover {
+  background: var(--success-light) !important;
+  color: var(--success) !important;
+}
+
+.pagination-wrapper {
+  margin-top: var(--spacing-lg);
+  display: flex;
+  justify-content: center;
 }
 
 .pagination {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-lg);
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
 }
 
 .page-info {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--text-muted);
+  padding: 0 var(--spacing-md);
+}
+
+.empty-cell {
+  text-align: center;
+  padding: var(--spacing-2xl);
+}
+
+.empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--text-muted);
+}
+
+.error-state {
+  text-align: center;
+  padding: var(--spacing-3xl);
+  color: var(--text-secondary);
+}
+
+.error-state h3 {
+  margin: var(--spacing-md) 0 var(--spacing-lg);
+  font-size: 1rem;
 }
 
 .loading-skeleton {
@@ -368,6 +599,7 @@ onMounted(() => {
 
 .sk-line.w-30 { width: 30%; }
 .sk-line.w-40 { width: 40%; }
+.sk-line.w-50 { width: 50%; }
 .sk-line.w-60 { width: 60%; }
 .sk-line.w-70 { width: 70%; }
 
@@ -376,21 +608,13 @@ onMounted(() => {
   100% { background-position: -200% 0; }
 }
 
-.empty-cell {
-  text-align: center;
-  padding: var(--spacing-xl);
-  color: var(--text-muted);
-  font-size: 0.875rem;
-}
-
-.error-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--text-secondary);
-}
-
-.error-state h3 {
-  margin: 12px 0 16px;
-  font-size: 16px;
+@media (max-width: 768px) {
+  .search-bar {
+    flex-direction: column;
+  }
+  
+  .actions {
+    flex-direction: column;
+  }
 }
 </style>

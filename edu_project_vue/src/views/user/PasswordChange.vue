@@ -1,5 +1,10 @@
 <template>
   <div class="password-page">
+    <div class="password-icon-wrapper">
+      <div class="password-icon-bg">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+    </div>
     <div class="password-card card">
       <div class="password-header">
         <h2>修改密码</h2>
@@ -13,21 +18,23 @@
         </div>
 
         <div class="form-group float-label-group">
-          <input v-model="form.newPassword" type="password" class="form-input" placeholder=" " required minlength="8" @input="updateStrength" />
+          <input v-model="form.newPassword" type="password" class="form-input" :class="{ error: showPasswordError }" placeholder=" " required minlength="8" @input="updateStrength" />
           <label class="float-label">新密码</label>
           <div v-if="form.newPassword" class="strength-bar">
             <div class="strength-fill" :style="{ width: strengthPercent + '%', background: strengthColor }"></div>
           </div>
           <span class="form-hint">至少8位字符，强度：<span :style="{ color: strengthColor, fontWeight: 600 }">{{ strengthText }}</span></span>
+          <span v-if="showPasswordError" class="form-error">{{ passwordError }}</span>
         </div>
 
         <div class="form-group float-label-group">
-          <input v-model="form.confirmPassword" type="password" class="form-input" placeholder=" " required />
+          <input v-model="form.confirmPassword" type="password" class="form-input" :class="{ error: showConfirmError }" placeholder=" " required @input="validateConfirm" />
           <label class="float-label">确认新密码</label>
-          <span v-if="form.confirmPassword && form.newPassword !== form.confirmPassword" class="form-error">两次输入的密码不一致</span>
+          <span v-if="showConfirmError" class="form-error">{{ confirmError }}</span>
         </div>
 
         <div class="form-actions">
+          <router-link to="/profile" class="btn btn-ghost">取消</router-link>
           <button type="submit" class="btn btn-primary" :disabled="loading">
             <template v-if="loading">
               <span class="btn-spinner"></span>
@@ -63,6 +70,10 @@ const form = reactive({
   confirmPassword: ''
 })
 const strengthResult = ref({ level: 'weak', text: '弱', color: '#F44336' })
+const showPasswordError = ref(false)
+const passwordError = ref('')
+const showConfirmError = ref(false)
+const confirmError = ref('')
 
 const strengthPercent = computed(() => {
   const map = { weak: 33, medium: 66, strong: 100 }
@@ -73,30 +84,52 @@ const strengthText = computed(() => strengthResult.value.text)
 
 function updateStrength() {
   strengthResult.value = checkPasswordStrength(form.newPassword)
+  showPasswordError.value = false
+}
+
+function validateConfirm() {
+  if (form.confirmPassword && form.newPassword !== form.confirmPassword) {
+    showConfirmError.value = true
+    confirmError.value = '两次输入的密码不一致'
+  } else {
+    showConfirmError.value = false
+    confirmError.value = ''
+  }
 }
 
 async function handleSubmit() {
-  if (!form.oldPassword || !form.newPassword) {
+  showPasswordError.value = false
+  showConfirmError.value = false
+
+  if (!form.oldPassword || !form.newPassword || !form.confirmPassword) {
     toast.warning('请填写完整信息')
     return
   }
 
   if (form.oldPassword === form.newPassword) {
+    showPasswordError.value = true
+    passwordError.value = '新密码不能与当前密码相同'
     toast.warning('新密码不能与当前密码相同')
     return
   }
 
   if (form.newPassword !== form.confirmPassword) {
+    showConfirmError.value = true
+    confirmError.value = '两次输入的密码不一致'
     toast.warning('两次输入的密码不一致')
     return
   }
 
   if (form.newPassword.length < 8) {
+    showPasswordError.value = true
+    passwordError.value = '密码长度至少8位'
     toast.warning('密码长度至少8位')
     return
   }
 
   if (strengthResult.value.level === 'weak') {
+    showPasswordError.value = true
+    passwordError.value = '密码强度不足'
     toast.warning('密码强度不足，请包含大小写字母、数字和特殊字符中的至少3种')
     return
   }
@@ -126,13 +159,36 @@ async function handleSubmit() {
 
 <style scoped>
 .password-page {
-  max-width: 480px;
+  max-width: 560px;
   margin: 0 auto;
   padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.password-icon-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.password-icon-bg {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: var(--shadow-md), var(--shadow-glow-primary);
 }
 
 .password-card {
   padding: 32px;
+  border-radius: var(--radius-xl);
+  width: 100%;
 }
 
 .password-header {
@@ -145,6 +201,13 @@ async function handleSubmit() {
 .password-header h2 {
   font-size: 1.25rem;
   font-weight: 700;
+  color: var(--text-primary);
+}
+
+.password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .float-label-group {
@@ -165,7 +228,7 @@ async function handleSubmit() {
   font-size: 0.875rem;
   color: var(--text-muted);
   pointer-events: none;
-  transition: all 0.2s ease;
+  transition: all var(--transition);
   background: var(--surface);
   padding: 0 4px;
 }
@@ -176,6 +239,10 @@ async function handleSubmit() {
   transform: none;
   font-size: 0.6875rem;
   color: var(--primary);
+}
+
+.float-label-group .form-input.error ~ .float-label {
+  color: var(--error);
 }
 
 .form-hint {
@@ -192,11 +259,13 @@ async function handleSubmit() {
   margin-top: 6px;
   overflow: hidden;
 }
+
 .strength-fill {
   height: 100%;
   border-radius: 2px;
   transition: width 0.3s ease, background 0.3s ease;
 }
+
 .form-error {
   display: block;
   font-size: 0.6875rem;
@@ -207,10 +276,10 @@ async function handleSubmit() {
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 10px;
   margin-top: 28px;
   padding-top: 20px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--glass-border);
 }
 
 .btn-spinner {
@@ -219,7 +288,7 @@ async function handleSubmit() {
   height: 14px;
   border: 2px solid transparent;
   border-top-color: currentColor;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   animation: spin 0.6s linear infinite;
 }
 

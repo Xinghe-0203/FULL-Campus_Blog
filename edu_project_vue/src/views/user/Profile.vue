@@ -4,104 +4,79 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       返回
     </button>
-    <aside class="profile-sidebar">
-      <div class="sidebar-card card">
-        <h3 class="sidebar-title">个人中心</h3>
-        <nav class="sidebar-nav">
-          <router-link to="/drafts" class="sidebar-link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-            我的草稿
-          </router-link>
-          <router-link to="/collections" class="sidebar-link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-            我的收藏
-          </router-link>
-          <router-link to="/following" class="sidebar-link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            我的关注
-          </router-link>
-          <router-link to="/followers" class="sidebar-link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            我的粉丝
-          </router-link>
-          <router-link to="/my-reports" class="sidebar-link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="16" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="8" r="1"/></svg>
-            我的举报
-          </router-link>
-        </nav>
-      </div>
-    </aside>
 
-    <div class="profile-main">
-      <div v-if="pageError" class="error-card card">
-        <div class="error-card-body">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="error-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <p>{{ pageError }}</p>
-          <button class="btn btn-primary" @click="initLoad">重新加载</button>
+    <div v-if="pageError" class="error-card card">
+      <div class="error-card-body">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="error-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p>{{ pageError }}</p>
+        <button class="btn btn-primary" @click="initLoad">重新加载</button>
+      </div>
+    </div>
+
+    <template v-else>
+      <div class="hero-section card">
+        <div class="hero-cover" @scroll="handleCoverScroll" ref="coverRef">
+          <img :src="getSafeImageUrl(user?.coverImage, '/default-cover.jpg')" alt="" class="cover-image" :style="{ transform: `translateY(${coverScrollY * 0.3}px)` }" />
+          <div class="hero-gradient"></div>
+          <button class="cover-upload-btn" title="更换封面图" @click="triggerCoverUpload" :disabled="coverUploading">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </button>
+          <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" ref="coverInputRef" hidden @change="handleCoverUpload" />
+        </div>
+        <div class="hero-info">
+          <div v-if="loading.user" class="hero-skeleton">
+            <div class="skeleton avatar-skeleton"></div>
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-bio"></div>
+            <div class="skeleton skeleton-stats-row"></div>
+          </div>
+          <template v-else>
+            <div class="hero-avatar-wrapper">
+              <img :src="user?.avatar || '/default-avatar.png'" :alt="user?.nickname" class="hero-avatar" @error="onAvatarError" />
+            </div>
+            <h1 class="hero-name">{{ user?.nickname || user?.username }}</h1>
+            <p class="hero-bio">{{ user?.bio || '这个人很懒，什么都没写' }}</p>
+            <div class="hero-stats">
+              <div class="stat-card glass">
+                <span class="stat-value">{{ stats.postCount || 0 }}</span>
+                <span class="stat-label">文章</span>
+              </div>
+              <div class="stat-card glass">
+                <span class="stat-value">{{ stats.likeCount || 0 }}</span>
+                <span class="stat-label">获赞</span>
+              </div>
+              <router-link to="/followers" class="stat-card glass stat-link">
+                <span class="stat-value">{{ stats.followerCount || 0 }}</span>
+                <span class="stat-label">粉丝</span>
+              </router-link>
+              <router-link to="/following" class="stat-card glass stat-link">
+                <span class="stat-value">{{ stats.followingCount || 0 }}</span>
+                <span class="stat-label">关注</span>
+              </router-link>
+            </div>
+          </template>
+          <div class="hero-actions">
+            <router-link to="/profile-edit" class="btn btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              编辑资料
+            </router-link>
+            <router-link to="/password-change" class="btn btn-ghost">修改密码</router-link>
+          </div>
         </div>
       </div>
 
-      <template v-else>
-        <div class="hero-section card">
-          <div class="hero-cover">
-            <img :src="getSafeImageUrl(user?.coverImage, '/default-cover.jpg')" alt="" />
-            <div class="hero-gradient"></div>
-            <button class="cover-upload-btn" title="更换封面图" @click="triggerCoverUpload" :disabled="coverUploading">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                <circle cx="12" cy="13" r="4"/>
-              </svg>
-            </button>
-            <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" ref="coverInputRef" hidden @change="handleCoverUpload" />
-          </div>
-          <div class="hero-info">
-            <div v-if="loading.user" class="hero-skeleton">
-              <div class="skeleton avatar-skeleton"></div>
-              <div class="skeleton skeleton-title"></div>
-              <div class="skeleton skeleton-bio"></div>
-              <div class="skeleton skeleton-stats-row"></div>
-            </div>
-            <template v-else>
-              <div class="hero-avatar-wrapper">
-                <img :src="user?.avatar || '/default-avatar.png'" :alt="user?.nickname" class="hero-avatar" @error="onAvatarError" />
-              </div>
-              <h1 class="hero-name">{{ user?.nickname || user?.username }}</h1>
-              <p class="hero-bio">{{ user?.bio || '这个人很懒，什么都没写' }}</p>
-              <div class="hero-stats">
-                <div class="stat-item">
-                  <span class="stat-value">{{ stats.postCount || 0 }}</span>
-                  <span class="stat-label">文章</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-value">{{ stats.likeCount || 0 }}</span>
-                  <span class="stat-label">获赞</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-value">{{ stats.followerCount || 0 }}</span>
-                  <span class="stat-label">粉丝</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-value">{{ stats.followingCount || 0 }}</span>
-                  <span class="stat-label">关注</span>
-                </div>
-              </div>
-            </template>
-            <div class="hero-actions">
-              <router-link to="/profile-edit" class="btn btn-primary">编辑资料</router-link>
-              <router-link to="/password-change" class="btn btn-ghost">修改密码</router-link>
-            </div>
-          </div>
+      <div class="tabs-section card">
+        <div class="tabs-header" ref="tabsRef">
+          <button v-for="(tab, i) in tabs" :key="tab.key" :ref="el => { if (el) tabEls[i] = el }" class="tab-btn" :class="{ active: activeTab === tab.key }" @click="switchTab(tab.key, i)">
+            {{ tab.label }}
+          </button>
+          <div class="tabs-slider" :style="sliderStyle"></div>
         </div>
-
-        <div class="tabs-section card">
-          <div class="tabs-header" ref="tabsRef">
-            <button v-for="(tab, i) in tabs" :key="tab.key" :ref="el => { if (el) tabEls[i] = el }" class="tab-btn" :class="{ active: activeTab === tab.key }" @click="switchTab(tab.key, i)">
-              {{ tab.label }}
-            </button>
-            <div class="tabs-slider" :style="sliderStyle"></div>
-          </div>
-          <div class="tabs-body">
-            <div v-show="activeTab === 'posts'" class="tab-panel">
+        <div class="tabs-body">
+            <div v-show="activeTab === 'posts'" class="tab-panel" key="posts">
               <div v-if="loading.posts" class="skeleton-list">
                 <div v-for="n in 3" :key="n" class="skeleton-card-item">
                   <div class="skeleton skeleton-card-title"></div>
@@ -118,6 +93,7 @@
               <div v-else-if="posts.length === 0" class="empty-state">
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
                 <p class="empty-title">还没有发表文章</p>
+                <p class="empty-text">写下你的第一篇博客，分享你的想法</p>
                 <router-link to="/post-edit" class="btn btn-primary">写文章</router-link>
               </div>
               <div v-else>
@@ -168,7 +144,7 @@
               </div>
             </div>
 
-            <div v-show="activeTab === 'likes'" class="tab-panel">
+            <div v-show="activeTab === 'likes'" class="tab-panel" key="likes">
               <div v-if="loading.likes" class="skeleton-list">
                 <div v-for="n in 3" :key="n" class="skeleton-card-item">
                   <div class="skeleton skeleton-card-title"></div>
@@ -184,6 +160,7 @@
               <div v-else-if="likes.length === 0" class="empty-state">
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
                 <p class="empty-title">还没有点赞过文章</p>
+                <p class="empty-text">浏览文章，为你喜欢的内容点赞</p>
                 <router-link to="/" class="btn btn-primary">去发现</router-link>
               </div>
               <div v-else>
@@ -212,7 +189,7 @@
               </div>
             </div>
 
-            <div v-show="activeTab === 'comments'" class="tab-panel">
+            <div v-show="activeTab === 'comments'" class="tab-panel" key="comments">
               <div v-if="loading.comments" class="skeleton-list">
                 <div v-for="n in 3" :key="n" class="skeleton-card-item">
                   <div class="skeleton skeleton-card-title"></div>
@@ -228,6 +205,7 @@
               <div v-else-if="comments.length === 0" class="empty-state">
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 <p class="empty-title">还没有发表过评论</p>
+                <p class="empty-text">在文章下方留下你的见解</p>
               </div>
               <div v-else>
                 <div v-for="comment in comments" :key="comment.id" class="comment-card">
@@ -250,7 +228,7 @@
               </div>
             </div>
 
-            <div v-show="activeTab === 'circle'" class="tab-panel">
+            <div v-show="activeTab === 'circle'" class="tab-panel" key="circle">
               <div v-if="loading.circles" class="skeleton-list">
                 <div v-for="n in 3" :key="n" class="skeleton-card-item">
                   <div class="skeleton skeleton-card-title"></div>
@@ -266,6 +244,7 @@
               <div v-else-if="circles.length === 0" class="empty-state">
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 <p class="empty-title">还没有发布校友圈动态</p>
+                <p class="empty-text">分享你的校园生活点滴</p>
                 <router-link to="/circle" class="btn btn-primary">去发布</router-link>
               </div>
               <div v-else>
@@ -296,10 +275,9 @@
                 </div>
               </div>
             </div>
-          </div>
         </div>
-      </template>
-    </div>
+      </div>
+    </template>
 
     <ConfirmDialog />
   </div>
@@ -339,6 +317,8 @@ const stats = ref({})
 
 const coverUploading = ref(false)
 const coverInputRef = ref(null)
+const coverRef = ref(null)
+const coverScrollY = ref(0)
 
 const loading = reactive({ user: false, posts: false, likes: false, comments: false, circles: false })
 
@@ -391,6 +371,12 @@ const sliderStyle = computed(() => {
     transform: `translateX(${el.offsetLeft}px)`
   }
 })
+
+function handleCoverScroll() {
+  if (coverRef.value) {
+    coverScrollY.value = coverRef.value.scrollTop || 0
+  }
+}
 
 function onAvatarError(e) {
   e.target.src = '/default-avatar.png'
@@ -567,98 +553,86 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.profile-page { grid-column: 1 / -1; }
-.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; grid-column: 1 / -1; }
-.back-btn:hover { background: var(--border); color: var(--text-primary); }
 .profile-page {
-  max-width: 1100px;
+  grid-column: 1 / -1;
+  max-width: var(--container-xl);
   margin: 0 auto;
   padding: 24px;
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 24px;
-  align-items: start;
-}
-
-.profile-sidebar {
-  position: sticky;
-  top: 84px;
-}
-
-.sidebar-card {
-  padding: 20px;
-}
-
-.sidebar-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 16px;
-}
-
-.sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 24px;
 }
 
-.sidebar-link {
-  display: flex;
+.back-btn {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   color: var(--text-secondary);
+  cursor: pointer;
   font-size: 0.875rem;
   font-weight: 500;
-  transition: all 0.2s ease;
-  text-decoration: none;
+  transition: all var(--transition);
+  width: fit-content;
+  box-shadow: var(--glass-shadow);
 }
 
-.sidebar-link:hover {
-  background: var(--primary-light);
+.back-btn:hover {
+  background: var(--glass-hover);
   color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .hero-section {
   overflow: visible;
+  border-radius: var(--radius-xl);
 }
 
 .hero-cover {
   position: relative;
-  height: 200px;
+  height: 220px;
   overflow: hidden;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
 
-.hero-cover img {
+.cover-image {
   width: 100%;
-  height: 100%;
+  height: 120%;
   object-fit: cover;
+  will-change: transform;
+  transition: transform 0.1s linear;
 }
 
 .hero-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.5));
+  background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.6) 100%);
 }
 
 .cover-upload-btn {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
-  width: 36px; height: 36px;
-  border-radius: 50%;
+  bottom: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
   background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: #fff;
-  border: 2px solid rgba(255,255,255,0.3);
+  border: 1px solid rgba(255,255,255,0.2);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.3s ease, background 0.3s ease;
+  transition: all var(--transition);
   z-index: 2;
 }
 
@@ -668,6 +642,7 @@ onMounted(() => {
 
 .cover-upload-btn:hover {
   background: rgba(0,0,0,0.7);
+  transform: scale(1.05);
 }
 
 .cover-upload-btn:disabled {
@@ -676,63 +651,88 @@ onMounted(() => {
 }
 
 .hero-info {
-  padding: 0 24px 24px;
+  padding: 0 28px 28px;
   position: relative;
 }
 
 .hero-avatar-wrapper {
-  margin-top: -44px;
-  margin-bottom: 12px;
+  margin-top: -52px;
+  margin-bottom: 14px;
+  position: relative;
+  display: inline-block;
 }
 
 .hero-avatar {
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
+  width: 104px;
+  height: 104px;
+  border-radius: var(--radius-full);
   object-fit: cover;
-  border: 4px solid var(--surface);
-  box-shadow: var(--shadow-md);
+  border: 4px solid var(--surface-solid);
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--transition);
+}
+
+.hero-avatar:hover {
+  transform: scale(1.03);
 }
 
 .hero-name {
-  font-size: 1.375rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .hero-bio {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--text-secondary);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  line-height: 1.5;
 }
 
 .hero-stats {
-  display: flex;
-  gap: 28px;
-  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
-.stat-item {
-  text-align: center;
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 10px;
+  border-radius: var(--radius-md);
+  transition: all var(--transition);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-link {
+  text-decoration: none;
+  color: inherit;
 }
 
 .stat-value {
   display: block;
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   font-weight: 700;
   color: var(--text-primary);
-  line-height: 1.3;
+  line-height: 1.2;
 }
 
 .stat-label {
   font-size: 0.75rem;
   color: var(--text-muted);
+  margin-top: 2px;
 }
 
 .hero-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .hero-skeleton {
@@ -740,51 +740,51 @@ onMounted(() => {
 }
 
 .avatar-skeleton {
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
+  width: 104px;
+  height: 104px;
+  border-radius: var(--radius-full);
   margin-bottom: 16px;
 }
 
 .skeleton-title {
-  width: 160px;
-  height: 24px;
-  margin-bottom: 8px;
+  width: 180px;
+  height: 28px;
+  margin-bottom: 10px;
 }
 
 .skeleton-bio {
-  width: 240px;
+  width: 280px;
   height: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .skeleton-stats-row {
-  width: 320px;
-  height: 40px;
+  width: 360px;
+  height: 48px;
   margin-bottom: 16px;
 }
 
 .tabs-section {
-  margin-top: 0;
+  border-radius: var(--radius-xl);
 }
 
 .tabs-header {
   display: flex;
   position: relative;
-  border-bottom: 1px solid var(--border);
-  padding: 0;
+  border-bottom: 1px solid var(--glass-border);
+  padding: 0 8px;
 }
 
 .tab-btn {
   flex: 1;
-  padding: 14px 20px;
-  font-size: 0.875rem;
+  padding: 16px 20px;
+  font-size: 0.9375rem;
   font-weight: 500;
   background: none;
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: color 0.3s ease;
+  transition: color var(--transition);
   position: relative;
   z-index: 1;
 }
@@ -800,15 +800,26 @@ onMounted(() => {
 .tabs-slider {
   position: absolute;
   bottom: 0;
-  height: 2px;
-  background: var(--primary);
-  border-radius: 2px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-start), var(--primary-end));
+  border-radius: 3px 3px 0 0;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 2;
 }
 
 .tabs-body {
-  padding: 20px;
+  padding: 24px;
+  min-height: 200px;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--transition);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 .skeleton-list {
@@ -818,9 +829,10 @@ onMounted(() => {
 }
 
 .skeleton-card-item {
-  padding: 16px;
-  border: 1px solid var(--border);
+  padding: 18px;
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
+  background: var(--surface);
 }
 
 .skeleton-card-title {
@@ -849,8 +861,8 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--border);
+  padding: 18px 0;
+  border-bottom: 1px solid var(--glass-border);
   gap: 16px;
 }
 
@@ -873,7 +885,7 @@ onMounted(() => {
 .post-card-title a {
   color: var(--text-primary);
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color var(--transition);
 }
 
 .post-card-title a:hover {
@@ -896,6 +908,7 @@ onMounted(() => {
   gap: 16px;
   font-size: 0.75rem;
   color: var(--text-muted);
+  flex-wrap: wrap;
 }
 
 .post-card-meta span {
@@ -906,7 +919,7 @@ onMounted(() => {
 
 .post-card-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
   padding-top: 4px;
 }
@@ -921,7 +934,7 @@ onMounted(() => {
   border: none;
   border-radius: var(--radius);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition);
   text-decoration: none;
   background: transparent;
   color: var(--text-muted);
@@ -944,13 +957,13 @@ onMounted(() => {
 }
 
 .post-action-btn.delete:hover {
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--error-light);
   color: var(--error);
 }
 
 .comment-card {
   padding: 16px 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .comment-card:last-child {
@@ -963,9 +976,9 @@ onMounted(() => {
   line-height: 1.6;
   margin-bottom: 8px;
   padding: 12px 16px;
-  background: var(--background);
+  background: var(--surface);
   border-radius: var(--radius-md);
-  position: relative;
+  border: 1px solid var(--glass-border);
 }
 
 .comment-meta {
@@ -995,7 +1008,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding: 40px 20px;
+  padding: 48px 20px;
   color: var(--text-muted);
 }
 
@@ -1005,6 +1018,7 @@ onMounted(() => {
 
 .error-card {
   text-align: center;
+  border-radius: var(--radius-xl);
 }
 
 .error-card-body {
@@ -1037,9 +1051,16 @@ onMounted(() => {
 }
 
 .empty-title {
-  font-size: 0.9375rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.empty-text {
+  font-size: 0.875rem;
   color: var(--text-secondary);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .pagination-section {
@@ -1047,9 +1068,9 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-  margin-top: 4px;
+  padding-top: 24px;
+  border-top: 1px solid var(--glass-border);
+  margin-top: 8px;
 }
 
 .pagination-info {
@@ -1059,34 +1080,39 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .profile-page {
-    grid-template-columns: 1fr;
     padding: 16px;
     gap: 16px;
   }
 
-  .profile-sidebar {
-    display: none;
+  .hero-cover {
+    height: 150px;
   }
 
-  .hero-cover {
-    height: 140px;
+  .cover-image {
+    height: 130%;
   }
 
   .hero-avatar {
-    width: 72px;
-    height: 72px;
+    width: 80px;
+    height: 80px;
+  }
+
+  .avatar-skeleton {
+    width: 80px;
+    height: 80px;
   }
 
   .hero-info {
-    padding: 0 16px 16px;
+    padding: 0 18px 18px;
   }
 
   .hero-stats {
-    gap: 20px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 
   .stat-value {
-    font-size: 1.0625rem;
+    font-size: 1.125rem;
   }
 
   .tabs-body {
@@ -1100,13 +1126,18 @@ onMounted(() => {
   .post-card-actions {
     width: 100%;
     justify-content: flex-end;
-    padding-top: 8px;
-    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    border-top: 1px solid var(--glass-border);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-name {
+    font-size: 1.25rem;
   }
 
-  .post-card-meta {
-    flex-wrap: wrap;
-    gap: 10px;
+  .hero-stats {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>

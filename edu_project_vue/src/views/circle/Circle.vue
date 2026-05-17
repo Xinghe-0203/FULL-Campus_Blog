@@ -1,25 +1,32 @@
 <template>
   <div class="circle-page">
     <div class="circle-container">
-      <button class="back-btn" @click="router.back()">
+      <button class="back-btn glass" @click="router.back()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
         返回
       </button>
-      <div class="create-post card" v-if="userStore.isLoggedIn" @click="openCreateModal">
+
+      <div class="create-post glass" v-if="userStore.isLoggedIn" @click="openCreateModal">
         <div class="create-header">
           <img :src="userStore.avatar || '/default-avatar.png'" :alt="userStore.nickname" class="user-avatar" />
           <div class="create-input">分享你的校园生活...</div>
         </div>
       </div>
 
-      <div class="feed-tabs">
-        <button class="tab-btn" :class="{ active: activeTab === 'recommend' }" @click="switchTab('recommend')">推荐</button>
-        <button v-if="userStore.isLoggedIn" class="tab-btn" :class="{ active: activeTab === 'following' }" @click="switchTab('following')">关注</button>
+      <div class="feed-tabs glass">
+        <button class="tab-btn" :class="{ active: activeTab === 'recommend' }" @click="switchTab('recommend')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          推荐
+        </button>
+        <button v-if="userStore.isLoggedIn" class="tab-btn" :class="{ active: activeTab === 'following' }" @click="switchTab('following')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          关注
+        </button>
       </div>
 
       <div class="feed-list" ref="feedListRef">
         <div v-if="loading && posts.length === 0" class="loading-container">
-          <div v-for="i in 3" :key="i" class="feed-skeleton card">
+          <div v-for="i in 3" :key="i" class="feed-skeleton glass">
             <div class="skeleton-header">
               <div class="skeleton-avatar"></div>
               <div class="skeleton-info">
@@ -38,7 +45,7 @@
           </div>
         </div>
 
-        <div v-else-if="error" class="error-state">
+        <div v-else-if="error" class="error-state glass">
           <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
@@ -47,7 +54,7 @@
           <button class="btn btn-primary" @click="retryLoad">重新加载</button>
         </div>
 
-        <div v-else-if="posts.length === 0" class="empty-state">
+        <div v-else-if="posts.length === 0" class="empty-state glass">
           <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
@@ -56,7 +63,7 @@
         </div>
 
         <div v-else class="posts">
-          <div v-for="(post, index) in posts" :key="post.id" class="feed-item card" :style="{ animationDelay: `${index * 0.05}s` }">
+          <div v-for="(post, index) in posts" :key="post.id" class="feed-item glass" :style="{ animationDelay: `${index * 0.05}s` }">
             <div class="feed-header">
               <router-link :to="`/user/${post.userId}`" class="feed-author">
                 <img :src="post.userAvatar || '/default-avatar.png'" :alt="post.userUsername" class="author-avatar" />
@@ -65,10 +72,10 @@
                   <span class="feed-time">{{ formatRelativeTime(post.createTime) }}</span>
                 </div>
               </router-link>
-              <span class="visibility-badge" :title="visibilityLabel(post.visibility)">
-                <span v-if="post.visibility === 0">🌏</span>
-                <span v-else-if="post.visibility === 1">👥</span>
-                <span v-else>🔒</span>
+              <span class="visibility-badge glass-badge" :title="visibilityLabel(post.visibility)">
+                <svg v-if="post.visibility === 0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <svg v-else-if="post.visibility === 1" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
+                <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               </span>
             </div>
 
@@ -76,14 +83,25 @@
               <p class="feed-text">{{ post.content }}</p>
 
               <div v-if="post.topicNames && post.topicNames.length" class="topic-tags">
-                <router-link v-for="tn in post.topicNames" :key="tn" :to="`/search?keyword=${'#' + tn}`" class="topic-tag-link">#{{ tn }}</router-link>
+                <router-link v-for="tn in post.topicNames" :key="tn" :to="`/search?keyword=${'#' + tn}`" class="topic-tag-link glass-chip">#{{ tn }}</router-link>
               </div>
 
-              <div v-if="post.images && post.images.length" class="feed-images" :class="`grid-${Math.min(post.images.length, 9)}`">
+              <div v-if="post.tags && post.tags.length" class="free-tags">
+                <span v-for="(tag, idx) in post.tags" :key="idx" class="free-tag glass-chip">{{ tag }}</span>
+              </div>
+
+              <div v-if="post.location" class="location-display">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>{{ post.location }}</span>
+              </div>
+
+              <div v-if="post.images && post.images.length" class="feed-images" :class="getImageGridClass(post.images.length)">
                 <div v-for="(image, idx) in post.images" :key="idx" class="img-wrap" :class="{ 'is-video': isVideo(image) }" @click.stop="openImagePreview(post.images, idx)">
                   <img v-if="!isVideo(image)" :src="image" alt="动态图片" class="feed-image" loading="lazy" />
                   <video v-else :src="image" class="feed-image" muted @click.stop.prevent="playVideo(image)"></video>
-                  <span v-if="isVideo(image)" class="play-icon">▶</span>
+                  <span v-if="isVideo(image)" class="play-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  </span>
                 </div>
               </div>
 
@@ -91,22 +109,27 @@
                 <video v-for="(video, idx) in post.videos" :key="'v-'+idx" :src="video" class="feed-video" controls muted preload="metadata"></video>
               </div>
 
-              <div v-if="post.repostPost" class="repost-card" @click.stop="router.push(`/circle/${post.repostPost.id}`)">
+              <div v-if="post.repostPost" class="repost-card glass-inner" @click.stop="router.push(`/circle/${post.id}`)">
                 <div class="repost-header">
                   <img :src="post.repostPost.userAvatar || '/default-avatar.png'" class="repost-avatar" />
                   <span class="repost-author">{{ post.repostPost.userNickname || post.repostPost.userUsername }}</span>
                 </div>
+                <p v-if="post.repostContent" class="repost-user-content">{{ post.repostContent }}</p>
                 <p class="repost-text">{{ post.repostPost.content }}</p>
                 <div v-if="post.repostPost.images && post.repostPost.images.length" class="repost-images mini">
                   <img v-for="(img, idx) in post.repostPost.images.slice(0, 3)" :key="idx" :src="img" class="repost-img" />
                   <span v-if="post.repostPost.images.length > 3" class="repost-more">+{{ post.repostPost.images.length - 3 }}</span>
                 </div>
               </div>
+              <div v-else-if="post.originalPostHidden" class="repost-hidden-notice">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>原内容已隐藏</span>
+              </div>
             </div>
 
             <div class="feed-actions">
               <button class="action-btn" :class="{ liked: post.isLiked }" @click="toggleLike(post)">
-                <svg class="like-icon" :class="{ 'animate-pop': post.likeAnim }" width="18" height="18" viewBox="0 0 24 24" :fill="post.isLiked ? '#ef4444' : 'none'" stroke="currentColor" stroke-width="2">
+                <svg class="like-icon" :class="{ 'animate-pop': post.likeAnim }" width="18" height="18" viewBox="0 0 24 24" :fill="post.isLiked ? 'var(--accent)' : 'none'" stroke="currentColor" stroke-width="2">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                 </svg>
                 <span>{{ formatNumber(post.likeCount) }}</span>
@@ -119,11 +142,16 @@
               </button>
               <button class="action-btn" @click="openRepostModal(post)">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                  <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
                 </svg>
                 <span>{{ formatNumber(post.repostCount) }}</span>
               </button>
+              <span class="view-count">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+                {{ formatNumber(post.viewCount || 0) }}
+              </span>
             </div>
           </div>
 
@@ -141,26 +169,37 @@
     <teleport to="body">
       <transition name="modal">
         <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
-          <div class="modal-content card">
+          <div class="modal-content glass">
             <div class="modal-header">
               <h3>发布动态</h3>
-              <button class="close-btn" @click="showCreateModal = false">✕</button>
+              <button class="close-btn" @click="showCreateModal = false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
             <div class="modal-body">
               <div class="create-top">
                 <img :src="userStore.avatar || '/default-avatar.png'" class="modal-avatar" />
                 <div class="create-info">
                   <span class="create-nickname">{{ userStore.nickname }}</span>
-                  <button class="visibility-selector" @click="showVisibilityPicker = !showVisibilityPicker">
+                  <button class="visibility-selector glass-chip" @click="showVisibilityPicker = !showVisibilityPicker">
+                    <svg v-if="newPost.visibility === 0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <svg v-else-if="newPost.visibility === 1" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
+                    <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                     {{ visibilityOptions[newPost.visibility] }}
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                   </button>
-                  <div v-if="showVisibilityPicker" class="visibility-dropdown">
-                    <div v-for="(label, key) in visibilityOptions" :key="key" class="vis-item" :class="{ active: newPost.visibility === Number(key) }" @click="newPost.visibility = Number(key); showVisibilityPicker = false">
-                      <span>{{ ['🌏', '👥', '🔒'][key] }}</span>
-                      <div><div class="vis-label">{{ label }}</div><div class="vis-desc">{{ visibilityDescriptions[key] }}</div></div>
+                  <transition name="dropdown">
+                    <div v-if="showVisibilityPicker" class="visibility-dropdown glass">
+                      <div v-for="(label, key) in visibilityOptions" :key="key" class="vis-item" :class="{ active: newPost.visibility === Number(key) }" @click="newPost.visibility = Number(key); showVisibilityPicker = false">
+                        <span class="vis-icon">
+                          <svg v-if="Number(key) === 0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                          <svg v-else-if="Number(key) === 1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
+                          <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </span>
+                        <div><div class="vis-label">{{ label }}</div><div class="vis-desc">{{ visibilityDescriptions[key] }}</div></div>
+                      </div>
                     </div>
-                  </div>
+                  </transition>
                 </div>
               </div>
               <textarea v-model="newPost.content" class="post-textarea" placeholder="分享你的校园生活..." rows="4" @input="autoResize" ref="textareaRef" maxlength="2000"></textarea>
@@ -168,7 +207,7 @@
 
               <div class="topic-selector">
                 <div v-if="selectedTopic" class="selected-topic">
-                  <span class="topic-badge">
+                  <span class="topic-badge glass-chip">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
                     {{ selectedTopic.name }}
                   </span>
@@ -177,45 +216,44 @@
                   </button>
                 </div>
                 <div v-else class="topic-input-wrapper">
-                  <div class="topic-search-box">
+                  <div class="topic-search-box glass">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input
-                      v-model="topicSearch"
-                      placeholder="添加话题..."
-                      @focus="showTopicDropdown = true"
-                      @blur="hideTopicDropdown"
-                    />
+                    <input v-model="topicSearch" placeholder="添加话题..." @focus="showTopicDropdown = true" @blur="hideTopicDropdown" />
                   </div>
-                  <div v-if="showTopicDropdown && filteredTopics.length" class="topic-dropdown">
-                    <div v-if="topicsLoading" class="topic-loading">
-                      <span class="spinner-small"></span> 加载中...
-                    </div>
-                    <div v-else>
-                      <div v-for="topic in filteredTopics" :key="topic.id" class="topic-dropdown-item" @mousedown.prevent="selectTopic(topic)">
-                        <span class="topic-name">#{{ topic.name }}</span>
-                        <span class="topic-count">{{ topic.postCount || 0 }} 篇</span>
+                  <transition name="dropdown">
+                    <div v-if="showTopicDropdown && filteredTopics.length" class="topic-dropdown glass">
+                      <div v-if="topicsLoading" class="topic-loading">
+                        <span class="spinner-small"></span> 加载中...
+                      </div>
+                      <div v-else>
+                        <div v-for="topic in filteredTopics" :key="topic.id" class="topic-dropdown-item" @mousedown.prevent="selectTopic(topic)">
+                          <span class="topic-name">#{{ topic.name }}</span>
+                          <span class="topic-count">{{ topic.postCount || 0 }} 篇</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </transition>
                 </div>
               </div>
 
               <div v-if="newPost.images.length" class="uploaded-images">
                 <div v-for="(img, idx) in newPost.images" :key="idx" class="image-item">
                   <img :src="img" alt="" />
-                  <button class="remove-image" @click="newPost.images.splice(idx, 1)">✕</button>
+                  <button class="remove-image" @click="newPost.images.splice(idx, 1)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
                 </div>
               </div>
 
               <div class="toolbar">
                 <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple @change="handleImageUpload" ref="imageInput" hidden />
                 <input type="file" accept="video/mp4,video/webm" @change="handleVideoUpload" ref="videoInput" hidden />
-                <button class="tool-btn" title="图片" @click="$refs.imageInput.click()" :disabled="newPost.images.length >= 9">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <button class="tool-btn glass-chip" title="图片" @click="$refs.imageInput.click()" :disabled="newPost.images.length >= 9">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                   <span>图片</span>
                 </button>
-                <button class="tool-btn" title="视频" @click="$refs.videoInput.click()">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                <button class="tool-btn glass-chip" title="视频" @click="$refs.videoInput.click()">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
                   <span>视频</span>
                 </button>
                 <div class="tool-right">
@@ -226,7 +264,6 @@
               </div>
               <div v-if="uploading" class="upload-progress-bar">
                 <div class="progress-fill" :style="{ width: uploadPercent + '%' }"></div>
-                <span>{{ uploadPercent }}%</span>
               </div>
             </div>
           </div>
@@ -237,13 +274,15 @@
     <teleport to="body">
       <transition name="modal">
         <div v-if="showRepostModal" class="modal-overlay" @click.self="closeRepostModal">
-          <div class="modal-content card">
+          <div class="modal-content glass">
             <div class="modal-header">
               <h3>转发动态</h3>
-              <button class="close-btn" @click="closeRepostModal">✕</button>
+              <button class="close-btn" @click="closeRepostModal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
             <div class="modal-body">
-              <div v-if="currentRepostPost" class="repost-original-card">
+              <div v-if="currentRepostPost" class="repost-original-card glass-inner">
                 <div class="repost-original-header">
                   <img :src="currentRepostPost.userAvatar || '/default-avatar.png'" class="repost-original-avatar" />
                   <span class="repost-original-name">{{ currentRepostPost.userNickname || currentRepostPost.userUsername }}</span>
@@ -267,10 +306,16 @@
     <teleport to="body">
       <transition name="modal">
         <div v-if="showPreview" class="modal-overlay preview-overlay" @click.self="showPreview = false">
-          <button class="preview-nav prev" @click="previewPrev" v-if="previewImages.length > 1">‹</button>
+          <button class="preview-nav prev" @click="previewPrev" v-if="previewImages.length > 1">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
           <img :src="previewImages[previewIndex]" class="preview-image" @click.stop />
-          <button class="preview-nav next" @click="previewNext" v-if="previewImages.length > 1">›</button>
-          <button class="preview-close" @click="showPreview = false">✕</button>
+          <button class="preview-nav next" @click="previewNext" v-if="previewImages.length > 1">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="preview-close" @click="showPreview = false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
           <div class="preview-counter" v-if="previewImages.length > 1">{{ previewIndex + 1 }} / {{ previewImages.length }}</div>
         </div>
       </transition>
@@ -294,7 +339,6 @@ const router = useRouter()
 const userStore = useUserStore()
 const logger = useLogger('Circle')
 
-// Debounce helper
 const useDebounce = (fn, delay = 300) => {
   let timer = null
   return (...args) => {
@@ -350,7 +394,6 @@ const allTopics = ref([])
 const topicsLoading = ref(false)
 
 const debouncedSearchTopics = useDebounce(() => {
-  // topics are already filtered via computed, no need for debounce here
   showTopicDropdown.value = true
 }, 300)
 
@@ -386,6 +429,15 @@ const visibilityLabel = (v) => {
   if (v === 0) return '公开'
   if (v === 1) return '关注者可见'
   return '仅自己可见'
+}
+
+const getImageGridClass = (count) => {
+  const n = Math.min(count, 9)
+  if (n === 1) return 'grid-1'
+  if (n === 2) return 'grid-2'
+  if (n === 3) return 'grid-3'
+  if (n === 4) return 'grid-4'
+  return 'grid-multi'
 }
 
 const switchTab = (tab) => {
@@ -647,124 +699,164 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
-.back-btn:hover { background: var(--border); color: var(--text-primary); }
 .circle-page {
-  max-width: 600px;
+  max-width: 640px;
   margin: 0 auto;
-  padding: 16px;
+  padding: var(--spacing-md);
+  min-height: 100vh;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition);
+  box-shadow: var(--glass-shadow);
+  margin-bottom: var(--spacing-md);
+}
+
+.back-btn:hover {
+  background: var(--glass-hover);
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .create-post {
-  padding: 14px 18px;
-  margin-bottom: 14px;
-  border-radius: 16px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: box-shadow 0.3s ease, transform 0.2s ease;
+  transition: all var(--transition-slow);
 }
 
 .create-post:hover {
-  box-shadow: var(--shadow);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .create-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--spacing-md);
 }
 
 .user-avatar {
   width: 42px;
   height: 42px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
   flex-shrink: 0;
+  border: 2px solid var(--glass-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .create-input {
   flex: 1;
-  padding: 10px 16px;
+  padding: var(--spacing-sm) var(--spacing-lg);
   background: var(--bg-secondary);
-  border-radius: 24px;
+  border-radius: var(--radius-full);
   color: var(--text-muted);
-  font-size: 14px;
-  transition: background 0.3s;
+  font-size: 0.875rem;
+  transition: all var(--transition);
 }
 
-.create-input:hover {
+.create-post:hover .create-input {
   background: var(--border);
 }
 
 .feed-tabs {
   display: flex;
-  gap: 4px;
-  margin-bottom: 14px;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  padding: 3px;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs);
 }
 
 .tab-btn {
   flex: 1;
-  padding: 8px 0;
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) 0;
+  font-size: 0.875rem;
   font-weight: 500;
   background: transparent;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-slow);
 }
 
 .tab-btn.active {
-  background: var(--surface);
-  color: var(--text-primary);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--primary);
   box-shadow: var(--shadow-sm);
 }
 
 .tab-btn:hover:not(.active) {
-  color: var(--text-primary);
+  color: var(--primary);
+  background: var(--primary-light);
 }
 
 .feed-item {
-  padding: 18px;
-  margin-bottom: 14px;
-  border-radius: 16px;
-  transition: box-shadow 0.3s ease, transform 0.2s ease;
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-slow);
   animation: fadeUp 0.4s ease both;
 }
 
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+.feed-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
-.feed-item:hover {
-  box-shadow: var(--shadow);
-  transform: translateY(-1px);
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .feed-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: var(--spacing-md);
 }
 
 .feed-author {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--spacing-sm);
   text-decoration: none;
 }
 
 .author-avatar {
   width: 42px;
   height: 42px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
+  border: 2px solid var(--glass-border);
+  transition: all var(--transition);
+}
+
+.feed-author:hover .author-avatar {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
 }
 
 .author-info {
@@ -774,39 +866,82 @@ onBeforeUnmount(() => {
 
 .author-name {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--text-primary);
 }
 
 .feed-time {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-muted);
   margin-top: 2px;
 }
 
 .visibility-badge {
-  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
   cursor: default;
 }
 
+.visibility-badge.glass-badge {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+}
+
 .feed-content {
-  margin-bottom: 12px;
+  margin-bottom: var(--spacing-md);
   cursor: pointer;
 }
 
 .feed-text {
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--text-primary);
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
+.topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.topic-tag-link {
+  display: inline-block;
+  padding: 2px 10px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all var(--transition);
+}
+
+.topic-tag-link:hover {
+  background: var(--primary);
+  color: var(--text-inverse);
+  transform: translateY(-1px);
+}
+
+.topic-tag-link.glass-chip {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
 .feed-images {
   display: grid;
-  gap: 4px;
-  margin-top: 12px;
-  border-radius: 12px;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-md);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -814,18 +949,20 @@ onBeforeUnmount(() => {
 .grid-2 { grid-template-columns: 1fr 1fr; }
 .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
 .grid-4 { grid-template-columns: 1fr 1fr; }
-.grid-5 { grid-template-columns: 1fr 1fr 1fr; }
-.grid-6 { grid-template-columns: 1fr 1fr 1fr; }
-.grid-7 { grid-template-columns: 1fr 1fr 1fr; }
-.grid-8 { grid-template-columns: 1fr 1fr 1fr; }
-.grid-9 { grid-template-columns: 1fr 1fr 1fr; }
+.grid-multi { grid-template-columns: repeat(3, 1fr); }
+
+.grid-multi .img-wrap:first-child:nth-last-child(5),
+.grid-multi .img-wrap:first-child:nth-last-child(5) ~ .img-wrap:nth-child(-n+2) {
+  grid-column: span 1;
+}
 
 .img-wrap {
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--bg-secondary);
+  cursor: pointer;
 }
 
 .img-wrap.is-video {
@@ -836,11 +973,11 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform var(--transition-slow);
 }
 
 .img-wrap:hover .feed-image {
-  transform: scale(1.03);
+  transform: scale(1.05);
 }
 
 .play-icon {
@@ -848,21 +985,28 @@ onBeforeUnmount(() => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 40px;
-  height: 40px;
-  background: rgba(0,0,0,0.6);
-  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 18px;
   pointer-events: none;
+  transition: all var(--transition);
+}
+
+.img-wrap:hover .play-icon {
+  background: var(--primary);
+  transform: translate(-50%, -50%) scale(1.1);
 }
 
 .feed-videos {
-  margin-top: 12px;
-  border-radius: 12px;
+  margin-top: var(--spacing-md);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -871,45 +1015,49 @@ onBeforeUnmount(() => {
   max-height: 400px;
   object-fit: contain;
   background: #000;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
 }
 
 .repost-card {
-  margin-top: 12px;
-  padding: 14px;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all var(--transition);
+}
+
+.repost-card.glass-inner {
+  background: var(--surface);
+  border: 1px solid var(--border);
 }
 
 .repost-card:hover {
-  background: var(--border);
+  background: var(--primary-light);
+  border-color: var(--primary);
 }
 
 .repost-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
 }
 
 .repost-avatar {
   width: 22px;
   height: 22px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
 }
 
 .repost-author {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-secondary);
 }
 
 .repost-text {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-primary);
   line-height: 1.5;
   white-space: pre-wrap;
@@ -918,15 +1066,15 @@ onBeforeUnmount(() => {
 
 .repost-images.mini {
   display: flex;
-  gap: 4px;
-  margin-top: 8px;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
 }
 
 .repost-img {
   width: 60px;
   height: 60px;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .repost-more {
@@ -936,120 +1084,124 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   background: var(--skeleton-base);
-  border-radius: 6px;
-  font-size: 13px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
   color: var(--text-secondary);
 }
 
 .feed-actions {
   display: flex;
-  gap: 8px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
+  gap: var(--spacing-sm);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--glass-border);
 }
 
 .action-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
   background: transparent;
   border: none;
-  border-radius: 20px;
+  border-radius: var(--radius-full);
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 13px;
-  transition: all 0.2s ease;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: all var(--transition);
 }
 
 .action-btn:hover {
-  background: var(--bg-secondary);
-  color: var(--error);
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 .action-btn.liked {
-  color: var(--error);
+  color: var(--accent);
+  background: var(--accent-light);
 }
 
 .like-icon.animate-pop {
-  animation: likePop 0.4s ease;
+  animation: likePop 0.4s var(--transition-spring);
 }
 
 @keyframes likePop {
   0% { transform: scale(1); }
-  25% { transform: scale(1.3); }
-  50% { transform: scale(0.9); }
+  25% { transform: scale(1.4); }
+  50% { transform: scale(0.85); }
+  75% { transform: scale(1.1); }
   100% { transform: scale(1); }
 }
 
 .skeleton-header {
   display: flex;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
 }
 
 .skeleton-avatar {
   width: 42px;
   height: 42px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
 .skeleton-info { flex: 1; }
-.skeleton-name { width: 100px; height: 14px; background: var(--skeleton-base); border-radius: 4px; margin-bottom: 6px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
-.skeleton-time { width: 60px; height: 12px; background: var(--skeleton-base); border-radius: 4px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-name { width: 100px; height: 14px; background: var(--skeleton-base); border-radius: var(--radius-xs); margin-bottom: var(--spacing-sm); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-time { width: 60px; height: 12px; background: var(--skeleton-base); border-radius: var(--radius-xs); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
 
-.skeleton-content { }
-.skeleton-text { height: 14px; background: var(--skeleton-base); border-radius: 4px; margin-bottom: 8px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-text { height: 14px; background: var(--skeleton-base); border-radius: var(--radius-xs); margin-bottom: var(--spacing-sm); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
 .skeleton-text.short { width: 60%; }
-.skeleton-images { display: flex; gap: 4px; margin-top: 12px; }
-.skeleton-img { flex: 1; aspect-ratio: 1; background: var(--skeleton-base); border-radius: 8px; animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-images { display: flex; gap: var(--spacing-xs); margin-top: var(--spacing-md); }
+.skeleton-img { flex: 1; aspect-ratio: 1; background: var(--skeleton-base); border-radius: var(--radius-sm); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
 
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-.error-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--text-secondary);
-}
-
-.error-state h3 { margin: 12px 0 6px; font-size: 16px; }
-.error-state p { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
-
+.error-state,
 .empty-state {
   text-align: center;
-  padding: 60px 20px;
-  color: var(--text-muted);
+  padding: var(--spacing-3xl) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-md);
 }
 
+.error-state h3,
 .empty-state-title {
-  margin: 16px 0 6px;
-  font-size: 16px;
-  color: var(--text-muted);
+  margin: var(--spacing-md) 0 var(--spacing-sm);
+  font-size: 1rem;
+  color: var(--text-primary);
 }
 
+.error-state p,
 .empty-state-text {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-muted);
+  margin-bottom: var(--spacing-md);
+}
+
+.error-state svg,
+.empty-state svg {
+  color: var(--text-muted);
+  opacity: 0.6;
 }
 
 .scroll-sentinel {
   text-align: center;
-  padding: 20px 0;
+  padding: var(--spacing-lg) 0;
 }
 
 .loading-spinner {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--spacing-sm);
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .spinner {
@@ -1057,7 +1209,7 @@ onBeforeUnmount(() => {
   height: 18px;
   border: 2px solid var(--border);
   border-top-color: var(--primary);
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   animation: spin 0.6s linear infinite;
 }
 
@@ -1066,28 +1218,30 @@ onBeforeUnmount(() => {
 }
 
 .no-more {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-muted);
 }
 
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
-  padding: 20px;
+  z-index: var(--z-modal);
+  padding: var(--spacing-lg);
 }
 
 .modal-content {
   width: 100%;
-  max-width: 520px;
-  max-height: 80vh;
+  max-width: 540px;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   overflow: hidden;
 }
 
@@ -1095,36 +1249,37 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .modal-header h3 {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
 }
 
 .close-btn {
-  background: var(--bg-secondary);
-  border: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  font-size: 14px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  width: 32px;
+  height: 32px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
 }
 
 .close-btn:hover {
-  background: var(--border);
+  background: var(--error-light);
+  color: var(--error);
+  border-color: var(--error);
 }
 
 .modal-body {
-  padding: 20px;
+  padding: var(--spacing-lg);
   overflow-y: auto;
   flex: 1;
 }
@@ -1132,70 +1287,77 @@ onBeforeUnmount(() => {
 .create-top {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
 }
 
 .modal-avatar {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
   flex-shrink: 0;
+  border: 2px solid var(--glass-border);
 }
 
 .create-info {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--spacing-xs);
 }
 
 .create-nickname {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
 .visibility-selector {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  background: var(--bg-secondary);
-  border: none;
-  border-radius: 20px;
-  font-size: 12px;
+  gap: var(--spacing-xs);
+  padding: 2px 10px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all var(--transition);
+  box-shadow: var(--glass-shadow);
 }
 
 .visibility-selector:hover {
-  background: var(--border);
+  background: var(--glass-hover);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .visibility-dropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + var(--spacing-xs));
   left: 0;
-  margin-top: 6px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  padding: 6px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-xs);
   z-index: 100;
-  min-width: 200px;
+  min-width: 220px;
 }
 
 .vis-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all var(--transition);
 }
 
 .vis-item:hover,
@@ -1203,24 +1365,47 @@ onBeforeUnmount(() => {
   background: var(--primary-light);
 }
 
-.vis-label { font-size: 13px; font-weight: 500; }
-.vis-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.vis-item.active {
+  color: var(--primary);
+}
+
+.vis-icon {
+  display: inline-flex;
+  color: var(--text-muted);
+}
+
+.vis-item:hover .vis-icon,
+.vis-item.active .vis-icon {
+  color: var(--primary);
+}
+
+.vis-label { font-size: 0.8125rem; font-weight: 500; }
+.vis-desc { font-size: 0.6875rem; color: var(--text-muted); margin-top: 2px; }
 
 .post-textarea {
   width: 100%;
-  border: none;
-  font-size: 15px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: var(--spacing-md);
+  font-size: 0.9375rem;
   line-height: 1.6;
   resize: none;
   color: var(--text-primary);
-  background: transparent;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   font-family: inherit;
   min-height: 100px;
   box-sizing: border-box;
+  transition: all var(--transition);
+  box-shadow: var(--glass-shadow);
 }
 
 .post-textarea:focus {
   outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
+  background: var(--glass-hover);
 }
 
 .post-textarea::placeholder {
@@ -1229,26 +1414,27 @@ onBeforeUnmount(() => {
 
 .char-count {
   text-align: right;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-sm);
+  margin-top: var(--spacing-xs);
 }
 
 .char-count.warn {
-  color: #f59e0b;
+  color: var(--warning);
 }
 
 .uploaded-images {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
 }
 
 .image-item {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 10px;
+  border-radius: var(--radius);
   overflow: hidden;
   background: var(--bg-secondary);
 }
@@ -1261,49 +1447,55 @@ onBeforeUnmount(() => {
 
 .remove-image {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.5);
+  top: var(--spacing-xs);
+  right: var(--spacing-xs);
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   color: #fff;
   border: none;
-  font-size: 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: all var(--transition);
 }
 
 .remove-image:hover {
-  background: rgba(239,68,68,0.8);
+  background: var(--error);
+  transform: scale(1.1);
 }
 
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
 .tool-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  background: var(--bg-secondary);
-  border: none;
-  border-radius: 20px;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 13px;
-  transition: all 0.2s;
+  font-size: 0.8125rem;
+  transition: all var(--transition);
+  box-shadow: var(--glass-shadow);
 }
 
-.tool-btn:hover {
+.tool-btn:hover:not(:disabled) {
   background: var(--primary-light);
   color: var(--primary);
+  border-color: var(--primary);
 }
 
 .tool-btn:disabled {
@@ -1315,108 +1507,63 @@ onBeforeUnmount(() => {
   margin-left: auto;
 }
 
-.btn-primary {
-  padding: 8px 20px;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-primary:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn-primary.btn-sm {
-  padding: 6px 16px;
-  font-size: 13px;
-}
-
-.btn-ghost {
-  padding: 8px 20px;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.btn-ghost:hover {
-  background: var(--bg-secondary);
-}
-
 .upload-progress-bar {
-  margin-top: 10px;
+  margin-top: var(--spacing-sm);
   height: 4px;
   background: var(--skeleton-base);
-  border-radius: 4px;
-  position: relative;
+  border-radius: var(--radius-full);
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: var(--primary);
-  border-radius: 4px;
-  transition: width 0.3s ease;
-}
-
-.upload-progress-bar span {
-  display: none;
+  background: linear-gradient(90deg, var(--primary-start), var(--primary-end));
+  border-radius: var(--radius-full);
+  transition: width var(--transition-slow);
 }
 
 .modal-footer {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
-  padding: 14px 20px;
-  border-top: 1px solid var(--border);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-top: 1px solid var(--glass-border);
 }
 
 .repost-original-card {
-  padding: 14px;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  margin-bottom: 14px;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.repost-original-card.glass-inner {
+  background: var(--surface);
   border: 1px solid var(--border);
 }
 
 .repost-original-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
 }
 
 .repost-original-avatar {
   width: 24px;
   height: 24px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
 }
 
 .repost-original-name {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-secondary);
 }
 
 .repost-original-text {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   line-height: 1.5;
   white-space: pre-wrap;
@@ -1424,8 +1571,10 @@ onBeforeUnmount(() => {
 }
 
 .preview-overlay {
-  background: rgba(0,0,0,0.85);
-  z-index: 3000;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: var(--z-toast);
   cursor: zoom-out;
 }
 
@@ -1433,77 +1582,86 @@ onBeforeUnmount(() => {
   max-width: 90vw;
   max-height: 85vh;
   object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
 }
 
 .preview-nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.15);
-  border: none;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   color: #fff;
-  font-size: 24px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: all var(--transition);
 }
 
 .preview-nav:hover {
-  background: rgba(255,255,255,0.3);
+  background: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-50%) scale(1.1);
 }
 
-.preview-nav.prev { left: 20px; }
-.preview-nav.next { right: 20px; }
+.preview-nav.prev { left: var(--spacing-lg); }
+.preview-nav.next { right: var(--spacing-lg); }
 
 .preview-close {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.15);
-  border: none;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   color: #fff;
-  font-size: 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: all var(--transition);
 }
 
 .preview-close:hover {
-  background: rgba(255,255,255,0.3);
+  background: var(--error);
+  border-color: var(--error);
+  transform: scale(1.1);
 }
 
 .preview-counter {
   position: absolute;
-  bottom: 20px;
+  bottom: var(--spacing-lg);
   left: 50%;
   transform: translateX(-50%);
   color: #fff;
-  font-size: 14px;
-  background: rgba(0,0,0,0.5);
-  padding: 6px 16px;
-  border-radius: 20px;
+  font-size: 0.875rem;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-full);
 }
 
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-slow) ease;
 }
 
 .modal-enter-active .modal-content,
-.modal-leave-active .modal-content {
-  transition: transform 0.3s ease;
+.modal-modal-leave-active .modal-content {
+  transition: transform var(--transition-slow) ease;
 }
 
 .modal-enter-from,
@@ -1513,113 +1671,82 @@ onBeforeUnmount(() => {
 
 .modal-enter-from .modal-content,
 .modal-leave-to .modal-content {
-  transform: scale(0.95);
+  transform: scale(0.95) translateY(10px);
+}
+
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all var(--transition) ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 
 .topic-selector {
-  margin-bottom: 12px;
-}
-
-.topic-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: var(--primary-light);
-  color: var(--primary);
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.topic-tag .remove-topic {
-  background: none;
-  border: none;
-  color: var(--primary);
-  cursor: pointer;
-  font-size: 12px;
-  padding: 0;
-  line-height: 1;
-  opacity: 0.6;
-}
-
-.topic-tag .remove-topic:hover {
-  opacity: 1;
+  margin-bottom: var(--spacing-md);
 }
 
 .selected-topic {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
   background: var(--primary-light);
-  border-radius: 20px;
+  border-radius: var(--radius-full);
 }
 
 .topic-badge {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 13px;
+  gap: var(--spacing-xs);
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--primary);
 }
 
-.topic-badge svg {
-  flex-shrink: 0;
-}
-
 .remove-topic {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 20px;
   height: 20px;
-  background: rgba(0,0,0,0.1);
+  background: rgba(0, 0, 0, 0.1);
   border: none;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   color: var(--primary);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition);
 }
 
 .remove-topic:hover {
-  background: rgba(0,0,0,0.2);
+  background: var(--error);
+  color: #fff;
 }
 
 .topic-input-wrapper {
   position: relative;
 }
 
-.topic-input-wrapper input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 13px;
-  outline: none;
-  box-sizing: border-box;
-  transition: border-color 0.2s;
-}
-
-.topic-input-wrapper input:focus {
-  border-color: var(--primary);
-}
-
 .topic-search-box {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-secondary);
-  transition: border-color 0.2s, background 0.2s;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  transition: all var(--transition);
+  box-shadow: var(--glass-shadow);
 }
 
 .topic-search-box:focus-within {
   border-color: var(--primary);
-  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
 }
 
 .topic-search-box svg {
@@ -1631,7 +1758,7 @@ onBeforeUnmount(() => {
   flex: 1;
   border: none;
   background: transparent;
-  font-size: 13px;
+  font-size: 0.8125rem;
   outline: none;
   color: var(--text-primary);
   padding: 0;
@@ -1645,10 +1772,10 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 16px;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .spinner-small {
@@ -1656,36 +1783,33 @@ onBeforeUnmount(() => {
   height: 14px;
   border: 2px solid var(--border);
   border-top-color: var(--primary);
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   animation: spin 0.6s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 .topic-dropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + var(--spacing-xs));
   left: 0;
   right: 0;
-  margin-top: 4px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: var(--shadow);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
   max-height: 200px;
   overflow-y: auto;
-  z-index: 10;
+  z-index: 100;
 }
 
 .topic-dropdown-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
+  padding: var(--spacing-sm) var(--spacing-md);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all var(--transition);
 }
 
 .topic-dropdown-item:hover {
@@ -1693,48 +1817,113 @@ onBeforeUnmount(() => {
 }
 
 .topic-dropdown-item:not(:last-child) {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .topic-name {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--primary);
 }
 
 .topic-count {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-muted);
 }
 
-.topic-tags {
+.location-display {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.location-display svg {
+  color: var(--primary);
+}
+
+.free-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
 }
 
-.topic-tag-link {
+.free-tag {
   display: inline-block;
-  padding: 3px 10px;
-  background: var(--primary-light);
-  color: var(--primary);
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: background 0.2s;
+  padding: 2px 8px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  box-shadow: var(--glass-shadow);
 }
 
-.topic-tag-link:hover {
-  background: var(--primary-light);
+.view-count {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  margin-left: auto;
 }
 
-@media (max-width: 600px) {
+.view-count svg {
+  opacity: 0.6;
+}
+
+.repost-user-content {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: var(--spacing-xs);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px dashed var(--glass-border);
+}
+
+.repost-hidden-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-md);
+  background: var(--skeleton-base);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.repost-hidden-notice svg {
+  opacity: 0.5;
+}
+
+@media (max-width: 640px) {
   .circle-page {
-    padding: 12px;
+    padding: var(--spacing-sm);
   }
-  .feed-item { padding: 14px; }
-  .modal-content { max-height: 90vh; margin: 10px; border-radius: 16px; }
+  .feed-item {
+    padding: var(--spacing-md);
+  }
+  .modal-content {
+    max-height: 95vh;
+    margin: var(--spacing-sm);
+    border-radius: var(--radius-lg);
+  }
+  .modal-body {
+    padding: var(--spacing-md);
+  }
+  .feed-tabs {
+    padding: var(--spacing-xs);
+  }
+  .preview-nav.prev { left: var(--spacing-sm); }
+  .preview-nav.next { right: var(--spacing-sm); }
 }
 </style>

@@ -13,6 +13,7 @@ import com.example.edu_project.vo.HotContentVO;
 import com.example.edu_project.vo.HotPostVO;
 import com.example.edu_project.vo.HotTagVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -59,6 +60,7 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
     private static final int TRENDING_DAYS = 7;
 
     @Override
+    @Cacheable(value = CaffeineCacheConfig.TRENDING_CACHE, key = "'hotPosts:' + #pageNum + ':' + #pageSize")
     @Transactional(readOnly = true)
     public IPage<HotPostVO> getHotPosts(int pageNum, int pageSize) {
         Page<BlogTrending> page = new Page<>(pageNum, pageSize);
@@ -109,6 +111,7 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
     }
 
     @Override
+    @Cacheable(value = CaffeineCacheConfig.TRENDING_CACHE, key = "'hotContent:' + #pageNum + ':' + #pageSize")
     @Transactional(readOnly = true)
     public IPage<HotContentVO> getHotContent(int pageNum, int pageSize) {
         int fetchSize = Math.max(pageSize * 2, 100);
@@ -406,6 +409,7 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = CaffeineCacheConfig.TRENDING_CACHE, allEntries = true)
     @Scheduled(cron = "0 0 0 * * ?", zone = "Asia/Shanghai") // 每天凌晨执行
     public void scheduledUpdateAllTrending() {
         // 分页查询未删除的文章，避免一次性加载所有文章导致OOM

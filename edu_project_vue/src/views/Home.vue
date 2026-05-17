@@ -64,7 +64,7 @@
               <article
                 v-for="(post, index) in posts"
                 :key="post.id"
-                class="post-card card"
+                class="post-card"
                 :style="{ '--i': index }"
               >
                 <div class="post-card-inner">
@@ -161,7 +161,7 @@
       </main>
 
       <aside class="sidebar">
-        <div class="sidebar-card card">
+        <div class="sidebar-card">
           <h3 class="sidebar-title">热门文章</h3>
           <div v-if="sidebarLoading" class="sidebar-skeleton">
             <div v-for="i in 5" :key="i" class="sidebar-skeleton-item">
@@ -184,7 +184,7 @@
           <div v-else class="sidebar-empty">暂无热门文章</div>
         </div>
 
-        <div class="sidebar-card card">
+        <div class="sidebar-card">
           <h3 class="sidebar-title">热门标签</h3>
           <div v-if="sidebarLoading" class="sidebar-skeleton">
             <div class="skeleton skeleton-tag-line"></div>
@@ -204,7 +204,7 @@
           <div v-else class="sidebar-empty">暂无热门标签</div>
         </div>
 
-        <div class="sidebar-card card">
+        <div class="sidebar-card">
           <h3 class="sidebar-title">社区统计</h3>
           <div v-if="sidebarLoading" class="sidebar-skeleton">
             <div class="stats-grid-skeleton">
@@ -539,7 +539,7 @@ onMounted(() => {
 }
 
 .home-container {
-  max-width: 1200px;
+  max-width: var(--container-xl);
   margin: 0 auto;
   padding: 0 24px;
   display: grid;
@@ -570,30 +570,34 @@ onMounted(() => {
   position: relative;
   display: flex;
   gap: 0;
-  background: var(--surface);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
-  padding: 3px;
-  box-shadow: var(--shadow-sm);
+  padding: 4px;
+  box-shadow: var(--glass-shadow);
 }
 
 .filter-tab {
   position: relative;
   z-index: 1;
   flex: 1;
-  padding: 6px 18px;
+  padding: 8px 20px;
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-secondary);
   background: transparent;
   border: none;
-  border-radius: 6px;
+  border-radius: calc(var(--radius) - 4px);
   cursor: pointer;
-  transition: color var(--transition-fast);
+  transition: all var(--transition);
   text-align: center;
 }
 
-.filter-tab:hover {
+.filter-tab:hover:not(.active) {
   color: var(--text-primary);
+  background: var(--primary-light);
 }
 
 .filter-tab.active {
@@ -602,14 +606,15 @@ onMounted(() => {
 
 .filter-indicator {
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: calc((100% - 6px) / 3);
-  height: calc(100% - 6px);
-  background: var(--primary);
-  border-radius: 6px;
+  top: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / 3);
+  height: calc(100% - 8px);
+  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+  border-radius: calc(var(--radius) - 4px);
   transition: transform var(--transition-slow) cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 0;
+  box-shadow: 0 2px 8px var(--primary-glow);
 }
 
 .skeleton-list {
@@ -619,10 +624,13 @@ onMounted(() => {
 }
 
 .skeleton-card {
-  background: var(--surface);
-  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  border-radius: var(--radius-lg);
   padding: 20px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--glass-shadow-wet);
 }
 
 .skeleton-card-header {
@@ -667,7 +675,7 @@ onMounted(() => {
   gap: 24px;
   margin-top: 16px;
   padding-top: 14px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--glass-border);
 }
 
 .skeleton-stat {
@@ -677,12 +685,15 @@ onMounted(() => {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, var(--border) 25%, var(--background) 50%, var(--border) 75%);
+  background: linear-gradient(90deg, 
+    var(--skeleton-base) 0%, 
+    var(--skeleton-highlight) 50%, 
+    var(--skeleton-base) 100%);
   background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
 }
 
-@keyframes skeleton-shimmer {
+@keyframes skeleton-loading {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
@@ -695,6 +706,12 @@ onMounted(() => {
   padding: 60px 20px;
   text-align: center;
   color: var(--text-muted);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow-wet);
 }
 
 .error-state svg {
@@ -723,6 +740,12 @@ onMounted(() => {
   padding: 60px 20px;
   text-align: center;
   color: var(--text-muted);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow-wet);
 }
 
 .empty-state svg {
@@ -750,17 +773,22 @@ onMounted(() => {
 }
 
 .post-card {
-  border-radius: 12px;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow-wet);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   animation: card-enter 0.4s ease both;
   animation-delay: calc(var(--i, 0) * 0.08s);
-  border: 1px solid transparent;
+  overflow: hidden;
 }
 
 .post-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.06);
-  border-color: var(--primary-light);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--primary-light);
+  background: var(--glass-hover);
 }
 
 .post-card-inner {
@@ -769,10 +797,15 @@ onMounted(() => {
 
 .post-cover {
   width: 100%;
-  height: 160px;
+  height: 180px;
   object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 12px;
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  transition: transform var(--transition-slow);
+}
+
+.post-card:hover .post-cover {
+  transform: scale(1.02);
 }
 
 @keyframes card-enter {
@@ -807,12 +840,18 @@ onMounted(() => {
 }
 
 .author-avatar {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
-  background: var(--primary-light);
+  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+  border: 2px solid var(--glass-border);
   flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.post-author:hover .author-avatar {
+  transform: scale(1.1);
 }
 
 .author-name {
@@ -861,33 +900,36 @@ onMounted(() => {
 }
 
 .tag {
-  padding: 3px 10px;
+  padding: 4px 12px;
   font-size: 0.75rem;
   font-weight: 500;
   background: var(--primary-light);
   color: var(--primary);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   text-decoration: none;
   transition: all var(--transition-fast);
+  border: 1px solid transparent;
 }
 
 .tag:hover {
   background: var(--primary);
   color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px var(--primary-glow);
 }
 
 .post-actions {
   display: flex;
   gap: 4px;
   padding-top: 14px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--glass-border);
 }
 
 .action-btn {
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 12px;
+  padding: 8px 14px;
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-muted);
@@ -901,6 +943,7 @@ onMounted(() => {
 .action-btn:hover:not(:disabled) {
   background: var(--primary-light);
   color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .action-btn:disabled {
@@ -910,10 +953,21 @@ onMounted(() => {
 
 .action-btn.active {
   color: var(--primary);
+  background: var(--primary-light);
+}
+
+.like-btn.active {
+  color: var(--accent);
+  background: var(--accent-light);
 }
 
 .like-btn.active svg {
   animation: heart-pop 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.collect-btn.active {
+  color: var(--warning);
+  background: var(--warning-light);
 }
 
 .collect-btn.active svg {
@@ -938,7 +992,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   margin-top: 32px;
   padding: 16px 0;
 }
@@ -947,30 +1001,35 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 4px;
-  min-width: 36px;
-  height: 36px;
-  padding: 0 10px;
-  font-size: 0.8125rem;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 12px;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-secondary);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all var(--transition);
+  box-shadow: var(--glass-shadow);
 }
 
-.page-btn:hover:not(:disabled) {
-  background: var(--primary-light);
+.page-btn:hover:not(:disabled):not(.active) {
+  background: var(--glass-hover);
   border-color: var(--primary);
   color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .page-btn.active {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+  border-color: transparent;
   color: white;
-  box-shadow: 0 2px 8px rgba(74, 144, 217, 0.35);
+  box-shadow: var(--shadow-sm), var(--shadow-glow-primary);
 }
 
 .page-btn:disabled {
@@ -984,9 +1043,19 @@ onMounted(() => {
 }
 
 .sidebar-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow-wet);
   padding: 20px;
   margin-bottom: 16px;
-  border-radius: 12px;
+  transition: all var(--transition-slow);
+}
+
+.sidebar-card:hover {
+  box-shadow: var(--shadow-lg);
 }
 
 .sidebar-title {
@@ -995,7 +1064,7 @@ onMounted(() => {
   color: var(--text-primary);
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 2px solid var(--primary-light);
+  border-bottom: 2px solid var(--glass-border);
   position: relative;
 }
 
@@ -1006,21 +1075,21 @@ onMounted(() => {
   left: 0;
   width: 36px;
   height: 2px;
-  background: var(--primary);
+  background: linear-gradient(90deg, var(--primary-start), var(--primary-end));
   border-radius: 1px;
 }
 
 .hot-posts {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .hot-post-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: var(--radius);
   text-decoration: none;
   transition: all var(--transition-fast);
@@ -1035,22 +1104,26 @@ onMounted(() => {
 }
 
 .hot-rank {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-muted);
-  background: var(--background);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
   flex-shrink: 0;
+  transition: all var(--transition-fast);
 }
 
 .hot-rank.top {
-  background: linear-gradient(135deg, var(--primary), var(--accent));
+  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
   color: white;
+  border-color: transparent;
+  box-shadow: 0 2px 8px var(--primary-glow);
 }
 
 .hot-post-title {
@@ -1067,6 +1140,10 @@ onMounted(() => {
   font-size: 0.6875rem;
   color: var(--text-muted);
   flex-shrink: 0;
+  padding: 2px 8px;
+  background: var(--glass-bg);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--glass-border);
 }
 
 .tag-cloud {
@@ -1080,26 +1157,37 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  padding: 4px 12px;
+  padding: 6px 14px;
   font-weight: 500;
   color: var(--text-secondary);
-  background: var(--background);
-  border-radius: 999px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
   text-decoration: none;
   transition: all var(--transition-fast);
   line-height: 1.4;
+  box-shadow: var(--glass-shadow);
 }
 
 .tag-item:hover {
-  background: var(--primary-light);
-  color: var(--primary);
-  transform: translateY(-1px);
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), var(--shadow-glow-primary);
 }
 
 .tag-count {
   font-size: 0.625rem;
   color: var(--text-muted);
   font-weight: 400;
+  opacity: 0.7;
+}
+
+.tag-item:hover .tag-count {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .stats-grid {
@@ -1110,29 +1198,37 @@ onMounted(() => {
 
 .stat-item {
   text-align: center;
-  padding: 14px 8px;
-  background: var(--background);
+  padding: 16px 8px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   transition: all var(--transition-fast);
+  box-shadow: var(--glass-shadow);
 }
 
 .stat-item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-light);
 }
 
 .stat-icon {
   color: var(--primary);
-  margin-bottom: 6px;
-  opacity: 0.7;
+  margin-bottom: 8px;
+  opacity: 0.8;
 }
 
 .stat-value {
   font-size: 1.375rem;
   font-weight: 700;
-  color: var(--primary);
+  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   line-height: 1.2;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .stat-label {
@@ -1238,6 +1334,9 @@ onMounted(() => {
     align-items: flex-start;
     gap: 12px;
   }
+  .filter-tabs {
+    width: 100%;
+  }
   .sidebar {
     grid-template-columns: 1fr;
   }
@@ -1245,6 +1344,12 @@ onMounted(() => {
     padding: 16px;
   }
   .post-actions {
+    flex-wrap: wrap;
+  }
+  .post-cover {
+    height: 140px;
+  }
+  .pagination {
     flex-wrap: wrap;
   }
 }

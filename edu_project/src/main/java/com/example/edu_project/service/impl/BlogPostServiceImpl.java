@@ -33,12 +33,15 @@ import com.example.edu_project.service.BlogTagService;
 import com.example.edu_project.service.NotificationService;
 import com.example.edu_project.service.TopicService;
 import com.example.edu_project.service.TrendingService;
+import com.example.edu_project.config.CaffeineCacheConfig;
 import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.PostDetailResponse;
 import com.example.edu_project.vo.PostListResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -123,6 +126,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     }
 
     @Override
+    @CacheEvict(value = CaffeineCacheConfig.TRENDING_CACHE, allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public Long createPost(PostCreateRequest request, Long userId, boolean isAdmin) {
         // 参数校验
@@ -184,6 +188,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     }
 
     @Override
+    @CacheEvict(value = CaffeineCacheConfig.TRENDING_CACHE, allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public void updatePost(PostCreateRequest request, Long userId, boolean isAdmin, boolean isPostAuthor) {
         // 参数校验
@@ -268,6 +273,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     }
 
     @Override
+    @CacheEvict(value = CaffeineCacheConfig.TRENDING_CACHE, allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public void deletePost(Long postId, Long userId, boolean isAdmin) {
         BlogPost post = this.getById(postId);
@@ -369,6 +375,8 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     }
 
     @Override
+    @Cacheable(value = CaffeineCacheConfig.TRENDING_CACHE,
+            key = "'postList:' + #request.pageNum + ':' + #request.pageSize + ':' + #request.category + ':' + #request.sort")
     @Transactional(readOnly = true)
     public IPage<PostListResponse> getPostList(PostQueryRequest request) {
         Page<BlogPost> page = new Page<>(request.getPageNum(), request.getPageSize());
@@ -575,7 +583,8 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         return topics.stream().collect(Collectors.toMap(Topic::getId, Topic::getName, (a, b) -> a));
     }
 
-    private Map<Long, List<PostDetailResponse.TagVO>> getTagsMapByPostIds(List<Long> postIds) {
+    @Cacheable(value = CaffeineCacheConfig.CATEGORY_CACHE, key = "'postTags:' + #postIds.hashCode()")
+    public Map<Long, List<PostDetailResponse.TagVO>> getTagsMapByPostIds(List<Long> postIds) {
         if (postIds == null || postIds.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -654,7 +663,8 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         return response;
     }
 
-    private List<PostDetailResponse.TagVO> getTagsByPostId(Long postId) {
+    @Cacheable(value = CaffeineCacheConfig.CATEGORY_CACHE, key = "'tagsByPost:' + #postId")
+    public List<PostDetailResponse.TagVO> getTagsByPostId(Long postId) {
         LambdaQueryWrapper<BlogPostTag> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogPostTag::getPostId, postId);
         List<BlogPostTag> postTags = blogPostTagMapper.selectList(wrapper);

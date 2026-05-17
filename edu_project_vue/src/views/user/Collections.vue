@@ -5,7 +5,21 @@
       返回
     </button>
     <div class="page-header">
-      <h1>我的收藏</h1>
+      <h1>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="header-icon"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        我的收藏
+      </h1>
+      <div class="header-actions">
+        <span class="page-count">{{ total }} 篇</span>
+        <div class="view-toggle">
+          <button class="toggle-btn" :class="{ active: viewMode === 'list' }" @click="viewMode = 'list'" title="列表视图">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </button>
+          <button class="toggle-btn" :class="{ active: viewMode === 'grid' }" @click="viewMode = 'grid'" title="网格视图">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </button>
+        </div>
+      </div>
     </div>
 
     <div v-if="loading && collections.length === 0" class="skeleton-list">
@@ -25,11 +39,11 @@
     <div v-else-if="collections.length === 0" class="empty-state card">
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       <p class="empty-title">还没有收藏文章</p>
-      <p class="empty-text">去发现感兴趣的内容吧</p>
+      <p class="empty-text">浏览文章，收藏感兴趣的内容</p>
       <router-link to="/" class="btn btn-primary">去发现</router-link>
     </div>
 
-    <div v-else class="collection-list">
+    <div v-else :class="['collection-list', { 'grid-view': viewMode === 'grid' }]">
       <div v-for="item in collections" :key="item.collectId" class="collection-card card">
         <div class="collection-card-body">
           <h3 class="collection-title">
@@ -46,15 +60,15 @@
           取消收藏
         </button>
       </div>
+    </div>
 
-      <div v-if="totalPages > 1" class="pagination-section">
-        <div class="pagination">
-          <button class="pagination-btn" :disabled="page <= 1" @click="page--; fetchCollections()">上一页</button>
-          <button v-for="p in totalPages" :key="p" class="pagination-btn" :class="{ active: p === page }" @click="page = p; fetchCollections()">{{ p }}</button>
-          <button class="pagination-btn" :disabled="page >= totalPages" @click="page++; fetchCollections()">下一页</button>
-        </div>
-        <span class="pagination-info">共 {{ total }} 篇</span>
+    <div v-if="totalPages > 1" class="pagination-section">
+      <div class="pagination">
+        <button class="pagination-btn" :disabled="page <= 1" @click="page--; fetchCollections()">上一页</button>
+        <button v-for="p in totalPages" :key="p" class="pagination-btn" :class="{ active: p === page }" @click="page = p; fetchCollections()">{{ p }}</button>
+        <button class="pagination-btn" :disabled="page >= totalPages" @click="page++; fetchCollections()">下一页</button>
       </div>
+      <span class="pagination-info">共 {{ total }} 篇</span>
     </div>
 
     <ConfirmDialog />
@@ -80,6 +94,7 @@ const page = ref(1)
 const total = ref(0)
 const totalPages = ref(1)
 const pageSize = 10
+const viewMode = ref('list')
 
 async function confirmRemove(item) {
   const ok = await confirm(`确定要取消收藏「${item.title}」吗？`, '取消收藏')
@@ -126,21 +141,95 @@ onMounted(() => {
 
 <style scoped>
 .collections-page {
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 24px;
 }
 
-.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
-.back-btn:hover { background: var(--border); color: var(--text-primary); }
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition);
+  width: fit-content;
+  margin-bottom: 16px;
+  box-shadow: var(--glass-shadow);
+}
+
+.back-btn:hover {
+  background: var(--glass-hover);
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
 
 .page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 24px;
 }
 
 .page-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 1.5rem;
   font-weight: 700;
+  color: var(--text-primary);
+}
+
+.header-icon {
+  color: var(--primary);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-count {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.view-toggle {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.toggle-btn {
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+}
+
+.toggle-btn:hover {
+  color: var(--primary);
+}
+
+.toggle-btn.active {
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 .skeleton-list {
@@ -151,7 +240,7 @@ onMounted(() => {
 
 .skeleton-card-item {
   padding: 20px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   background: var(--surface);
 }
@@ -184,17 +273,43 @@ onMounted(() => {
   gap: 12px;
 }
 
+.collection-list.grid-view {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
 .collection-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px;
   gap: 16px;
-  transition: all 0.2s;
+  transition: all var(--transition-slow);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  box-shadow: var(--glass-shadow-wet);
+  position: relative;
+  overflow: hidden;
+}
+
+.collection-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  pointer-events: none;
 }
 
 .collection-card:hover {
-  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), var(--glass-shadow-wet);
 }
 
 .collection-card-body {
@@ -206,12 +321,13 @@ onMounted(() => {
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 6px;
+  line-height: 1.4;
 }
 
 .collection-title a {
   color: var(--text-primary);
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color var(--transition);
 }
 
 .collection-title a:hover {
@@ -244,7 +360,7 @@ onMounted(() => {
 
 .collection-remove-btn:hover {
   color: var(--error) !important;
-  background: rgba(239, 68, 68, 0.08) !important;
+  background: var(--error-light) !important;
 }
 
 .error-card {
@@ -254,6 +370,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  border-radius: var(--radius-lg);
 }
 
 .error-card p {
@@ -264,6 +381,7 @@ onMounted(() => {
 .empty-state {
   padding: 80px 24px;
   text-align: center;
+  border-radius: var(--radius-lg);
 }
 
 .empty-icon {
@@ -276,7 +394,7 @@ onMounted(() => {
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .empty-text {
@@ -290,7 +408,8 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  padding-top: 20px;
+  padding-top: 24px;
+  margin-top: 8px;
 }
 
 .pagination-info {
@@ -303,9 +422,19 @@ onMounted(() => {
     padding: 16px;
   }
 
+  .collection-list.grid-view {
+    grid-template-columns: 1fr;
+  }
+
   .collection-card {
     flex-direction: column;
     padding: 16px;
+    gap: 12px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 12px;
   }
 }

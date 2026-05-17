@@ -3,33 +3,76 @@
     <div class="admin-container">
       <div class="page-header">
         <h1>文章管理</h1>
+        <p class="page-subtitle">审核和管理平台文章，包含发布、驳回、删除等操作</p>
       </div>
       
-      <div class="tabs">
-        <button 
-          class="tab-btn"
-          :class="{ active: activeTab === 'all' }"
-          @click="activeTab = 'all'"
-        >
-          全部文章
-        </button>
-        <button 
-          class="tab-btn"
-          :class="{ active: activeTab === 'pending' }"
-          @click="activeTab = 'pending'"
-        >
-          待审核
-        </button>
+      <div class="filter-bar">
+        <div class="tabs glass">
+          <button 
+            class="tab-btn"
+            :class="{ active: activeTab === 'all' }"
+            @click="activeTab = 'all'"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            全部文章
+          </button>
+          <button 
+            class="tab-btn"
+            :class="{ active: activeTab === 'pending' }"
+            @click="activeTab = 'pending'"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            待审核
+            <span v-if="pendingCount > 0" class="tab-badge">{{ pendingCount }}</span>
+          </button>
+        </div>
+        
+        <div class="search-filter glass">
+          <div class="search-input-wrapper">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input 
+              v-model="searchQuery" 
+              type="text" 
+              placeholder="搜索文章标题、作者..."
+              @keyup.enter="fetchPosts"
+            />
+          </div>
+          <select v-model="categoryFilter" class="filter-select" @change="fetchPosts">
+            <option value="">全部分类</option>
+            <option value="技术分享">技术分享</option>
+            <option value="校园生活">校园生活</option>
+            <option value="学术讨论">学术讨论</option>
+            <option value="求职招聘">求职招聘</option>
+            <option value="其他">其他</option>
+          </select>
+          <button class="btn btn-primary btn-sm" @click="fetchPosts">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            搜索
+          </button>
+        </div>
       </div>
       
       <div v-if="loading" class="loading-skeleton">
-        <div class="table-container card">
+        <div class="table-container glass">
           <table class="data-table">
             <thead>
               <tr>
                 <th>ID</th>
                 <th>标题</th>
                 <th>作者</th>
+                <th>分类</th>
                 <th>状态</th>
                 <th>发布时间</th>
                 <th>操作</th>
@@ -37,9 +80,10 @@
             </thead>
             <tbody>
               <tr v-for="i in 5" :key="i">
-                <td><div class="sk-line w-30"></div></td>
+                <td><div class="sk-line w-20"></div></td>
                 <td><div class="sk-line w-80"></div></td>
                 <td><div class="sk-line w-50"></div></td>
+                <td><div class="sk-line w-40"></div></td>
                 <td><div class="sk-line w-40"></div></td>
                 <td><div class="sk-line w-60"></div></td>
                 <td><div class="sk-line w-50"></div></td>
@@ -49,7 +93,7 @@
         </div>
       </div>
       
-      <div v-else-if="error" class="error-state">
+      <div v-else-if="error" class="error-state glass">
         <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
@@ -57,13 +101,14 @@
         <button class="btn btn-primary" @click="fetchPosts">重试</button>
       </div>
       
-      <div v-else class="table-container card">
+      <div v-else class="table-container glass">
         <table class="data-table">
           <thead>
             <tr>
               <th>ID</th>
               <th>标题</th>
               <th>作者</th>
+              <th>分类</th>
               <th>状态</th>
               <th>发布时间</th>
               <th>操作</th>
@@ -71,42 +116,66 @@
           </thead>
           <tbody>
             <tr v-if="posts.length === 0">
-              <td colspan="6" class="empty-cell">暂无文章</td>
+              <td colspan="7" class="empty-cell">
+                <div class="empty-content">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                  <span>暂无文章数据</span>
+                </div>
+              </td>
             </tr>
             <tr v-for="post in posts" :key="post.id">
-              <td>{{ post.id }}</td>
+              <td class="id-cell">{{ post.id }}</td>
               <td>
                 <router-link :to="`/post/${post.id}`" class="post-title-link">
                   {{ post.title }}
                 </router-link>
               </td>
-              <td>{{ post.nickname || post.username }}</td>
+              <td class="author-cell">{{ post.nickname || post.username }}</td>
               <td>
-                <span class="status" :class="getStatusClass(post.status)">
+                <span v-if="post.category" class="category-badge">{{ post.category }}</span>
+                <span v-else class="text-muted">-</span>
+              </td>
+              <td>
+                <span class="status-badge" :class="getStatusClass(post.status)">
+                  <span class="status-dot" :class="getStatusDotClass(post.status)"></span>
                   {{ getStatusText(post.status) }}
                 </span>
               </td>
-              <td>{{ formatDate(post.createTime) }}</td>
+              <td class="time-cell">{{ formatDate(post.createTime) }}</td>
               <td>
                 <div class="actions">
                   <button 
                     v-if="post.status === 0"
-                    class="btn btn-sm btn-primary"
+                    class="btn btn-xs btn-success-outline"
                     @click="approvePost(post)"
                   >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
                     通过
                   </button>
                   <button 
                     v-if="post.status === 0"
-                    class="btn btn-sm btn-ghost"
+                    class="btn btn-xs btn-danger-outline"
                     @click="rejectPost(post)"
                   >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
                     拒绝
                   </button>
                   <button 
-                    class="btn btn-sm btn-ghost danger"
+                    class="btn btn-xs btn-ghost danger"
                     @click="deletePost(post)"
                   >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
                     删除
                   </button>
                 </div>
@@ -116,22 +185,30 @@
         </table>
       </div>
       
-      <div v-if="totalPages > 1" class="pagination">
-        <button 
-          class="pagination-btn"
-          :disabled="currentPage <= 1"
-          @click="changePage(currentPage - 1)"
-        >
-          上一页
-        </button>
-        <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
-        <button 
-          class="pagination-btn"
-          :disabled="currentPage >= totalPages"
-          @click="changePage(currentPage + 1)"
-        >
-          下一页
-        </button>
+      <div v-if="totalPages > 1" class="pagination-wrapper">
+        <div class="pagination glass">
+          <button 
+            class="pagination-btn"
+            :disabled="currentPage <= 1"
+            @click="changePage(currentPage - 1)"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            上一页
+          </button>
+          <span class="page-info">第 {{ currentPage }} / {{ totalPages }} 页</span>
+          <button 
+            class="pagination-btn"
+            :disabled="currentPage >= totalPages"
+            @click="changePage(currentPage + 1)"
+          >
+            下一页
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
     <ConfirmDialog />
@@ -151,8 +228,11 @@ const { confirm, ConfirmDialog } = useConfirm()
 
 const posts = ref([])
 const activeTab = ref('all')
+const searchQuery = ref('')
+const categoryFilter = ref('')
 const currentPage = ref(1)
 const totalPages = ref(1)
+const pendingCount = ref(0)
 const loading = ref(true)
 const error = ref('')
 
@@ -165,6 +245,10 @@ const fetchPosts = async () => {
       : await adminApi.getPostList({ pageNum: currentPage.value, pageSize: 20 })
     posts.value = response.data?.records || []
     totalPages.value = response.data?.pages || 1
+    
+    if (activeTab.value === 'pending') {
+      pendingCount.value = posts.value.length
+    }
   } catch (err) {
     logger.error('Failed to fetch posts', { error: err.message })
     error.value = '加载失败，请重试'
@@ -176,9 +260,18 @@ const fetchPosts = async () => {
 
 const getStatusClass = (status) => {
   const classes = {
-    0: 'warning',
+    0: 'status-pending',
+    1: 'status-active',
+    2: 'status-rejected'
+  }
+  return classes[status] || ''
+}
+
+const getStatusDotClass = (status) => {
+  const classes = {
+    0: 'pending',
     1: 'active',
-    2: 'danger'
+    2: 'rejected'
   }
   return classes[status] || ''
 }
@@ -193,6 +286,9 @@ const getStatusText = (status) => {
 }
 
 const approvePost = async (post) => {
+  const ok = await confirm('确定通过该文章审核吗？', '通过审核')
+  if (!ok) return
+  
   try {
     await adminApi.approvePost(post.id)
     post.status = 1
@@ -238,6 +334,8 @@ const changePage = (page) => {
 
 watch(activeTab, () => {
   currentPage.value = 1
+  searchQuery.value = ''
+  categoryFilter.value = ''
   fetchPosts()
 })
 
@@ -249,10 +347,11 @@ onMounted(() => {
 <style scoped>
 .admin-posts {
   padding: var(--spacing-lg);
+  min-height: 100vh;
 }
 
 .admin-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -261,40 +360,169 @@ onMounted(() => {
 }
 
 .page-header h1 {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.page-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.filter-bar {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
 }
 
 .tabs {
   display: flex;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
 }
 
 .tab-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
   padding: var(--spacing-sm) var(--spacing-md);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   background: none;
-  border: 1px solid var(--border);
+  border: none;
   border-radius: var(--radius);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--transition);
+  position: relative;
 }
 
 .tab-btn:hover {
-  border-color: var(--primary);
+  background: var(--primary-light);
   color: var(--primary);
 }
 
 .tab-btn.active {
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-sm);
+}
+
+.tab-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  background: var(--error);
+  color: white;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-filter {
+  flex: 1;
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  min-width: 300px;
+}
+
+.search-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  transition: all var(--transition);
+}
+
+.search-input-wrapper:focus-within {
   border-color: var(--primary);
-  color: var(--text-on-primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.search-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.search-filter input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.search-filter input::placeholder {
+  color: var(--text-muted);
+}
+
+.filter-select {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.8125rem;
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 .table-container {
   overflow-x: auto;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow-wet);
+  position: relative;
+}
+
+.table-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .data-table {
@@ -306,65 +534,174 @@ onMounted(() => {
 .data-table td {
   padding: var(--spacing-md);
   text-align: left;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .data-table th {
   font-weight: 600;
   color: var(--text-primary);
-  background: var(--background);
+  background: var(--surface);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.data-table tbody tr {
+  transition: all var(--transition);
+}
+
+.data-table tbody tr:hover {
+  background: var(--primary-light);
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.id-cell {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
 }
 
 .post-title-link {
   color: var(--text-primary);
   text-decoration: none;
+  font-weight: 500;
+  transition: all var(--transition);
 }
 
 .post-title-link:hover {
   color: var(--primary);
 }
 
-.status {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius);
+.author-cell {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
 }
 
-.status.active {
+.time-cell {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+}
+
+.status-active {
   background: var(--success-light);
   color: var(--success);
 }
 
-.status.warning {
+.status-pending {
   background: var(--warning-light);
   color: var(--warning);
 }
 
-.status.danger {
+.status-rejected {
   background: var(--error-light);
   color: var(--error);
 }
 
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+}
+
+.status-dot.active { background: var(--success); }
+.status-dot.pending { background: var(--warning); }
+.status-dot.rejected { background: var(--error); }
+
 .actions {
   display: flex;
   gap: var(--spacing-xs);
+  flex-wrap: wrap;
 }
 
-.danger {
+.btn-danger-outline {
   color: var(--error) !important;
+}
+
+.btn-danger-outline:hover {
+  background: var(--error-light) !important;
+  color: var(--error) !important;
+}
+
+.btn-success-outline {
+  color: var(--success) !important;
+}
+
+.btn-success-outline:hover {
+  background: var(--success-light) !important;
+  color: var(--success) !important;
+}
+
+.pagination-wrapper {
+  margin-top: var(--spacing-lg);
+  display: flex;
+  justify-content: center;
 }
 
 .pagination {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-lg);
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
 }
 
 .page-info {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--text-muted);
+  padding: 0 var(--spacing-md);
+}
+
+.empty-cell {
+  text-align: center;
+  padding: var(--spacing-2xl);
+}
+
+.empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--text-muted);
+}
+
+.error-state {
+  text-align: center;
+  padding: var(--spacing-3xl);
+  color: var(--text-secondary);
+}
+
+.error-state h3 {
+  margin: var(--spacing-md) 0 var(--spacing-lg);
+  font-size: 1rem;
 }
 
 .loading-skeleton {
@@ -379,7 +716,7 @@ onMounted(() => {
   animation: shimmer 1.5s infinite;
 }
 
-.sk-line.w-30 { width: 30%; }
+.sk-line.w-20 { width: 20%; }
 .sk-line.w-40 { width: 40%; }
 .sk-line.w-50 { width: 50%; }
 .sk-line.w-60 { width: 60%; }
@@ -390,21 +727,17 @@ onMounted(() => {
   100% { background-position: -200% 0; }
 }
 
-.empty-cell {
-  text-align: center;
-  padding: var(--spacing-xl);
-  color: var(--text-muted);
-  font-size: 0.875rem;
-}
-
-.error-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--text-secondary);
-}
-
-.error-state h3 {
-  margin: 12px 0 16px;
-  font-size: 16px;
+@media (max-width: 768px) {
+  .filter-bar {
+    flex-direction: column;
+  }
+  
+  .search-filter {
+    flex-direction: column;
+  }
+  
+  .actions {
+    flex-direction: column;
+  }
 }
 </style>

@@ -5,8 +5,19 @@
       返回
     </button>
     <div class="page-header">
-      <h1>我的关注</h1>
+      <h1>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="header-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        我的关注
+      </h1>
       <span class="page-count">{{ total }} 人</span>
+    </div>
+
+    <div class="search-bar card">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input v-model="searchQuery" type="text" class="search-input" placeholder="搜索关注..." />
+      <button v-if="searchQuery" class="clear-btn" @click="searchQuery = ''">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
 
     <div v-if="loading && following.length === 0" class="skeleton-list">
@@ -24,15 +35,16 @@
       <button class="btn btn-sm btn-primary" @click="fetchData">重试</button>
     </div>
 
-    <div v-else-if="following.length === 0" class="empty-state card">
+    <div v-else-if="filteredFollowing.length === 0" class="empty-state card">
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      <p class="empty-title">还没有关注任何人</p>
-      <p class="empty-text">去发现感兴趣的用户吧</p>
-      <router-link to="/" class="btn btn-primary">去发现</router-link>
+      <p class="empty-title" v-if="searchQuery">未找到匹配的关注</p>
+      <p class="empty-title" v-else>还没有关注任何人</p>
+      <p class="empty-text" v-if="!searchQuery">去发现感兴趣的用户吧</p>
+      <router-link v-if="!searchQuery" to="/" class="btn btn-primary">去发现</router-link>
     </div>
 
     <div v-else class="user-list">
-      <div v-for="user in following" :key="user.id" class="user-card card">
+      <div v-for="user in filteredFollowing" :key="user.id" class="user-card card">
         <router-link :to="`/user/${user.id}`" class="user-card-left">
           <img :src="user.avatar || '/default-avatar.png'" :alt="user.nickname" class="user-avatar" @error="e => e.target.src = '/default-avatar.png'" />
           <div class="user-info">
@@ -61,7 +73,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/user'
 import { useConfirm } from '../../composables/useConfirm'
@@ -80,6 +92,17 @@ const page = ref(1)
 const total = ref(0)
 const totalPages = ref(1)
 const pageSize = 10
+const searchQuery = ref('')
+
+const filteredFollowing = computed(() => {
+  if (!searchQuery.value.trim()) return following.value
+  const query = searchQuery.value.toLowerCase()
+  return following.value.filter(u =>
+    (u.nickname || '').toLowerCase().includes(query) ||
+    (u.username || '').toLowerCase().includes(query) ||
+    (u.bio || '').toLowerCase().includes(query)
+  )
+})
 
 async function confirmUnfollow(user) {
   const name = user.nickname || user.username
@@ -134,28 +157,111 @@ onMounted(() => {
 
 <style scoped>
 .follow-page {
-  max-width: 680px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 24px;
 }
-.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
-.back-btn:hover { background: var(--border); color: var(--text-primary); }
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition);
+  width: fit-content;
+  margin-bottom: 16px;
+  box-shadow: var(--glass-shadow);
+}
+
+.back-btn:hover {
+  background: var(--glass-hover);
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
 
 .page-header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .page-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 1.5rem;
   font-weight: 700;
+  color: var(--text-primary);
+}
+
+.header-icon {
+  color: var(--primary);
 }
 
 .page-count {
   font-size: 0.875rem;
   color: var(--text-muted);
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-radius: var(--radius-lg);
+  transition: all var(--transition);
+}
+
+.search-bar:focus-within {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md), 0 0 0 3px var(--primary-light);
+}
+
+.search-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.clear-btn {
+  padding: 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  transition: all var(--transition);
+}
+
+.clear-btn:hover {
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 .skeleton-list {
@@ -169,7 +275,7 @@ onMounted(() => {
   align-items: center;
   gap: 16px;
   padding: 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   background: var(--surface);
 }
@@ -177,7 +283,7 @@ onMounted(() => {
 .skeleton-avatar {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   flex-shrink: 0;
 }
 
@@ -210,11 +316,31 @@ onMounted(() => {
   align-items: center;
   padding: 16px;
   gap: 12px;
-  transition: all 0.2s;
+  transition: all var(--transition-slow);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  box-shadow: var(--glass-shadow-wet);
+  position: relative;
+  overflow: hidden;
+}
+
+.user-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  pointer-events: none;
 }
 
 .user-card:hover {
-  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), var(--glass-shadow-wet);
 }
 
 .user-card-left {
@@ -229,9 +355,16 @@ onMounted(() => {
 .user-avatar {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
   flex-shrink: 0;
+  border: 2px solid var(--surface-solid);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition);
+}
+
+.user-card-left:hover .user-avatar {
+  transform: scale(1.05);
 }
 
 .user-info {
@@ -262,6 +395,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  border-radius: var(--radius-lg);
 }
 
 .error-card p {
@@ -272,6 +406,7 @@ onMounted(() => {
 .empty-state {
   padding: 80px 24px;
   text-align: center;
+  border-radius: var(--radius-lg);
 }
 
 .empty-icon {
@@ -284,7 +419,7 @@ onMounted(() => {
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .empty-text {
@@ -298,7 +433,8 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  padding-top: 20px;
+  padding-top: 24px;
+  margin-top: 8px;
 }
 
 .pagination-info {

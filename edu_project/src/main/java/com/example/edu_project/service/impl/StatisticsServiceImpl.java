@@ -3,9 +3,11 @@ package com.example.edu_project.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.edu_project.entity.*;
 import com.example.edu_project.mapper.*;
+import com.example.edu_project.config.CaffeineCacheConfig;
 import com.example.edu_project.service.StatisticsService;
 import com.example.edu_project.vo.StatisticsVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,6 +65,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Override
+    @Cacheable(value = CaffeineCacheConfig.STATS_CACHE, key = "'platformStats'", unless = "#result == null")
     @Transactional(readOnly = true)
     public StatisticsVO getPlatformStatistics() {
         StatisticsVO vo = new StatisticsVO();
@@ -90,8 +93,8 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
+    @Cacheable(value = CaffeineCacheConfig.STATS_CACHE, key = "'communityStats'", unless = "#result == null")
     @Transactional(readOnly = true)
-    @Cacheable(value = "trendingCache", key = "'communityStats'", unless = "#result == null")
     public StatisticsVO getCommunityStats() {
         StatisticsVO vo = new StatisticsVO();
         vo.setUserStats(getUserStats());
@@ -129,6 +132,21 @@ public class StatisticsServiceImpl implements StatisticsService {
         stats.setMonthNewUsers(sysUserMapper.selectCount(monthWrapper));
         stats.setActiveUsers(getActiveUsersThisWeek());
         return stats;
+    }
+
+    /**
+     * Evict all stats cache entries. Call this after any admin write operations
+     * that change statistics (create/delete posts, users, comments, etc.).
+     * 
+     * Usage in other services:
+     *   @Autowired private StatisticsService statisticsService;
+     *   
+     *   @CacheEvict(value = CaffeineCacheConfig.STATS_CACHE, allEntries = true)
+     *   public void createPost(...) { ... }
+     */
+    @CacheEvict(value = CaffeineCacheConfig.STATS_CACHE, allEntries = true)
+    public void evictStatsCache() {
+        // Intentionally empty - annotation handles cache eviction
     }
 
     private Long getActiveUsersThisWeek() {

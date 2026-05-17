@@ -78,17 +78,22 @@ defineProps({
 
 <style scoped>
 .skeleton-wrapper {
-  padding: 16px;
-  background: var(--surface);
-  border-radius: var(--radius-md);
-  margin-bottom: 16px;
+  padding: var(--spacing-lg);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-md);
+  box-shadow: var(--glass-shadow);
+  overflow: hidden;
 }
 
 .sk-img {
   width: 100%;
   height: 180px;
   border-radius: var(--radius);
-  margin-bottom: 12px;
+  margin-bottom: var(--spacing-md);
 }
 
 .sk-body {
@@ -97,8 +102,8 @@ defineProps({
 
 .sk-row {
   display: flex;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
 }
 
 .sk-avatar {
@@ -114,7 +119,7 @@ defineProps({
   border-radius: var(--radius-sm);
   background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
   background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
 }
 
 .w-100 { width: 100% }
@@ -128,8 +133,8 @@ defineProps({
 
 .sk-tags {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
 }
 
 .sk-tag {
@@ -140,8 +145,8 @@ defineProps({
 
 .sk-tabs {
   display: flex;
-  gap: 12px;
-  margin-top: 16px;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
 }
 
 .sk-tab {
@@ -154,8 +159,8 @@ defineProps({
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 20px 0;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg) 0;
 }
 
 @keyframes skeleton-loading {

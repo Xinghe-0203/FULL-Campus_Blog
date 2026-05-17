@@ -5,11 +5,25 @@
       返回
     </button>
     <div class="page-header">
-      <h1>我的草稿</h1>
-      <router-link to="/post-edit" class="btn btn-primary btn-sm">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        写文章
-      </router-link>
+      <h1>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="header-icon"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        我的草稿
+      </h1>
+      <div class="header-actions">
+        <span class="page-count">{{ total }} 篇</span>
+        <div class="view-toggle">
+          <button class="toggle-btn" :class="{ active: viewMode === 'list' }" @click="viewMode = 'list'" title="列表视图">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </button>
+          <button class="toggle-btn" :class="{ active: viewMode === 'grid' }" @click="viewMode = 'grid'" title="网格视图">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </button>
+        </div>
+        <router-link to="/post-edit" class="btn btn-primary btn-sm">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          写文章
+        </router-link>
+      </div>
     </div>
 
     <div v-if="loading && drafts.length === 0" class="skeleton-list">
@@ -29,11 +43,11 @@
     <div v-else-if="drafts.length === 0" class="empty-state card">
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
       <p class="empty-title">没有草稿</p>
-      <p class="empty-text">开始写一篇文章吧</p>
+      <p class="empty-text">开始写你的第一篇文章吧</p>
       <router-link to="/post-edit" class="btn btn-primary">写文章</router-link>
     </div>
 
-    <div v-else class="draft-list">
+    <div v-else :class="['draft-list', { 'grid-view': viewMode === 'grid' }]">
       <div v-for="draft in drafts" :key="draft.draftId" class="draft-card card">
         <div class="draft-card-body">
           <h3 class="draft-title">{{ draft.title || '无标题' }}</h3>
@@ -54,15 +68,15 @@
           </button>
         </div>
       </div>
+    </div>
 
-      <div v-if="totalPages > 1" class="pagination-section">
-        <div class="pagination">
-          <button class="pagination-btn" :disabled="page <= 1" @click="page--; fetchDrafts()">上一页</button>
-          <button v-for="p in totalPages" :key="p" class="pagination-btn" :class="{ active: p === page }" @click="page = p; fetchDrafts()">{{ p }}</button>
-          <button class="pagination-btn" :disabled="page >= totalPages" @click="page++; fetchDrafts()">下一页</button>
-        </div>
-        <span class="pagination-info">共 {{ total }} 篇草稿</span>
+    <div v-if="totalPages > 1" class="pagination-section">
+      <div class="pagination">
+        <button class="pagination-btn" :disabled="page <= 1" @click="page--; fetchDrafts()">上一页</button>
+        <button v-for="p in totalPages" :key="p" class="pagination-btn" :class="{ active: p === page }" @click="page = p; fetchDrafts()">{{ p }}</button>
+        <button class="pagination-btn" :disabled="page >= totalPages" @click="page++; fetchDrafts()">下一页</button>
       </div>
+      <span class="pagination-info">共 {{ total }} 篇草稿</span>
     </div>
 
     <ConfirmDialog />
@@ -89,6 +103,7 @@ const page = ref(1)
 const total = ref(0)
 const totalPages = ref(1)
 const pageSize = 10
+const viewMode = ref('list')
 
 async function confirmDeleteDraft(draft) {
   const ok = await confirm(`确定要删除「${draft.title || '无标题'}」吗？`, '删除草稿')
@@ -135,12 +150,38 @@ onMounted(() => {
 
 <style scoped>
 .drafts-page {
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 24px;
 }
-.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: 16px; }
-.back-btn:hover { background: var(--border); color: var(--text-primary); }
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition);
+  width: fit-content;
+  margin-bottom: 16px;
+  box-shadow: var(--glass-shadow);
+}
+
+.back-btn:hover {
+  background: var(--glass-hover);
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
 .page-header {
   display: flex;
   align-items: center;
@@ -149,8 +190,55 @@ onMounted(() => {
 }
 
 .page-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 1.5rem;
   font-weight: 700;
+  color: var(--text-primary);
+}
+
+.header-icon {
+  color: var(--primary);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-count {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.view-toggle {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.toggle-btn {
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+}
+
+.toggle-btn:hover {
+  color: var(--primary);
+}
+
+.toggle-btn.active {
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 .skeleton-list {
@@ -161,7 +249,7 @@ onMounted(() => {
 
 .skeleton-card-item {
   padding: 20px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   background: var(--surface);
 }
@@ -194,17 +282,43 @@ onMounted(() => {
   gap: 12px;
 }
 
+.draft-list.grid-view {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
 .draft-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px;
   gap: 20px;
-  transition: all 0.2s;
+  transition: all var(--transition-slow);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  box-shadow: var(--glass-shadow-wet);
+  position: relative;
+  overflow: hidden;
+}
+
+.draft-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  pointer-events: none;
 }
 
 .draft-card:hover {
-  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), var(--glass-shadow-wet);
   border-color: var(--primary-light);
 }
 
@@ -218,6 +332,7 @@ onMounted(() => {
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 6px;
+  line-height: 1.4;
 }
 
 .draft-excerpt {
@@ -252,6 +367,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  border-radius: var(--radius-lg);
 }
 
 .error-card p {
@@ -262,6 +378,7 @@ onMounted(() => {
 .empty-state {
   padding: 80px 24px;
   text-align: center;
+  border-radius: var(--radius-lg);
 }
 
 .empty-icon {
@@ -274,7 +391,7 @@ onMounted(() => {
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .empty-text {
@@ -288,7 +405,8 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  padding-top: 20px;
+  padding-top: 24px;
+  margin-top: 8px;
 }
 
 .pagination-info {
@@ -301,6 +419,10 @@ onMounted(() => {
     padding: 16px;
   }
 
+  .draft-list.grid-view {
+    grid-template-columns: 1fr;
+  }
+
   .draft-card {
     flex-direction: column;
     padding: 16px;
@@ -311,7 +433,13 @@ onMounted(() => {
     width: 100%;
     justify-content: flex-end;
     padding-top: 12px;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--glass-border);
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 }
 </style>

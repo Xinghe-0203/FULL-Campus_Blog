@@ -1,9 +1,9 @@
 <template>
   <div class="trending-page">
     <div class="trending-container">
-      <div class="page-header">
+      <div class="page-header glass">
         <div class="header-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
           </svg>
         </div>
@@ -13,17 +13,9 @@
         </div>
       </div>
 
-      <div class="section-header">
-        <div class="section-title">
-          <span class="title-text">热门文章</span>
-          <span class="title-divider">|</span>
-          <span class="title-text">热门动态</span>
-        </div>
-      </div>
-
       <div class="trending-content">
         <div v-if="contentLoading" class="loading-section">
-          <div v-for="i in 8" :key="i" class="trending-skeleton">
+          <div v-for="i in 8" :key="i" class="trending-skeleton glass">
             <div class="skeleton-rank"></div>
             <div class="skeleton-info">
               <div class="skeleton-title"></div>
@@ -32,7 +24,7 @@
           </div>
         </div>
 
-        <div v-else-if="error" class="error-state">
+        <div v-else-if="error" class="error-state glass">
           <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
@@ -40,11 +32,12 @@
           <button class="btn btn-primary" @click="retryLoad">重新加载</button>
         </div>
 
-        <div v-else-if="hotContent.length === 0" class="empty-state">
+        <div v-else-if="hotContent.length === 0" class="empty-state glass">
           <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
           </svg>
-          <p>暂无热门内容</p>
+          <p class="empty-title">暂无热门内容</p>
+          <p class="empty-text">精彩内容正在路上，请稍后再来</p>
         </div>
 
         <div v-if="hotContent.length > 0" class="rank-list">
@@ -52,14 +45,21 @@
             <div
               v-for="(item, index) in hotContent"
               :key="item.id"
-              class="rank-item content-item"
+              class="rank-item glass"
+              :class="{ 'top-three': index < 3 }"
               @click="handleContentClick(item)"
             >
-              <div class="rank-number" :class="{ top: index < 3 }">
-                <template v-if="index === 0">🔥</template>
-                <template v-else-if="index === 1">🔥</template>
-                <template v-else-if="index === 2">🔥</template>
-                <span class="num">{{ index + 1 }}</span>
+              <div class="rank-number" :class="getRankClass(index)">
+                <template v-if="index === 0">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#F59E0B" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </template>
+                <template v-else-if="index === 1">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#94A3B8" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </template>
+                <template v-else-if="index === 2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#CD7F32" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </template>
+                <span v-else class="num">{{ index + 1 }}</span>
               </div>
               <div class="rank-content">
                 <div class="rank-title">
@@ -68,9 +68,10 @@
                   </span>
                   <span v-if="item.type === 0" class="title-text">{{ item.title }}</span>
                   <span v-else class="content-text">{{ truncateContent(item.content) }}</span>
-                  <span class="rank-badge" v-if="index === 0" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">热</span>
-                  <span class="rank-badge" v-else-if="index === 1" style="background:linear-gradient(135deg,#f97316,#f59e0b)">热</span>
-                  <span class="rank-badge" v-else-if="index === 2" style="background:linear-gradient(135deg,#f97316,#f59e0b)">热</span>
+                  <span class="rank-badge hot" v-if="index < 3">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    热
+                  </span>
                   <span class="rank-badge new" v-else-if="index < 5">新</span>
                 </div>
                 <div class="rank-user">
@@ -97,7 +98,10 @@
                   </div>
                 </div>
                 <div class="rank-meta">
-                  <span class="rank-score">🔥 {{ formatScore(item.score) }}</span>
+                  <span class="rank-score">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    {{ formatScore(item.score) }}
+                  </span>
                   <span v-if="item.type === 0" class="rank-views">{{ item.viewCount || 0 }} 阅读</span>
                   <span class="rank-likes">{{ item.likeCount || 0 }} 赞</span>
                   <span class="rank-comments">{{ item.commentCount || 0 }} 评论</span>
@@ -107,7 +111,8 @@
             </div>
           </transition-group>
           <div v-if="hasMoreContent" class="load-more">
-            <button class="btn btn-outline" @click="loadMoreContent" :disabled="loadingMore">
+            <button class="btn btn-secondary" @click="loadMoreContent" :disabled="loadingMore">
+              <svg v-if="loadingMore" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
               {{ loadingMore ? '加载中...' : '加载更多' }}
             </button>
           </div>
@@ -134,6 +139,13 @@ const hotContent = ref([])
 const currentContentPage = ref(1)
 const hasMoreContent = ref(true)
 const PAGE_SIZE = 20
+
+const getRankClass = (index) => {
+  if (index === 0) return 'rank-gold'
+  if (index === 1) return 'rank-silver'
+  if (index === 2) return 'rank-bronze'
+  return ''
+}
 
 const formatScore = (score) => {
   if (!score) return '0'
@@ -209,12 +221,15 @@ onMounted(() => {
 
 <style scoped>
 .trending-page {
-  max-width: 740px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 20px;
+  padding: var(--spacing-lg);
 }
 
 .trending-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
   animation: fadeUp 0.4s ease both;
 }
 
@@ -226,19 +241,40 @@ onMounted(() => {
 .page-header {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 24px;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  box-shadow: var(--glass-shadow-wet);
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  pointer-events: none;
 }
 
 .header-icon {
   width: 52px;
   height: 52px;
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  border-radius: 16px;
+  background: linear-gradient(135deg, var(--warning-light), rgba(245, 158, 11, 0.15));
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  color: var(--warning);
 }
 
 .page-header h1 {
@@ -249,53 +285,22 @@ onMounted(() => {
 }
 
 .header-subtitle {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--text-muted);
   margin: 2px 0 0;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 20px;
-  padding: 12px 0;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.title-text {
-  padding: 6px 16px;
-  background: var(--primary-light);
-  color: var(--primary);
-  border-radius: 20px;
-}
-
-.title-divider {
-  color: var(--text-muted);
-  font-weight: 400;
 }
 
 .loading-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--spacing-sm);
 }
 
 .trending-skeleton {
   display: flex;
-  gap: 14px;
-  padding: 16px;
-  background: var(--surface);
-  border-radius: 12px;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
 }
 
 .skeleton-rank {
@@ -304,7 +309,7 @@ onMounted(() => {
   background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
 }
 
@@ -338,69 +343,97 @@ onMounted(() => {
 
 .error-state {
   text-align: center;
-  padding: 60px 20px;
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
   color: var(--text-secondary);
 }
 
 .error-state h3 {
-  margin: 12px 0 16px;
-  font-size: 16px;
+  margin: 0;
+  font-size: 1rem;
 }
 
 .empty-state {
   text-align: center;
-  padding: 80px 20px;
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  border-radius: var(--radius-lg);
   color: var(--text-muted);
 }
 
-.empty-state p {
-  margin-top: 12px;
-  font-size: 14px;
+.empty-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+}
+
+.empty-text {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
 }
 
 .rank-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--spacing-sm);
 }
 
 .rank-item {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  padding: 14px 16px;
-  border-radius: 12px;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all var(--transition);
 }
 
 .rank-item:hover {
-  background: var(--background);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.rank-item.top-three {
+  background: linear-gradient(135deg, var(--glass-hover), rgba(245, 158, 11, 0.03));
 }
 
 .rank-number {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   font-weight: 700;
   font-size: 13px;
-  border-radius: 8px;
-  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   color: var(--text-muted);
-  position: relative;
+  transition: all var(--transition);
 }
 
-.rank-number.top {
-  background: linear-gradient(135deg, #fef3c7, #fed7aa);
-  font-size: 0;
+.rank-gold {
+  background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+  border-color: rgba(245, 158, 11, 0.3);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
 }
 
-.rank-number.top .num {
-  font-size: 13px;
-  color: #92400e;
+.rank-silver {
+  background: linear-gradient(135deg, #F1F5F9, #E2E8F0);
+  border-color: rgba(148, 163, 184, 0.3);
+  box-shadow: 0 2px 8px rgba(148, 163, 184, 0.2);
+}
+
+.rank-bronze {
+  background: linear-gradient(135deg, #FED7AA, #FDBA74);
+  border-color: rgba(249, 115, 22, 0.3);
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.2);
 }
 
 .rank-content {
@@ -409,7 +442,7 @@ onMounted(() => {
 }
 
 .rank-title {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--text-primary);
   line-height: 1.4;
@@ -421,200 +454,26 @@ onMounted(() => {
 }
 
 .rank-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   font-size: 11px;
   font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
   color: #fff;
   flex-shrink: 0;
   line-height: 1.4;
 }
 
+.rank-badge.hot {
+  background: linear-gradient(135deg, var(--warning), #DC2626);
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
 .rank-badge.new {
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
-}
-
-.rank-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--text-muted);
-  flex-wrap: wrap;
-}
-
-.rank-score {
-  color: var(--warning);
-  font-weight: 600;
-}
-
-.rank-views,
-.rank-likes,
-.rank-comments,
-.rank-shares {
-  color: var(--text-muted);
-}
-
-.load-more {
-  text-align: center;
-  padding: 20px 0 10px;
-}
-
-.btn-outline {
-  padding: 8px 24px;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  color: var(--text-secondary);
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-outline:hover {
-  background: var(--background);
-  border-color: var(--text-muted);
-}
-
-.tag-cloud-section {
-  padding: 10px 0;
-}
-
-.tag-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-}
-
-.tag-card {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  color: #fff;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  font-weight: 500;
-}
-
-.tag-card:hover {
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-}
-
-.tag-hash {
-  opacity: 0.7;
-}
-
-.tag-count {
-  opacity: 0.8;
-  font-size: 0.85em;
-  margin-left: 2px;
-}
-
-.topic-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.topic-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.topic-card:hover {
-  background: var(--background);
-}
-
-.topic-icon {
-  width: 44px;
-  height: 44px;
-  background: var(--primary-light);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary);
-  flex-shrink: 0;
-}
-
-.topic-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.topic-desc {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin: 4px 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.topic-count {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.topic-arrow {
-  flex-shrink: 0;
-}
-
-.topic-info {
-  flex: 1;
-  min-width: 0;
-}
-
-/* --- New styles for content tab --- */
-
-.content-item {
-  flex-direction: row;
-}
-
-.type-badge {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 1px 7px;
-  border-radius: 4px;
-  flex-shrink: 0;
-  line-height: 1.5;
-}
-
-.type-article {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.type-post {
-  background: #d1fae5;
-  color: #047857;
-}
-
-.title-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.content-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--text-secondary);
-  font-weight: 400;
-  font-size: 14px;
+  background: linear-gradient(135deg, var(--info), #2563EB);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
 .rank-user {
@@ -627,7 +486,7 @@ onMounted(() => {
 .user-avatar {
   width: 22px;
   height: 22px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
   flex-shrink: 0;
 }
@@ -648,8 +507,8 @@ onMounted(() => {
   font-size: 11px;
   color: var(--primary);
   background: var(--primary-light);
-  padding: 1px 8px;
-  border-radius: 10px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
   white-space: nowrap;
 }
 
@@ -667,8 +526,13 @@ onMounted(() => {
   width: 60px;
   height: 60px;
   object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  transition: all var(--transition);
+}
+
+.thumb-img:hover {
+  transform: scale(1.05);
 }
 
 .more-images {
@@ -677,19 +541,101 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-secondary);
-  border-radius: 6px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
   font-size: 12px;
   color: var(--text-muted);
   font-weight: 500;
 }
 
+.rank-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.rank-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.rank-views,
+.rank-likes,
+.rank-comments,
+.rank-shares {
+  color: var(--text-muted);
+}
+
+.load-more {
+  text-align: center;
+  padding: var(--spacing-lg) 0;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.type-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.type-article {
+  background: var(--blue-light);
+  color: var(--blue);
+}
+
+.type-post {
+  background: var(--green-light);
+  color: var(--green);
+}
+
+.title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.content-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-weight: 400;
+  font-size: 14px;
+}
+
+.rank-enter-active {
+  transition: all var(--transition-slow);
+}
+
+.rank-enter-from {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
 @media (max-width: 600px) {
-  .trending-page { padding: 12px; }
+  .trending-page { padding: var(--spacing-md); }
+  .page-header { padding: var(--spacing-md); }
   .page-header h1 { font-size: 1.25rem; }
   .header-icon { width: 44px; height: 44px; }
-  .rank-item { padding: 12px; }
+  .rank-item { padding: var(--spacing-md); }
   .rank-title { font-size: 14px; }
-  .topic-card { padding: 12px; }
 }
 </style>
