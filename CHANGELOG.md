@@ -1,5 +1,15 @@
 # 变更日志
 
+## v1.58 - 2026-05-17
+
+### 🐛 Bug修复
+- **TrendingServiceImpl.java** - 修复热门动态话题列表字段名错误（topicNames→topics），与前端TrendingPage.vue期望的`item.topics`对齐
+
+### 🎨 前端优化
+- **TrendingPage.vue** - 移除「热门标签」和「热门话题」Tab，改为标题区域展示「热门文章 | 热门动态」混排
+- **Circle.vue** - 话题选择器改为搜索框样式，添加话题图标和加载状态
+- **CirclePost.vue** - 话题选择器改为搜索框样式，提升用户体验
+
 ## v1.56 - 2026-05-17
 
 ### 🐛 MEDIUM 修复

@@ -167,16 +167,34 @@
               <div class="char-count" :class="{ warn: newPost.content.length > 1800 }">{{ newPost.content.length }}/2000</div>
 
               <div class="topic-selector">
-                <div v-if="selectedTopic" class="topic-tag">
-                  <span>#{{ selectedTopic.name }}</span>
-                  <button class="remove-topic" @click="selectedTopic = null">✕</button>
+                <div v-if="selectedTopic" class="selected-topic">
+                  <span class="topic-badge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                    {{ selectedTopic.name }}
+                  </span>
+                  <button class="remove-topic" @click="removeTopic" title="移除话题">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
                 </div>
                 <div v-else class="topic-input-wrapper">
-                  <input v-model="topicSearch" placeholder="添加话题..." @focus="showTopicDropdown = true" @blur="hideTopicDropdown" />
+                  <div class="topic-search-box">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input
+                      v-model="topicSearch"
+                      placeholder="添加话题..."
+                      @focus="showTopicDropdown = true"
+                      @blur="hideTopicDropdown"
+                    />
+                  </div>
                   <div v-if="showTopicDropdown && filteredTopics.length" class="topic-dropdown">
-                    <div v-for="topic in filteredTopics" :key="topic.id" class="topic-dropdown-item" @mousedown.prevent="selectTopic(topic)">
-                      <span class="topic-name">#{{ topic.name }}</span>
-                      <span class="topic-count">{{ topic.postCount }} 篇</span>
+                    <div v-if="topicsLoading" class="topic-loading">
+                      <span class="spinner-small"></span> 加载中...
+                    </div>
+                    <div v-else>
+                      <div v-for="topic in filteredTopics" :key="topic.id" class="topic-dropdown-item" @mousedown.prevent="selectTopic(topic)">
+                        <span class="topic-name">#{{ topic.name }}</span>
+                        <span class="topic-count">{{ topic.postCount || 0 }} 篇</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -276,6 +294,15 @@ const router = useRouter()
 const userStore = useUserStore()
 const logger = useLogger('Circle')
 
+// Debounce helper
+const useDebounce = (fn, delay = 300) => {
+  let timer = null
+  return (...args) => {
+    clearTimeout(timer)
+    timer = setTimeout(() => fn(...args), delay)
+  }
+}
+
 const loading = ref(false)
 const loadingMore = ref(false)
 const posts = ref([])
@@ -320,6 +347,12 @@ const topicSearch = ref('')
 const showTopicDropdown = ref(false)
 const selectedTopic = ref(null)
 const allTopics = ref([])
+const topicsLoading = ref(false)
+
+const debouncedSearchTopics = useDebounce(() => {
+  // topics are already filtered via computed, no need for debounce here
+  showTopicDropdown.value = true
+}, 300)
 
 const filteredTopics = computed(() => {
   if (!topicSearch.value) return allTopics.value
@@ -331,6 +364,11 @@ const selectTopic = (topic) => {
   selectedTopic.value = topic
   topicSearch.value = ''
   showTopicDropdown.value = false
+}
+
+const removeTopic = () => {
+  selectedTopic.value = null
+  topicSearch.value = ''
 }
 
 const hideTopicDropdown = () => {
@@ -581,9 +619,15 @@ const openCreateModal = () => {
   showCreateModal.value = true
   nextTick(() => autoResize())
   if (allTopics.value.length === 0) {
-    topicApi.getTopicList({ pageNum: 1, pageSize: 100 }).then(res => {
-      allTopics.value = Array.isArray(res.data) ? res.data : []
-    }).catch(() => {})
+    topicsLoading.value = true
+    topicApi.getTopicList({ pageNum: 1, pageSize: 100 })
+      .then(res => {
+        allTopics.value = Array.isArray(res.data) ? res.data : []
+      })
+      .catch(() => {})
+      .finally(() => {
+        topicsLoading.value = false
+      })
   }
 }
 
@@ -1503,6 +1547,46 @@ onBeforeUnmount(() => {
   opacity: 1;
 }
 
+.selected-topic {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--primary-light);
+  border-radius: 20px;
+}
+
+.topic-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primary);
+}
+
+.topic-badge svg {
+  flex-shrink: 0;
+}
+
+.remove-topic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: rgba(0,0,0,0.1);
+  border: none;
+  border-radius: 50%;
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.remove-topic:hover {
+  background: rgba(0,0,0,0.2);
+}
+
 .topic-input-wrapper {
   position: relative;
 }
@@ -1520,6 +1604,64 @@ onBeforeUnmount(() => {
 
 .topic-input-wrapper input:focus {
   border-color: var(--primary);
+}
+
+.topic-search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.topic-search-box:focus-within {
+  border-color: var(--primary);
+  background: var(--surface);
+}
+
+.topic-search-box svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.topic-search-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  outline: none;
+  color: var(--text-primary);
+  padding: 0;
+}
+
+.topic-search-box input::placeholder {
+  color: var(--text-muted);
+}
+
+.topic-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.spinner-small {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .topic-dropdown {

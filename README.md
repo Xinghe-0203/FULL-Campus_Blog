@@ -1,7 +1,7 @@
 # 校园博客论坛系统 / Campus Blog Forum System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-v1.57-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
+[![Version](https://img.shields.io/badge/version-v1.58-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-green)](https://spring.io/projects/spring-boot)
 [![Vue](https://img.shields.io/badge/Vue-3.4.21-brightgreen)](https://vuejs.org/)
@@ -462,7 +462,7 @@ POST /api/like/check/batch
 | 接口 | 方法 | 路径 | 说明 |
 |------|------|------|------|
 | 获取热门文章 | GET | `/api/trending/posts` | 获取热门文章列表 |
-| 获取热门标签 | GET | `/api/trending/hot-tags` | 获取热门标签列表 |
+| 获取热门混排内容 | GET | `/api/trending/content` | 获取热门文章+动态混排列表 |
 | 更新文章热度 | PUT | `/api/trending/update/{postId}` | 更新文章热度分数 |
 
 ### 草稿接口 `/api/post/draft`
@@ -789,37 +789,6 @@ npm run build
 ### 文档更新规范
 **【强制】每次更新完代码都要更新md文件**
 
----
-
-## 15个Agent团队审计报告
-
-| 审计维度 | 评分 | 主要发现 |
-|---------|------|---------|
-| 后端架构 | 8.5/10 | 分层清晰，22张表设计完整，字段命名略有不一致 |
-| 前端架构 | 7/10 | 状态管理集中度高，API缺少类型定义 |
-| 安全 | 7.5/10 | JWT实现规范，Refresh Token轮换待加强 |
-| 数据库 | 8.5/10 | 设计规范，软删除统一，FULLTEXT已实现 |
-| API设计 | 8/10 | 统一Result封装，路径和分页参数略有不统一 |
-| 性能 | 7/10 | 异步配置合理，缺少分布式缓存 |
-| 测试覆盖 | 4/10 | 基础单元测试良好，Controller/Mapper完全缺失 |
-| 配置部署 | 8/10 | 环境变量管理规范，依赖版本部分偏旧 |
-| UI/UX | 7/10 | CSS变量完善，响应式断点单一 |
-| 业务逻辑 | 7/10 | 核心流程完整，审核流程未实际使用 |
-| 认证授权 | 7.5/10 | JWT规范，资源级权限控制部分实现 |
-| 代码规范 | 8/10 | 分层清晰，注释一致性待改进 |
-| 依赖管理 | 8/10 | 依赖精简，部分依赖建议升级到最新版本 |
-| 文档完整性 | 5.5/10 | 文档基本完整，README内容待扩展 |
-
-**综合评分: 7.5/10**
-
-### 主要改进建议
-1. **测试覆盖**: 补充Controller集成测试和Mapper层测试
-2. **性能优化**: 引入Redis分布式缓存替代本地Caffeine
-3. **前端架构**: 拆分user store，按功能领域创建专门stores
-4. **API规范**: 统一分页参数命名（pageNum/pageSize）
-5. **Refresh Token**: 实现Refresh Token轮换机制
-
----
 
 ## 许可证
 
@@ -858,6 +827,11 @@ SOFTWARE.
 - **参数验证**：校友圈接口 String 参数改为 int + @Min/@Max 验证
 - **暗色模式**：新增 CSS 变量 (--navbar-bg, --blue 等)，消除硬编码颜色
 
+### v1.58 (2026-05-17)
+- **热搜页面改版**：移除「热门标签」和「热门话题」Tab，改为标题区域展示「热门文章 | 热门动态」混排
+- **校友圈话题优化**：话题选择器改为搜索框样式，添加话题图标和加载状态，提升用户体验
+- **Bug修复**：TrendingServiceImpl热门动态话题字段名修复（topicNames→topics），话题现在正常显示
+
 ### v1.52 (2026-05-16)
 - **热搜榜改版**：热门内容Tab支持文章和校友圈动态混排展示，按热度评分统一排名
 - **校友圈话题**：发布/详情页新增话题选择器，支持搜索话题并关联到动态
@@ -890,5 +864,7 @@ SOFTWARE.
 - **版本**: v1.56
 - **最后更新**: 2026-05-16
 - **开发者**: 刘畅
+- **开发者个人网站**: https://www.starsx.top/
+- **开发者个人博客**: https://blog.starsx.top/
 - **GitHub**: https://github.com/Xinghe-0203/FULL-Campus_Blog
 - **API文档**: http://localhost:8825/api/doc.html (Knife4j)

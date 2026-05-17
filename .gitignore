@@ -35,3 +35,4 @@ target/
 
 # Node (if any)
 node_modules/
+.gstack/

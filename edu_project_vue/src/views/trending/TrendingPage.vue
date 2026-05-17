@@ -13,31 +13,16 @@
         </div>
       </div>
 
-      <div class="tabs">
-        <button class="tab-btn" :class="{ active: activeTab === 'content' }" @click="switchTab('content')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-          </svg>
-          热门内容
-        </button>
-        <button class="tab-btn" :class="{ active: activeTab === 'tags' }" @click="switchTab('tags')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-            <line x1="7" y1="7" x2="7.01" y2="7"/>
-          </svg>
-          热门标签
-        </button>
-        <button class="tab-btn" :class="{ active: activeTab === 'topics' }" @click="switchTab('topics')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-            <line x1="4" y1="22" x2="4" y2="15"/>
-          </svg>
-          热门话题
-        </button>
+      <div class="section-header">
+        <div class="section-title">
+          <span class="title-text">热门文章</span>
+          <span class="title-divider">|</span>
+          <span class="title-text">热门动态</span>
+        </div>
       </div>
 
       <div class="trending-content">
-        <div v-if="(activeTab === 'content' && contentLoading) || (activeTab === 'tags' && tagsLoading) || (activeTab === 'topics' && topicsLoading)" class="loading-section">
+        <div v-if="contentLoading" class="loading-section">
           <div v-for="i in 8" :key="i" class="trending-skeleton">
             <div class="skeleton-rank"></div>
             <div class="skeleton-info">
@@ -55,30 +40,14 @@
           <button class="btn btn-primary" @click="retryLoad">重新加载</button>
         </div>
 
-        <div v-else-if="activeTab === 'content' && !contentLoading && hotContent.length === 0" class="empty-state">
+        <div v-else-if="hotContent.length === 0" class="empty-state">
           <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
           </svg>
           <p>暂无热门内容</p>
         </div>
 
-        <div v-else-if="activeTab === 'tags' && !tagsLoading && hotTags.length === 0" class="empty-state">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-            <line x1="7" y1="7" x2="7.01" y2="7"/>
-          </svg>
-          <p>暂无热门标签</p>
-        </div>
-
-        <div v-else-if="activeTab === 'topics' && !topicsLoading && hotTopics.length === 0" class="empty-state">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-            <line x1="4" y1="22" x2="4" y2="15"/>
-          </svg>
-          <p>暂无热门话题</p>
-        </div>
-
-        <div v-if="activeTab === 'content' && hotContent.length > 0" class="rank-list">
+        <div v-if="hotContent.length > 0" class="rank-list">
           <transition-group name="rank">
             <div
               v-for="(item, index) in hotContent"
@@ -143,49 +112,6 @@
             </button>
           </div>
         </div>
-
-        <div v-if="activeTab === 'tags' && hotTags.length > 0" class="tag-cloud-section">
-          <div class="tag-grid">
-            <div
-              v-for="tag in hotTags"
-              :key="tag.id"
-              class="tag-card"
-              :style="{
-                fontSize: getTagFontSize(tag.postCount),
-                background: getTagColor(tag.postCount)
-              }"
-              @click="router.push(`/search?keyword=${encodeURIComponent(tag.name)}`)"
-            >
-              <span class="tag-hash">#</span>
-              <span class="tag-name">{{ tag.name }}</span>
-              <span class="tag-count">{{ tag.postCount }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="activeTab === 'topics' && hotTopics.length > 0" class="topic-list">
-          <div
-            v-for="topic in hotTopics"
-            :key="topic.id"
-            class="topic-card"
-            @click="router.push(`/search?keyword=${encodeURIComponent(topic.name)}`)"
-          >
-            <div class="topic-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-                <line x1="4" y1="22" x2="4" y2="15"/>
-              </svg>
-            </div>
-            <div class="topic-info">
-              <h3 class="topic-name">#{{ topic.name }}</h3>
-              <p class="topic-desc" v-if="topic.description">{{ topic.description }}</p>
-              <span class="topic-count">{{ topic.postCount || 0 }} 篇讨论</span>
-            </div>
-            <svg class="topic-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -195,38 +121,19 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { trendingApi } from '../../api/trending'
-import { topicApi } from '../../api/topic'
 import { useLogger } from '../../utils/logger'
 
 const router = useRouter()
 const logger = useLogger('Trending')
 
-const activeTab = ref('content')
 const contentLoading = ref(true)
 const loadingMore = ref(false)
-const tagsLoading = ref(false)
-const topicsLoading = ref(false)
 const error = ref('')
 
 const hotContent = ref([])
-const hotTags = ref([])
-const hotTopics = ref([])
 const currentContentPage = ref(1)
 const hasMoreContent = ref(true)
 const PAGE_SIZE = 20
-
-const tagsColors = [
-  'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-  'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-  'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-  'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-  'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
-  'linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)',
-  'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)',
-  'linear-gradient(135deg, #f5576c 0%, #ff6f00 100%)',
-  'linear-gradient(135deg, #667eea 0%, #4facfe 100%)'
-]
 
 const formatScore = (score) => {
   if (!score) return '0'
@@ -240,34 +147,11 @@ const truncateContent = (text, maxLength = 80) => {
   return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
 }
 
-const getTagFontSize = (count) => {
-  if (!count) return '14px'
-  const sizes = ['14px', '16px', '18px', '20px', '22px', '24px']
-  const idx = Math.min(Math.floor(count / 5), sizes.length - 1)
-  return sizes[idx]
-}
-
-const getTagColor = (count) => {
-  if (!count) return tagsColors[0]
-  return tagsColors[Math.min(Math.floor(count / 3), tagsColors.length - 1)]
-}
-
 const handleContentClick = (item) => {
   if (item.type === 0) {
     router.push(`/post/${item.id}`)
   } else if (item.type === 1) {
     router.push(`/circle/${item.id}`)
-  }
-}
-
-const switchTab = (tab) => {
-  activeTab.value = tab
-  if (tab === 'content' && hotContent.value.length === 0 && !contentLoading.value) {
-    fetchHotContent(true)
-  } else if (tab === 'tags' && hotTags.value.length === 0 && !tagsLoading.value) {
-    fetchHotTags()
-  } else if (tab === 'topics' && hotTopics.value.length === 0 && !topicsLoading.value) {
-    fetchHotTopics()
   }
 }
 
@@ -285,31 +169,6 @@ const fetchHotContent = async (reset = false) => {
   } catch (err) {
     logger.error('fetchHotContent error', { error: err.message })
     throw err
-  }
-}
-
-const fetchHotTags = async () => {
-  tagsLoading.value = true
-  try {
-    const res = await trendingApi.getHotTags()
-    const data = res.data
-    hotTags.value = data?.records || data || []
-  } catch (err) {
-    logger.error('fetchHotTags error', { error: err.message })
-  } finally {
-    tagsLoading.value = false
-  }
-}
-
-const fetchHotTopics = async () => {
-  topicsLoading.value = true
-  try {
-    const res = await topicApi.getHotTopics()
-    hotTopics.value = res.data || []
-  } catch (err) {
-    logger.error('fetchHotTopics error', { error: err.message })
-  } finally {
-    topicsLoading.value = false
   }
 }
 
@@ -395,40 +254,34 @@ onMounted(() => {
   margin: 2px 0 0;
 }
 
-.tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 20px;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  padding: 3px;
-}
-
-.tab-btn {
-  flex: 1;
+.section-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 0;
-  font-size: 14px;
-  font-weight: 500;
-  background: transparent;
-  border: none;
-  border-radius: 10px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.3s ease;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 12px 0;
 }
 
-.tab-btn.active {
-  background: var(--surface);
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text-primary);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
-.tab-btn:hover:not(.active) {
-  color: var(--text-primary);
+.title-text {
+  padding: 6px 16px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 20px;
+}
+
+.title-divider {
+  color: var(--text-muted);
+  font-weight: 400;
 }
 
 .loading-section {
