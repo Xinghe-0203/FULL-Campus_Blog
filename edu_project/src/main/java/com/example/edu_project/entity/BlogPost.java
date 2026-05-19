@@ -1,11 +1,13 @@
 package com.example.edu_project.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 文章/帖子实体类 (blog_post)
@@ -33,8 +35,9 @@ public class BlogPost implements Serializable {
     @Schema(description = "文章内容")
     private String content;
 
-    @Schema(description = "话题ID")
-    private Long topicId;
+    @Schema(description = "话题ID数组")
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private String topicIds;
 
     @Schema(description = "文章分类")
     private String category;
@@ -81,4 +84,19 @@ public class BlogPost implements Serializable {
     @Schema(description = "逻辑删除：0=正常，1=删除")
     @TableLogic
     private Integer isDeleted;
+
+    /**
+     * 兼容方法：返回第一个话题ID
+     */
+    public Long getTopicId() {
+        if (topicIds == null || topicIds.isEmpty()) {
+            return null;
+        }
+        try {
+            List<Long> ids = cn.hutool.json.JSONUtil.toList(topicIds, Long.class);
+            return ids.isEmpty() ? null : ids.get(0);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

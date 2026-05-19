@@ -8,7 +8,6 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Mapper
 public interface CirclePostMapper extends BaseMapper<CirclePost> {
@@ -37,20 +36,14 @@ public interface CirclePostMapper extends BaseMapper<CirclePost> {
     @Update("UPDATE blog_circle_post SET repost_count = repost_count - 1 WHERE id = #{id} AND is_deleted = 0 AND repost_count > 0")
     void decrementRepostCount(@Param("id") Long id);
 
-    @Update("UPDATE blog_topic SET post_count = post_count + 1, trending_score = trending_score + 1 WHERE id = #{topicId}")
-    void incrementTopicPostCount(@Param("topicId") Long topicId);
+    @Select("SELECT COUNT(*) FROM blog_circle_post WHERE JSON_SEARCH(topic_ids, 'one', #{topicId}) IS NOT NULL AND status = 1 AND is_deleted = 0")
+    Long countByTopicId(@Param("topicId") Long topicId);
 
-    @Update("<script>" +
-            "UPDATE blog_topic SET post_count = post_count + 1, trending_score = trending_score + 1 " +
-            "WHERE id IN <foreach collection='topicIds' item='topicId' open='(' separator=',' close=')'>" +
-            "#{topicId}</foreach>" +
+    @Select("<script>" +
+            "SELECT jt.topicId, COUNT(*) as cnt FROM blog_circle_post " +
+            "CROSS JOIN JSON_TABLE(topic_ids, '$[*]' COLUMNS(topicId BIGINT PATH '$')) AS jt " +
+            "WHERE jt.topicId IN (<foreach collection='topicIds' item='id' separator=','>#{id}</foreach>) " +
+            "AND status = 1 AND is_deleted = 0 GROUP BY jt.topicId" +
             "</script>")
-    void batchIncrementTopicPostCount(@Param("topicIds") List<Long> topicIds);
-
-    @Update("<script>" +
-            "UPDATE blog_topic SET post_count = GREATEST(post_count - 1, 0), trending_score = GREATEST(trending_score - 1, 0) " +
-            "WHERE id IN <foreach collection='topicIds' item='topicId' open='(' separator=',' close=')'>" +
-            "#{topicId}</foreach>" +
-            "</script>")
-    void batchDecrementTopicPostCount(@Param("topicIds") List<Long> topicIds);
+    java.util.Map<Long, Long> countByTopicIds(@Param("topicIds") java.util.List<Long> topicIds);
 }

@@ -67,7 +67,7 @@ public class FollowController {
      * 检查是否关注
      */
     @Operation(summary = "检查是否关注")
-    @GetMapping("/check/{targetUserId}")
+    @GetMapping("/{targetUserId}/status")
     public Result<FollowStatusVO> checkFollow(@PathVariable Long targetUserId) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         boolean following = false;

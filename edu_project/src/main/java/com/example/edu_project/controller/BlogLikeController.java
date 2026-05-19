@@ -50,7 +50,7 @@ public class BlogLikeController {
      * 检查是否已点赞
      */
     @Operation(summary = "检查是否已点赞")
-    @GetMapping("/check/{postId}")
+    @GetMapping("/{postId}/status")
     public Result<LikeStatusVO> checkLikeStatus(@PathVariable Long postId) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         LikeStatusVO status = blogLikeService.checkLikeStatus(postId, userId);

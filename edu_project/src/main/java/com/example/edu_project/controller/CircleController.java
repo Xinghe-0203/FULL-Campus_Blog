@@ -58,7 +58,7 @@ public class CircleController {
                 request.getVisibility(),
                 request.getAllowComment(),
                 request.getAllowRepost(),
-                request.getTopicId()
+                request.getTopicIds()
         );
 
         return Result.success(postId);
@@ -127,7 +127,7 @@ public class CircleController {
     @Operation(summary = "点赞/取消点赞")
     @PostMapping("/like/{postId}")
     public Result<CircleLikeResultVO> toggleLike(@PathVariable Long postId) {
-        Long userId = getCurrentUserId();
+        Long userId = requireCurrentUserId();
         CircleLikeResultVO result = circleService.toggleLike(postId, userId);
         return Result.success(result);
     }
@@ -162,7 +162,7 @@ public class CircleController {
     @Operation(summary = "发表评论")
     @PostMapping("/comment")
     public Result<Long> createComment(@Valid @RequestBody CircleCommentRequest request) {
-        Long userId = getCurrentUserId();
+        Long userId = requireCurrentUserId();
 
         Long commentId = circleService.createComment(
                 request.getPostId(),
@@ -180,7 +180,7 @@ public class CircleController {
     @Operation(summary = "删除评论")
     @DeleteMapping("/comment/{commentId}")
     public Result<Void> deleteComment(@PathVariable Long commentId) {
-        Long userId = getCurrentUserId();
+        Long userId = requireCurrentUserId();
         circleService.deleteComment(commentId, userId);
         return Result.success(null);
     }
@@ -195,7 +195,7 @@ public class CircleController {
     public Result<Long> repostPost(
             @PathVariable Long postId,
             @RequestParam(required = false) String content) {
-        Long userId = getCurrentUserId();
+        Long userId = requireCurrentUserId();
         Long newPostId = circleService.repostPost(postId, content, userId);
         return Result.success(newPostId);
     }
@@ -232,7 +232,7 @@ public class CircleController {
 
     // ==================== 私有方法 ====================
 
-    private Long getCurrentUserId() {
+    private Long requireCurrentUserId() {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {
             throw new BusinessException(401, "请先登录");

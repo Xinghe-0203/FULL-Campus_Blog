@@ -1,7 +1,7 @@
 # 校园博客论坛系统 / Campus Blog Forum System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-v2.0-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
+[![Version](https://img.shields.io/badge/version-v2.0.11-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-green)](https://spring.io/projects/spring-boot)
 [![Vue](https://img.shields.io/badge/Vue-3.4.21-brightgreen)](https://vuejs.org/)
@@ -9,6 +9,12 @@
 > **MIT License** — 允许自由使用、复制、修改、合并、发布、分发、再授权和销售本软件的副本。
 
 一个基于 **Spring Boot 3 + Vue 3 + MyBatis Plus** 的全栈校园博客论坛系统，支持文章发布、校友圈动态、点赞收藏、关注互动、消息通知等功能。
+
+**v2.0.11 最新修复：**
+- 修复写文章选择标签时白屏的运行时错误
+- 补全 PostEdit 中 4 个缺失的模板引用（categoryLabel, saveStatusText, wordCount, readingTime）
+- 话题多选保存支持（selectedTopics 数组替代单个 topicId）
+- 后端多项安全与功能修复（举报通知、Token 失效、枚举校验）
 
 **v2.0 全新升级：**
 - Rainy Glassmorphism UI 设计系统（水滴、涟漪、光泽动效）
@@ -217,7 +223,7 @@ npm run lint
 
 | 用户名 | 密码 | 角色 |
 |--------|------|------|
-| admin | admin123 | 管理员 |
+| admin | Admin123 | 管理员 |
 
 ---
 
@@ -884,6 +890,12 @@ sudo certbot renew --dry-run
 
 ## 更新日志
 
+### v2.0.11 (2026-05-19)
+- **白屏修复**: PostEdit 补全 4 个缺失的模板引用，选择标签/分类不再白屏
+- **话题多选**: 保存时发送 `topicIds` 数组替代单个 `topicId`
+- **后端修复**: 禁用直接注册、举报通知作者、话题热度更新、Token 失效等
+- **数据库表**: 添加默认管理员账户 INSERT（admin / Admin123）
+
 ### v2.0 (2026-05-17)
 - **Rainy Glassmorphism UI**: 全新毛玻璃拟态设计系统，包含水滴动画、涟漪交互、光泽渐变效果
 - **性能优化**: 16 项数据库索引优化，查询速度最高提升 300 倍
@@ -970,8 +982,8 @@ SOFTWARE.
 
 | 项目 | 信息 |
 |------|------|
-| 版本 | v2.0 |
-| 最后更新 | 2026-05-17 |
+| 版本 | v2.0.11 |
+| 最后更新 | 2026-05-19 |
 | 开发者 | 刘畅 |
 | 许可证 | MIT |
 | 后端端口 | 8825 |

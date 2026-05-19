@@ -25,6 +25,7 @@ import com.example.edu_project.service.ReportService;
 import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.utils.UserConverter;
 import com.example.edu_project.vo.ReportVO;
+import com.example.edu_project.common.enums.ReportStatus;
 import com.example.edu_project.vo.UserVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +66,9 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
     @Autowired
     private BlogLikeMapper blogLikeMapper;
 
+    @Autowired
+    private com.example.edu_project.service.NotificationService notificationService;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createReport(ReportRequest request, Long reporterId) {
@@ -98,14 +102,14 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
             throw new BusinessException(400, "不能举报自己");
         }
 
-        // 检查是否对待处理举报
+        // 检查是否存在非REJECTED状态的举报（PENDING或RESOLVED）
         LambdaQueryWrapper<BlogReport> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogReport::getReporterId, reporterId)
                .eq(BlogReport::getTargetType, targetType)
                .eq(BlogReport::getTargetId, request.getTargetId())
-               .eq(BlogReport::getStatus, 0); // 待处理状态
+               .ne(BlogReport::getStatus, ReportStatus.REJECTED.getValue());
         if (this.count(wrapper) > 0) {
-            throw new BusinessException(400, "您已提交过待处理举报，请等待处理");
+            throw new BusinessException(400, "您已提交过该举报，请勿重复提交");
         }
 
         // 创建举报记录
@@ -202,7 +206,7 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
                 reportId, handlerId, request.getStatus(), request.getHandlerResult());
 
         // 如果是已核实状态，对被举报内容进行相应处理
-        if (request.getStatus() == 2) {
+        if (request.getStatus() == ReportStatus.RESOLVED.getValue()) {
             String targetType = report.getTargetType();
             Long targetId = report.getTargetId();
 
@@ -235,6 +239,33 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
                     break;
             }
         }
+
+        // 通知举报人处理结果
+        String notifyTitle = request.getStatus() == ReportStatus.RESOLVED.getValue() ? "举报已核实" : "举报已驳回";
+        String notifyContent = "您提交的举报（ID: " + reportId + "）已处理，处理结果：" + (request.getHandlerResult() != null ? request.getHandlerResult() : (request.getStatus() == ReportStatus.RESOLVED.getValue() ? "举报内容已被处理" : "举报不成立"));
+        notificationService.sendNotification("REPORT", notifyTitle, notifyContent, handlerId, report.getReporterId(), report.getTargetType(), report.getTargetId());
+
+        // 通知被举报内容作者处理结果
+        if (request.getStatus() == ReportStatus.RESOLVED.getValue()) {
+            String targetNotifyTitle = "内容处理通知";
+            String targetNotifyContent = "您的" + getTargetTypeLabel(report.getTargetType()) + "因违反社区规定已被处理，详情：" + (request.getHandlerResult() != null ? request.getHandlerResult() : "内容已被删除或限制");
+            Long targetAuthorId = getReportedUserId(report.getTargetType(), report.getTargetId());
+            if (targetAuthorId != null && !targetAuthorId.equals(report.getReporterId())) {
+                notificationService.sendNotification("REPORT", targetNotifyTitle, targetNotifyContent, handlerId, targetAuthorId, report.getTargetType(), report.getTargetId());
+            }
+        }
+    }
+
+    /**
+     * 获取目标类型的中文标签
+     */
+    private String getTargetTypeLabel(String targetType) {
+        return switch (targetType) {
+            case "post" -> "文章";
+            case "comment" -> "评论";
+            case "user" -> "账号";
+            default -> "内容";
+        };
     }
 
     /**

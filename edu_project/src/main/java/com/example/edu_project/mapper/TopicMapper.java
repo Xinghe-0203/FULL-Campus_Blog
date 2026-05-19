@@ -36,4 +36,10 @@ public interface TopicMapper extends BaseMapper<Topic> {
      */
     @Update("UPDATE blog_topic SET trending_score = trending_score + #{score} WHERE id = #{topicId}")
     int incrementTrendingScore(@Param("topicId") Long topicId, @Param("score") int score);
+
+    /**
+     * 重新计算所有话题的热度分数（基于关联的已发布文章数）
+     */
+    @Update("UPDATE blog_topic t SET t.trending_score = (SELECT COUNT(*) FROM blog_post p WHERE JSON_CONTAINS(p.topic_ids, CAST(t.id AS JSON)) AND p.is_deleted = 0 AND p.status = 1)")
+    void recalculateAllTrendingScore();
 }

@@ -82,9 +82,24 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
             BlogFollow existingFollow = this.getOne(wrapper);
 
             if (existingFollow != null) {
-                // 已关注
-                result.setFollowing(true);
-                result.setAction("already_following");
+                if (existingFollow.getIsDeleted() != null && existingFollow.getIsDeleted() == 1) {
+                    existingFollow.setIsDeleted(0);
+                    this.updateById(existingFollow);
+                    sysUserMapper.incrementFollowerCount(targetUserId);
+                    sysUserMapper.incrementFollowingCount(currentUserId);
+                    result.setFollowing(true);
+                    result.setAction("follow");
+                    log.info("用户重新关注: followerId={}, followingId={}", currentUserId, targetUserId);
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            eventPublisher.publishEvent(new FollowCreatedEvent(currentUserId, targetUserId));
+                        }
+                    });
+                } else {
+                    result.setFollowing(true);
+                    result.setAction("already_following");
+                }
             } else {
                 // 尝试关注
                 BlogFollow newFollow = new BlogFollow();
@@ -106,13 +121,26 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
                         }
                     });
                 } catch (DuplicateKeyException e) {
-                    // 并发情况下另一个请求已经插入了
                     BlogFollow concurrentFollow = this.getOne(wrapper);
                     if (concurrentFollow != null) {
-                        result.setFollowing(true);
-                        result.setAction("already_following");
+                        if (concurrentFollow.getIsDeleted() != null && concurrentFollow.getIsDeleted() == 1) {
+                            concurrentFollow.setIsDeleted(0);
+                            this.updateById(concurrentFollow);
+                            sysUserMapper.incrementFollowerCount(targetUserId);
+                            sysUserMapper.incrementFollowingCount(currentUserId);
+                            result.setFollowing(true);
+                            result.setAction("follow");
+                            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                                @Override
+                                public void afterCommit() {
+                                    eventPublisher.publishEvent(new FollowCreatedEvent(currentUserId, targetUserId));
+                                }
+                            });
+                        } else {
+                            result.setFollowing(true);
+                            result.setAction("already_following");
+                        }
                     } else {
-                        // 极少数情况：记录刚被删了，那就当作关注成功
                         sysUserMapper.incrementFollowerCount(targetUserId);
                         sysUserMapper.incrementFollowingCount(currentUserId);
                         result.setFollowing(true);
@@ -211,11 +239,10 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
             throw new BusinessException(404, "用户不存在");
         }
 
-        // 查询粉丝，限制返回数量
+        // 查询粉丝
         LambdaQueryWrapper<BlogFollow> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogFollow::getFollowingId, userId)
-              .orderByDesc(BlogFollow::getCreateTime)
-              .last("LIMIT 100");
+              .orderByDesc(BlogFollow::getCreateTime);
         List<BlogFollow> follows = this.list(wrapper);
 
         if (follows.isEmpty()) {
@@ -243,11 +270,10 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
             throw new BusinessException(404, "用户不存在");
         }
 
-        // 查询关注，限制返回数量
+        // 查询关注
         LambdaQueryWrapper<BlogFollow> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogFollow::getFollowerId, userId)
-              .orderByDesc(BlogFollow::getCreateTime)
-              .last("LIMIT 100");
+              .orderByDesc(BlogFollow::getCreateTime);
         List<BlogFollow> follows = this.list(wrapper);
 
         if (follows.isEmpty()) {

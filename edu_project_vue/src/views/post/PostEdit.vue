@@ -263,11 +263,35 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h16M4 15h16M10 3l-2 6M14 15l-2 6M14 3l2 6M10 15l-2 6"/></svg>
             话题
           </h3>
-          <select v-model="form.topicId" class="form-input">
-            <option :value="null">不选择话题</option>
-            <option v-for="topic in topics" :key="topic.id" :value="topic.id">{{ topic.name }}</option>
-            <option v-if="form.topicId && !topics.find(t => t.id === form.topicId)" :value="form.topicId">{{ savedTopicName || '当前话题' }}</option>
-          </select>
+          <div class="topic-input-container">
+            <div v-if="selectedTopics.length" class="selected-topics">
+              <div v-for="topic in selectedTopics" :key="topic.id" class="selected-topic">
+                <span class="topic-badge glass-chip">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                  {{ topic.name }}
+                </span>
+                <button class="remove-topic" @click="removeTopic(topic)" title="移除话题">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="topic-input-wrapper">
+              <div class="topic-search-box glass">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input v-model="topicSearch" placeholder="添加话题..." @focus="showTopicDropdown = true" @blur="hideTopicDropdown" />
+              </div>
+              <transition name="dropdown">
+                <div v-if="showTopicDropdown && filteredTopics.length" class="topic-dropdown glass">
+                  <div v-for="topic in filteredTopics" :key="topic.id" class="topic-dropdown-item" @mousedown.prevent="selectTopic(topic)">
+                    {{ topic.name }}
+                  </div>
+                </div>
+              </transition>
+              <div v-if="topicSearch.trim() && !filteredTopics.length" class="no-topics">
+                <button class="btn btn-text btn-xs" @click="createTopicAndAdd">创建「{{ topicSearch }}」话题</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -292,7 +316,7 @@ const router = useRouter()
 const userStore = useUserStore()
 const logger = useLogger('PostEdit')
 
-const form = reactive({ title: '', content: '', summary: '', category: '', coverImage: '', tags: [], topicId: null })
+const form = reactive({ title: '', content: '', summary: '', category: '', coverImage: '', topicId: null })
 const postInfo = reactive({ createTime: '', viewCount: 0, likeCount: 0 })
 const showPreview = ref(false)
 const saving = ref(false)
@@ -311,33 +335,74 @@ const uploadingImage = ref(false)
 const uploadProgress = ref(0)
 const isLoading = ref(false)
 const dirty = ref(false)
+const topicSearch = ref('')
+const showTopicDropdown = ref(false)
+const selectedTopics = ref([])
+const allTopics = ref([])
 
-let autoSaveTimer = null
-watch([() => form.title, () => form.content, () => form.summary, () => form.category, () => form.coverImage, () => form.topicId, selectedTags], () => {
-  dirty.value = true
-  clearTimeout(autoSaveTimer)
-  autoSaveTimer = setTimeout(() => { if (form.title || form.content) autoSave() }, 5000)
-}, { deep: true })
-
-const renderedContent = computed(() => {
-  if (!form.content) return ''
-  return DOMPurify.sanitize(marked.parse(form.content), {
-    USE_PROFILES: { html: true },
-    FORBID_TAGS: ['style', 'script', 'iframe', 'form', 'input', 'button', 'textarea', 'select'],
-    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover']
-  })
+const filteredTopics = computed(() => {
+  if (!topicSearch.value) return allTopics.value
+  const q = topicSearch.value.toLowerCase()
+  return allTopics.value.filter(t => t.name.toLowerCase().includes(q))
 })
-const wordCount = computed(() => form.content.replace(/\s/g, '').length)
-const readingTime = computed(() => Math.max(1, Math.ceil(wordCount.value / 300)))
+
+const wordCount = computed(() => {
+  const text = form.content || ''
+  return text.replace(/\s/g, '').length
+})
+
+const readingTime = computed(() => {
+  const text = form.content || ''
+  const wc = text.replace(/\s/g, '').length
+  return Math.max(1, Math.ceil(wc / 500))
+})
+
 const saveStatusText = computed(() => {
-  if (saveStatus.value === 'saving') return '保存中...'
-  if (saveStatus.value === 'saved') return '已保存'
-  return ''
+  switch (saveStatus.value) {
+    case 'saving': return '保存中...'
+    case 'saved': return '已保存'
+    default: return ''
+  }
 })
 
-function categoryLabel(cat) {
-  const map = { tech: '技术', life: '生活', study: '学习', other: '其他' }
-  return map[cat] || cat
+function categoryLabel(category) {
+  const labels = { tech: '技术', life: '生活', study: '学习', other: '其他' }
+  return labels[category] || category
+}
+
+function selectTopic(topic) {
+  if (!selectedTopics.value.find(t => t.id === topic.id)) {
+    selectedTopics.value.push(topic)
+  }
+  showTopicDropdown.value = false
+  topicSearch.value = ''
+}
+
+function removeTopic(topic) {
+  selectedTopics.value = selectedTopics.value.filter(t => t.id !== topic.id)
+}
+
+function hideTopicDropdown() {
+  setTimeout(() => { showTopicDropdown.value = false }, 150)
+}
+
+async function createTopicAndAdd() {
+  const name = topicSearch.value.trim()
+  if (!name) return
+  try {
+    const res = await topicApi.createTopic({ name, description: '' })
+    const newTopic = res.data
+    if (newTopic && newTopic.id) {
+      if (!selectedTopics.value.find(t => t.id === newTopic.id)) {
+        selectedTopics.value.push(newTopic)
+      }
+    }
+    await fetchTopics()
+    toast.success('话题已创建')
+  } catch (err) {
+    logger.error('create topic error', { error: err.message })
+    toast.error(err.response?.data?.message || '创建话题失败')
+  }
 }
 
 function formatTime(t) {
@@ -365,15 +430,15 @@ function insertCodeBlock() {
 }
 
 function insertAlignLeft() {
-  insertMarkdown('<div style=\u0022text-align:left\u0022>', '</div>')
+  insertMarkdown('<div style="text-align:left">', '</div>')
 }
 
 function insertAlignCenter() {
-  insertMarkdown('<div style=\u0022text-align:center\u0022>', '</div>')
+  insertMarkdown('<div style="text-align:center">', '</div>')
 }
 
 function insertAlignRight() {
-  insertMarkdown('<div style=\u0022text-align:right\u0022>', '</div>')
+  insertMarkdown('<div style="text-align:right">', '</div>')
 }
 
 function insertLink() {
@@ -501,8 +566,9 @@ const fetchTags = async () => {
 
 const fetchTopics = async () => {
   try {
-    const response = await topicApi.getTopicList()
-    topics.value = response.data || []
+    const response = await topicApi.getTopicList({ pageNum: 1, pageSize: 100 })
+    const data = response.data
+    allTopics.value = Array.isArray(data) ? data : (data?.records || [])
   } catch (error) {
     logger.error('Failed to fetch topics', { error: error.message })
   }
@@ -642,7 +708,7 @@ const saveDraft = async () => {
   saving.value = true
   saveStatus.value = 'saving'
   try {
-    const data = { title: form.title, content: form.content, summary: form.summary, category: form.category, coverImage: form.coverImage, tagIds: selectedTags.value.filter(t => t.id).map(t => t.id), tagNames: selectedTags.value.map(t => t.name), topicId: form.topicId || undefined, draftId: currentDraftId.value || undefined }
+    const data = { title: form.title, content: form.content, summary: form.summary, category: form.category, coverImage: form.coverImage, tagIds: selectedTags.value.filter(t => t.id).map(t => t.id), tagNames: selectedTags.value.map(t => t.name), topicIds: selectedTopics.value.map(t => t.id), draftId: currentDraftId.value || undefined }
     if (route.params.id) data.postId = Number(route.params.id)
     const res = await postApi.saveDraft(data)
     currentDraftId.value = res.data || currentDraftId.value
@@ -663,7 +729,7 @@ const publishPost = async () => {
 
   publishing.value = true
   try {
-    const postData = { title: form.title, content: form.content, summary: form.summary, category: form.category, coverImage: form.coverImage, tagIds: selectedTags.value.filter(t => t.id).map(t => t.id), tagNames: selectedTags.value.map(t => t.name), topicId: form.topicId || undefined }
+    const postData = { title: form.title, content: form.content, summary: form.summary, category: form.category, coverImage: form.coverImage, tagIds: selectedTags.value.filter(t => t.id).map(t => t.id), tagNames: selectedTags.value.map(t => t.name), topicIds: selectedTopics.value.map(t => t.id) }
 
     if (route.params.id) {
       await postApi.updatePost(route.params.id, postData)
@@ -688,7 +754,7 @@ const autoSave = async () => {
   if (!form.title && !form.content) return
   saveStatus.value = 'saving'
   try {
-    const data = { title: form.title, content: form.content, summary: form.summary, category: form.category, coverImage: form.coverImage, tagIds: selectedTags.value.filter(t => t.id).map(t => t.id), tagNames: selectedTags.value.map(t => t.name), topicId: form.topicId || undefined, draftId: currentDraftId.value || undefined }
+    const data = { title: form.title, content: form.content, summary: form.summary, category: form.category, coverImage: form.coverImage, tagIds: selectedTags.value.filter(t => t.id).map(t => t.id), tagNames: selectedTags.value.map(t => t.name), topicIds: selectedTopics.value.map(t => t.id), draftId: currentDraftId.value || undefined }
     if (route.params.id) data.postId = Number(route.params.id)
     const res = await postApi.saveDraft(data)
     currentDraftId.value = res.data || currentDraftId.value
@@ -1383,6 +1449,135 @@ onBeforeRouteLeave((to, from) => {
 
 .btn-xs {
   font-size: 0.75rem;
+}
+
+/* 话题选择 */
+.topic-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.selected-topic {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--glass-bg);
+  border-radius: var(--radius);
+}
+
+.topic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.remove-topic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.6;
+  transition: all var(--transition);
+  border-radius: var(--radius-full);
+}
+
+.remove-topic:hover {
+  opacity: 1;
+  background: var(--primary);
+  color: white;
+}
+
+.topic-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.topic-search-box {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  transition: all var(--transition);
+}
+
+.topic-search-box:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.topic-search-box svg {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+}
+
+.topic-search-box input {
+  flex: 1;
+  border: none;
+  font-size: 0.875rem;
+  background: transparent;
+  color: var(--text-primary);
+  padding: 0 var(--spacing-sm);
+}
+
+.topic-search-box input::placeholder {
+  color: var(--text-muted);
+}
+
+.topic-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: var(--spacing-xs);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  box-shadow: var(--shadow-md);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.topic-dropdown-item {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.topic-dropdown-item:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.no-topics {
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.no-topics button {
+  margin-top: var(--spacing-sm);
 }
 
 /* 响应式 */

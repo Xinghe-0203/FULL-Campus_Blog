@@ -1,17 +1,40 @@
 <template>
   <div class="circle-page">
-    <div class="circle-container">
-      <button class="back-btn glass" @click="router.back()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-        返回
-      </button>
-
-      <div class="create-post glass" v-if="userStore.isLoggedIn" @click="openCreateModal">
-        <div class="create-header">
-          <img :src="userStore.avatar || '/default-avatar.png'" :alt="userStore.nickname" class="user-avatar" />
-          <div class="create-input">分享你的校园生活...</div>
+    <div class="circle-layout">
+      <!-- 左侧边栏 - 热门话题 -->
+      <aside class="sidebar-left hide-mobile">
+        <div class="sidebar-card glass">
+          <h3 class="sidebar-card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h16M4 15h16M10 3l-2 6M14 15l-2 6M14 3l2 6M10 15l-2 6"/></svg>
+            热门话题
+          </h3>
+          <div v-if="hotTopicsLoading" class="sidebar-loading">
+            <span class="spinner-small"></span> 加载中...
+          </div>
+          <div v-else-if="hotTopics.length" class="sidebar-topic-list">
+            <router-link v-for="topic in hotTopics" :key="topic.id" :to="`/search?keyword=${'#' + topic.name}`" class="sidebar-topic-item">
+              <span class="sidebar-topic-name">#{{ topic.name }}</span>
+              <span class="sidebar-topic-count">{{ topic.postCount || 0 }} 篇</span>
+            </router-link>
+          </div>
+          <div v-else class="sidebar-empty">暂无热门话题</div>
         </div>
-      </div>
+      </aside>
+
+      <!-- 主内容区 -->
+      <div class="circle-main">
+        <div class="circle-container">
+          <button class="back-btn glass" @click="router.back()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            返回
+          </button>
+
+          <div class="create-post glass" v-if="userStore.isLoggedIn" @click="openCreateModal">
+            <div class="create-header">
+              <img :src="userStore.avatar || '/default-avatar.png'" :alt="userStore.nickname" class="user-avatar" />
+              <div class="create-input">分享你的校园生活...</div>
+            </div>
+          </div>
 
       <div class="feed-tabs glass">
         <button class="tab-btn" :class="{ active: activeTab === 'recommend' }" @click="switchTab('recommend')">
@@ -161,12 +184,41 @@
               <span>加载更多...</span>
             </div>
             <div v-else-if="!hasMore" class="no-more">没有更多了</div>
-          </div>
+</div>
         </div>
       </div>
     </div>
 
-    <teleport to="body">
+    <!-- 右侧边栏 - 热门动态 -->
+      <aside class="sidebar-right hide-mobile">
+        <div class="sidebar-card glass">
+          <h3 class="sidebar-card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            热门动态
+          </h3>
+          <div v-if="hotPostsLoading" class="sidebar-loading">
+            <span class="spinner-small"></span> 加载中...
+          </div>
+          <div v-else-if="hotPosts.length" class="sidebar-post-list">
+            <router-link v-for="hp in hotPosts" :key="hp.id" :to="`/circle/${hp.id}`" class="sidebar-post-item">
+              <div class="sidebar-post-author">
+                <img :src="hp.userAvatar || '/default-avatar.png'" :alt="hp.userNickname" class="sidebar-avatar" />
+                <span class="sidebar-post-name">{{ hp.userNickname || hp.userUsername }}</span>
+              </div>
+              <p class="sidebar-post-text">{{ hp.content?.substring(0, 50) }}{{ hp.content?.length > 50 ? '...' : '' }}</p>
+              <div class="sidebar-post-stats">
+                <span>{{ formatNumber(hp.likeCount || 0) }} 赞</span>
+                <span>{{ formatNumber(hp.commentCount || 0) }} 评论</span>
+              </div>
+            </router-link>
+          </div>
+          <div v-else class="sidebar-empty">暂无热门动态</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <teleport to="body">
       <transition name="modal">
         <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
           <div class="modal-content glass">
@@ -240,6 +292,15 @@
                 <div v-for="(img, idx) in newPost.images" :key="idx" class="image-item">
                   <img :src="img" alt="" />
                   <button class="remove-image" @click="newPost.images.splice(idx, 1)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div v-if="newPost.videos.length" class="uploaded-videos">
+                <div v-for="(video, idx) in newPost.videos" :key="'v-'+idx" class="video-item">
+                  <video :src="video" class="video-preview" muted preload="metadata"></video>
+                  <button class="remove-video" @click="newPost.videos.splice(idx, 1)">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   </button>
                 </div>
@@ -330,22 +391,13 @@ import { circleApi } from '../../api/circle'
 import { topicApi } from '../../api/topic'
 import { mediaApi } from '../../api/media'
 import { useUserStore } from '../../stores/user'
-import { formatRelativeTime, formatNumber } from '../../utils'
+import { formatRelativeTime, formatNumber, debounce } from '../../utils'
 import { useLogger } from '../../utils/logger'
 import { toast } from '../../utils/toast'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
-const logger = useLogger('Circle')
-
-const useDebounce = (fn, delay = 300) => {
-  let timer = null
-  return (...args) => {
-    clearTimeout(timer)
-    timer = setTimeout(() => fn(...args), delay)
-  }
-}
 
 const loading = ref(false)
 const loadingMore = ref(false)
@@ -393,7 +445,12 @@ const selectedTopic = ref(null)
 const allTopics = ref([])
 const topicsLoading = ref(false)
 
-const debouncedSearchTopics = useDebounce(() => {
+const hotTopics = ref([])
+const hotTopicsLoading = ref(false)
+const hotPosts = ref([])
+const hotPostsLoading = ref(false)
+
+const debouncedSearchTopics = debounce(() => {
   showTopicDropdown.value = true
 }, 300)
 
@@ -674,7 +731,8 @@ const openCreateModal = () => {
     topicsLoading.value = true
     topicApi.getTopicList({ pageNum: 1, pageSize: 100 })
       .then(res => {
-        allTopics.value = Array.isArray(res.data) ? res.data : []
+        const data = res.data
+        allTopics.value = Array.isArray(data) ? data : (data?.records || [])
       })
       .catch(() => {})
       .finally(() => {
@@ -685,6 +743,7 @@ const openCreateModal = () => {
 
 onMounted(() => {
   fetchPosts(true)
+  fetchSidebarData()
   if (route.query.create === 'true') {
     nextTick(() => {
       openCreateModal()
@@ -693,6 +752,21 @@ onMounted(() => {
   }
 })
 
+const fetchSidebarData = async () => {
+  hotTopicsLoading.value = true
+  hotPostsLoading.value = true
+  try {
+    const res = await topicApi.getHotTopics()
+    const data = res.data
+    hotTopics.value = Array.isArray(data) ? data : (data?.records || [])
+  } catch {} finally { hotTopicsLoading.value = false }
+  try {
+    const res = await circleApi.getRecommendFeed({ pageNum: 1, pageSize: 5 })
+    const list = Array.isArray(res.data) ? res.data : (res.data?.records || [])
+    hotPosts.value = list.slice(0, 5)
+  } catch {} finally { hotPostsLoading.value = false }
+}
+
 onBeforeUnmount(() => {
   if (observer) observer.disconnect()
 })
@@ -700,10 +774,26 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .circle-page {
-  max-width: 640px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: var(--spacing-md);
   min-height: 100vh;
+}
+
+.circle-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr 220px;
+  gap: 24px;
+  align-items: start;
+}
+
+.circle-main {
+  min-width: 0;
+  max-width: 640px;
+}
+
+.circle-container {
+  width: 100%;
 }
 
 .back-btn {
@@ -757,7 +847,7 @@ onBeforeUnmount(() => {
   border-radius: var(--radius-full);
   object-fit: cover;
   flex-shrink: 0;
-  border: 2px solid var(--glass-border);
+  border: 2px solid var(--border-solid);
   box-shadow: var(--shadow-sm);
 }
 
@@ -850,7 +940,7 @@ onBeforeUnmount(() => {
   height: 42px;
   border-radius: var(--radius-full);
   object-fit: cover;
-  border: 2px solid var(--glass-border);
+  border: 2px solid var(--border-solid);
   transition: all var(--transition);
 }
 
@@ -1297,7 +1387,7 @@ onBeforeUnmount(() => {
   border-radius: var(--radius-full);
   object-fit: cover;
   flex-shrink: 0;
-  border: 2px solid var(--glass-border);
+  border: 2px solid var(--border-solid);
 }
 
 .create-info {
@@ -1465,6 +1555,52 @@ onBeforeUnmount(() => {
 }
 
 .remove-image:hover {
+  background: var(--error);
+  transform: scale(1.1);
+}
+
+.uploaded-videos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.video-item {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #000;
+  max-width: 100%;
+}
+
+.video-preview {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  display: block;
+}
+
+.remove-video {
+  position: absolute;
+  top: var(--spacing-xs);
+  right: var(--spacing-xs);
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+
+.remove-video:hover {
   background: var(--error);
   transform: scale(1.1);
 }
@@ -1925,5 +2061,158 @@ onBeforeUnmount(() => {
   }
   .preview-nav.prev { left: var(--spacing-sm); }
   .preview-nav.next { right: var(--spacing-sm); }
+
+  .circle-layout {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .sidebar-left, .sidebar-right {
+    display: none !important;
+  }
+
+  .circle-main {
+    max-width: none;
+  }
+
+  .circle-container {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+}
+
+.sidebar-card {
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  position: sticky;
+  top: calc(var(--navbar-height) + var(--spacing-md));
+}
+
+.sidebar-card-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.sidebar-topic-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.sidebar-topic-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: all var(--transition);
+}
+
+.sidebar-topic-item:hover {
+  background: var(--primary-light);
+}
+
+.sidebar-topic-name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--primary);
+}
+
+.sidebar-topic-count {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.sidebar-post-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.sidebar-post-item {
+  display: block;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: all var(--transition);
+  border: 1px solid var(--glass-border);
+}
+
+.sidebar-post-item:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+
+.sidebar-post-author {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+}
+
+.sidebar-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  border: 1px solid var(--border-solid);
+}
+
+.sidebar-post-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.sidebar-post-text {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0 0 var(--spacing-xs);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sidebar-post-stats {
+  display: flex;
+  gap: var(--spacing-sm);
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.sidebar-loading {
+  text-align: center;
+  padding: var(--spacing-md);
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.sidebar-empty {
+  text-align: center;
+  padding: var(--spacing-md);
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.spinner-small {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: var(--radius-full);
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+  margin-right: 4px;
 }
 </style>

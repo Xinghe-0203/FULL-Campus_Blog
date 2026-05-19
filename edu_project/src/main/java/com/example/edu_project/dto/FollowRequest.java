@@ -1,6 +1,7 @@
 package com.example.edu_project.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -12,6 +13,6 @@ import lombok.Data;
 public class FollowRequest {
 
     @NotNull(message = "目标用户ID不能为空")
-    @Schema(description = "目标用户ID", required = true)
+    @Schema(description = "目标用户ID", requiredMode = RequiredMode.REQUIRED)
     private Long targetUserId;
 }

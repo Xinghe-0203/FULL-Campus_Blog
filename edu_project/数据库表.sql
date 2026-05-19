@@ -126,7 +126,7 @@ CREATE TABLE `blog_post` (
 
     `content`           LONGTEXT        NOT NULL                     COMMENT '文章正文内容，存储 Markdown 格式的原始文本，支持大型富文本',
 
-    `topic_id`          BIGINT          DEFAULT NULL                  COMMENT '关联话题ID，关联 blog_topic 表',
+    `topic_ids`         JSON            DEFAULT NULL                  COMMENT '关联话题ID数组（JSON格式）',
 
     `category`          VARCHAR(50)     DEFAULT '其他'                COMMENT '文章所属分类，如"技术分享"、"校园生活"、"资源下载"等，默认为"其他"',
 
@@ -1007,150 +1007,202 @@ CREATE TABLE `blog_message` (
 
 
 -- ============================================================================
--- 性能优化索引（v1.42 合并版本）
--- ============================================================================
--- 说明：以下索引用于优化高频查询场景的性能
+-- 性能优化索引 - 合并版本 v2.0
+-- 解决 "VERY SLOW" 接口问题（15秒+ 响应时间）
+-- 说明: 所有索引创建语句都是幂等的，重复执行不会报错
+-- 合并了 v1.42 + v2.0 所有唯一索引
 -- ============================================================================
 
+-- 辅助存储过程：创建索引（如果不存在）
+DELIMITER //
+CREATE PROCEDURE IF NOT EXISTS create_index_if_not_exists(
+    IN p_table_name VARCHAR(64),
+    IN p_index_name VARCHAR(64),
+    IN p_index_sql VARCHAR(512)
+)
+BEGIN
+    SET @exist:= (SELECT COUNT(*) FROM information_schema.statistics
+                  WHERE table_schema = DATABASE() AND table_name = p_table_name
+                  AND index_name = p_index_name);
+    IF @exist = 0 THEN
+        SET @sqlstmt:= p_index_sql;
+        PREPARE stmt FROM @sqlstmt;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END IF;
+END //
+DELIMITER ;
+
+-- ============================================================================
 -- blog_post 表索引
-CREATE INDEX idx_blog_post_user_create_time ON blog_post (user_id, create_time);
-CREATE INDEX idx_blog_post_like_count ON blog_post (like_count);
-CREATE INDEX idx_blog_post_view_count ON blog_post (view_count);
+-- ============================================================================
+-- 用户+创建时间复合索引（用户文章列表）
+CALL create_index_if_not_exists('blog_post', 'idx_blog_post_user_create_time', 'CREATE INDEX idx_blog_post_user_create_time ON blog_post (user_id, create_time)');
+
+-- 点赞数索引（热门文章排序）
+CALL create_index_if_not_exists('blog_post', 'idx_blog_post_like_count', 'CREATE INDEX idx_blog_post_like_count ON blog_post (like_count)');
+
+-- 浏览数索引
+CALL create_index_if_not_exists('blog_post', 'idx_blog_post_view_count', 'CREATE INDEX idx_blog_post_view_count ON blog_post (view_count)');
+
+-- 文章列表查询优化（状态+删除+创建时间DESC）
+CALL create_index_if_not_exists('blog_post', 'idx_post_status_deleted_create', 'CREATE INDEX idx_post_status_deleted_create ON blog_post (status, is_deleted, create_time DESC)');
+
+-- 文章热门排序优化（状态+删除+浏览量DESC）
+CALL create_index_if_not_exists('blog_post', 'idx_post_status_deleted_view', 'CREATE INDEX idx_post_status_deleted_view ON blog_post (status, is_deleted, view_count DESC)');
+
+-- 文章精华排序优化（状态+删除+点赞量DESC）
+CALL create_index_if_not_exists('blog_post', 'idx_post_status_deleted_like', 'CREATE INDEX idx_post_status_deleted_like ON blog_post (status, is_deleted, like_count DESC)');
 
 -- 全文搜索索引（用于文章标题和内容的全文检索）
-ALTER TABLE blog_post ADD FULLTEXT INDEX ft_post_title_content (title, content);
+SET @exist:= (SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'blog_post' AND index_name = 'ft_post_title_content');
+IF @exist = 0 THEN
+    ALTER TABLE blog_post ADD FULLTEXT INDEX ft_post_title_content (title, content);
+END IF;
 
+-- ============================================================================
 -- blog_comment 表索引
-CREATE INDEX idx_blog_comment_post_create_time ON blog_comment (post_id, create_time);
-CREATE INDEX idx_blog_comment_parent_create_time ON blog_comment (parent_id, create_time);
+-- ============================================================================
+-- 评论文章ID索引（统计评论数）
+CALL create_index_if_not_exists('blog_comment', 'idx_comment_post_id', 'CREATE INDEX idx_comment_post_id ON blog_comment (post_id, create_time DESC)');
 
+-- 评论+创建时间复合索引
+CALL create_index_if_not_exists('blog_comment', 'idx_blog_comment_post_create_time', 'CREATE INDEX idx_blog_comment_post_create_time ON blog_comment (post_id, create_time)');
+
+-- 父评论+创建时间复合索引（二级回复）
+CALL create_index_if_not_exists('blog_comment', 'idx_blog_comment_parent_create_time', 'CREATE INDEX idx_blog_comment_parent_create_time ON blog_comment (parent_id, create_time)');
+
+-- ============================================================================
 -- blog_like 表索引
-CREATE INDEX idx_blog_like_user_create_time ON blog_like (user_id, create_time);
+-- ============================================================================
+-- 点赞文章ID索引（统计点赞数）
+CALL create_index_if_not_exists('blog_like', 'idx_like_post_id', 'CREATE INDEX idx_like_post_id ON blog_like (post_id, create_time DESC)');
 
+-- 用户+创建时间复合索引（用户点赞列表）
+CALL create_index_if_not_exists('blog_like', 'idx_blog_like_user_create_time', 'CREATE INDEX idx_blog_like_user_create_time ON blog_like (user_id, create_time)');
+
+-- ============================================================================
 -- blog_collect 表索引
-CREATE INDEX idx_blog_collect_user_create_time ON blog_collect (user_id, create_time);
+-- ============================================================================
+-- 收藏文章ID索引（统计收藏数）
+CALL create_index_if_not_exists('blog_collect', 'idx_collect_post_id', 'CREATE INDEX idx_collect_post_id ON blog_collect (post_id, create_time DESC)');
 
+-- 用户+创建时间复合索引（用户收藏列表）
+CALL create_index_if_not_exists('blog_collect', 'idx_blog_collect_user_create_time', 'CREATE INDEX idx_blog_collect_user_create_time ON blog_collect (user_id, create_time)');
+
+-- ============================================================================
 -- blog_follow 表索引
-CREATE INDEX idx_blog_follow_follower_is_deleted ON blog_follow (follower_id, is_deleted);
+-- ============================================================================
+-- 关注者+删除状态复合索引
+CALL create_index_if_not_exists('blog_follow', 'idx_blog_follow_follower_is_deleted', 'CREATE INDEX idx_blog_follow_follower_is_deleted ON blog_follow (follower_id, is_deleted)');
 
+-- 关注关系创建时间索引
+CALL create_index_if_not_exists('blog_follow', 'idx_follow_create_time', 'CREATE INDEX idx_follow_create_time ON blog_follow (create_time DESC)');
+
+-- ============================================================================
 -- blog_report 表索引
-CREATE INDEX idx_blog_report_status_create_time ON blog_report (status, create_time);
-CREATE INDEX idx_blog_report_target ON blog_report (target_type, target_id);
+-- ============================================================================
+-- 举报处理时间查询优化
+CALL create_index_if_not_exists('blog_report', 'idx_report_handle_time', 'CREATE INDEX idx_report_handle_time ON blog_report (handle_time, status)');
 
+-- 状态+创建时间复合索引（举报列表）
+CALL create_index_if_not_exists('blog_report', 'idx_blog_report_status_create_time', 'CREATE INDEX idx_blog_report_status_create_time ON blog_report (status, create_time)');
+
+-- 举报目标索引（按target查询）
+CALL create_index_if_not_exists('blog_report', 'idx_blog_report_target', 'CREATE INDEX idx_blog_report_target ON blog_report (target_type, target_id)');
+
+-- ============================================================================
 -- blog_notification 表索引
-CREATE INDEX idx_blog_notification_user_is_read ON blog_notification (user_id, is_read);
-CREATE INDEX idx_blog_notification_type ON blog_notification (type);
-CREATE INDEX idx_blog_notification_create_time ON blog_notification (create_time);
-CREATE INDEX idx_blog_notification_user_is_read_created ON blog_notification (user_id, is_read, create_time);
+-- ============================================================================
+-- 通知列表查询优化
+CALL create_index_if_not_exists('blog_notification', 'idx_notification_user_read_create', 'CREATE INDEX idx_notification_user_read_create ON blog_notification (user_id, is_read, create_time DESC)');
 
+-- 用户+已读状态复合索引
+CALL create_index_if_not_exists('blog_notification', 'idx_blog_notification_user_is_read', 'CREATE INDEX idx_blog_notification_user_is_read ON blog_notification (user_id, is_read)');
+
+-- 通知类型索引
+CALL create_index_if_not_exists('blog_notification', 'idx_blog_notification_type', 'CREATE INDEX idx_blog_notification_type ON blog_notification (type)');
+
+-- 创建时间索引
+CALL create_index_if_not_exists('blog_notification', 'idx_blog_notification_create_time', 'CREATE INDEX idx_blog_notification_create_time ON blog_notification (create_time)');
+
+-- ============================================================================
 -- blog_message 表索引
-CREATE INDEX idx_blog_message_sender_receiver_deleted ON blog_message (sender_id, receiver_id, is_deleted);
+-- ============================================================================
+-- 消息未读计数优化（receiver_id + is_read）
+CALL create_index_if_not_exists('blog_message', 'idx_message_receiver_read', 'CREATE INDEX idx_message_receiver_read ON blog_message (receiver_id, is_read)');
 
+-- 消息会话查询优化（sender + create_time）
+CALL create_index_if_not_exists('blog_message', 'idx_message_sender_time', 'CREATE INDEX idx_message_sender_time ON blog_message (sender_id, create_time DESC)');
+
+-- 消息会话查询优化（receiver + create_time）
+CALL create_index_if_not_exists('blog_message', 'idx_message_receiver_time', 'CREATE INDEX idx_message_receiver_time ON blog_message (receiver_id, create_time DESC)');
+
+-- 发送者+接收者+删除状态复合索引
+CALL create_index_if_not_exists('blog_message', 'idx_blog_message_sender_receiver_deleted', 'CREATE INDEX idx_blog_message_sender_receiver_deleted ON blog_message (sender_id, receiver_id, is_deleted)');
+
+-- ============================================================================
 -- blog_draft 表索引
-CREATE INDEX idx_blog_draft_user_deleted ON blog_draft (user_id, is_deleted);
+-- ============================================================================
+-- 草稿用户+删除状态复合索引
+CALL create_index_if_not_exists('blog_draft', 'idx_blog_draft_user_deleted', 'CREATE INDEX idx_blog_draft_user_deleted ON blog_draft (user_id, is_deleted)');
 
+-- ============================================================================
 -- blog_circle_post 表索引
-CREATE INDEX idx_circle_post_visibility_deleted ON blog_circle_post (visibility, is_deleted);
-CREATE INDEX idx_circle_post_top ON blog_circle_post (is_top DESC);
+-- ============================================================================
+-- 校友圈热门内容优化（状态+可见性+点赞量）
+CALL create_index_if_not_exists('blog_circle_post', 'idx_circle_status_visibility_like', 'CREATE INDEX idx_circle_status_visibility_like ON blog_circle_post (status, visibility, like_count DESC)');
 
+-- 可见性+删除状态复合索引
+CALL create_index_if_not_exists('blog_circle_post', 'idx_circle_post_visibility_deleted', 'CREATE INDEX idx_circle_post_visibility_deleted ON blog_circle_post (visibility, is_deleted)');
+
+-- 置顶索引
+CALL create_index_if_not_exists('blog_circle_post', 'idx_circle_post_top', 'CREATE INDEX idx_circle_post_top ON blog_circle_post (is_top DESC)');
+
+-- ============================================================================
 -- blog_topic 表索引
-CREATE INDEX idx_topic_trending ON blog_topic (trending_score DESC);
+-- ============================================================================
+-- 话题热度排序
+CALL create_index_if_not_exists('blog_topic', 'idx_topic_trending', 'CREATE INDEX idx_topic_trending ON blog_topic (trending_score DESC)');
 
+-- ============================================================================
 -- blog_media 表索引
-CREATE INDEX idx_media_user_type ON blog_media (user_id, file_type);
+-- ============================================================================
+-- 媒体用户+类型复合索引
+CALL create_index_if_not_exists('blog_media', 'idx_media_user_type', 'CREATE INDEX idx_media_user_type ON blog_media (user_id, file_type)');
 
+-- ============================================================================
 -- blog_circle_comment 表索引
-CREATE INDEX idx_circle_comment_post_time ON blog_circle_comment (post_id, create_time);
+-- ============================================================================
+-- 校友圈评论优化
+CALL create_index_if_not_exists('blog_circle_comment', 'idx_circle_comment_post', 'CREATE INDEX idx_circle_comment_post ON blog_circle_comment (post_id, create_time DESC)');
 
+-- 校友圈评论+时间复合索引
+CALL create_index_if_not_exists('blog_circle_comment', 'idx_circle_comment_post_time', 'CREATE INDEX idx_circle_comment_post_time ON blog_circle_comment (post_id, create_time)');
 
 -- ============================================================================
--- 外键约束（可选，v1.42 合并版本）
+-- blog_trending 表索引
 -- ============================================================================
--- 说明：以下外键约束根据实际需要选择性启用
--- 注意：如果数据量较大，外键约束可能影响写入性能，可选择使用
+-- 热门内容查询优化（日期+热度分数）
+CALL create_index_if_not_exists('blog_trending', 'idx_trending_date_score', 'CREATE INDEX idx_trending_date_score ON blog_trending (date, score DESC)');
+
 -- ============================================================================
+-- blog_post_tag 表索引
+-- ============================================================================
+-- 标签文章计数优化
+CALL create_index_if_not_exists('blog_post_tag', 'idx_post_tag_tag_id', 'CREATE INDEX idx_post_tag_tag_id ON blog_post_tag (tag_id, post_id)');
 
--- ALTER TABLE blog_post ADD CONSTRAINT fk_post_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_post ADD CONSTRAINT fk_post_reviewer FOREIGN KEY (reviewer_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_comment ADD CONSTRAINT fk_comment_post FOREIGN KEY (post_id) REFERENCES blog_post(id);
--- ALTER TABLE blog_comment ADD CONSTRAINT fk_comment_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_comment ADD CONSTRAINT fk_comment_parent FOREIGN KEY (parent_id) REFERENCES blog_comment(id);
--- ALTER TABLE blog_like ADD CONSTRAINT fk_like_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_like ADD CONSTRAINT fk_like_post FOREIGN KEY (post_id) REFERENCES blog_post(id);
--- ALTER TABLE blog_collect ADD CONSTRAINT fk_collect_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_collect ADD CONSTRAINT fk_collect_post FOREIGN KEY (post_id) REFERENCES blog_post(id);
--- ALTER TABLE blog_follow ADD CONSTRAINT fk_follow_follower FOREIGN KEY (follower_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_follow ADD CONSTRAINT fk_follow_following FOREIGN KEY (following_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_notification ADD CONSTRAINT fk_notification_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_notification ADD CONSTRAINT fk_notification_from_user FOREIGN KEY (from_user_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_trending ADD CONSTRAINT fk_trending_post FOREIGN KEY (post_id) REFERENCES blog_post(id);
--- ALTER TABLE blog_draft ADD CONSTRAINT fk_draft_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_report ADD CONSTRAINT fk_report_reporter FOREIGN KEY (reporter_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_circle_post ADD CONSTRAINT fk_circle_post_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_circle_like ADD CONSTRAINT fk_circle_like_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_circle_comment ADD CONSTRAINT fk_circle_comment_post FOREIGN KEY (post_id) REFERENCES blog_circle_post(id);
--- ALTER TABLE blog_circle_comment ADD CONSTRAINT fk_circle_comment_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_circle_repost ADD CONSTRAINT fk_circle_repost_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_media ADD CONSTRAINT fk_media_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_message ADD CONSTRAINT fk_message_sender FOREIGN KEY (sender_id) REFERENCES sys_user(id);
--- ALTER TABLE blog_message ADD CONSTRAINT fk_message_receiver FOREIGN KEY (receiver_id) REFERENCES sys_user(id);
--- ==================== 迁移脚本（已有数据库需执行） ====================
+-- ============================================================================
+-- sys_user 表索引
+-- ============================================================================
+-- 用户创建时间索引（统计增长趋势）
+CALL create_index_if_not_exists('sys_user', 'idx_user_create_time', 'CREATE INDEX idx_user_create_time ON sys_user (create_time DESC)');
 
--- v1.47: blog_draft.content 从 TEXT 改为 LONGTEXT，与 blog_post.content 保持一致
--- ALTER TABLE blog_draft MODIFY COLUMN `content` LONGTEXT DEFAULT NULL COMMENT '草稿内容';
+-- 删除辅助存储过程
+DROP PROCEDURE IF EXISTS create_index_if_not_exists;
 
-
--- =============================================================================
--- 性能优化索引 (v2.0)
--- 添加时间: 2026-05-17
--- 解决 "VERY SLOW" 接口问题（15秒+ 响应时间）
--- =============================================================================
-
--- 1. 消息未读计数优化（修复 /api/message/unread-count 15248ms）
-CREATE INDEX IF NOT EXISTS idx_message_receiver_read ON blog_message (receiver_id, is_read);
-
--- 2. 消息会话查询优化（修复 /api/message/conversations）
-CREATE INDEX IF NOT EXISTS idx_message_sender_time ON blog_message (sender_id, create_time DESC);
-CREATE INDEX IF NOT EXISTS idx_message_receiver_time ON blog_message (receiver_id, create_time DESC);
-
--- 3. 热门内容查询优化（修复 /api/trending/* 15976ms）
-CREATE INDEX IF NOT EXISTS idx_trending_date_score ON blog_trending (date, score DESC);
-
--- 4. 校友圈热门内容优化
-CREATE INDEX IF NOT EXISTS idx_circle_status_visibility_like ON blog_circle_post (status, visibility, like_count DESC);
-
--- 5. 举报处理时间查询优化
-CREATE INDEX IF NOT EXISTS idx_report_handle_time ON blog_report (handle_time, status);
-
--- 6. 文章列表查询优化（修复 /api/post/list 18117ms）
-CREATE INDEX IF NOT EXISTS idx_post_status_deleted_create ON blog_post (status, is_deleted, create_time DESC);
-
--- 7. 文章热门排序优化
-CREATE INDEX IF NOT EXISTS idx_post_status_deleted_view ON blog_post (status, is_deleted, view_count DESC);
-
--- 8. 文章精华排序优化
-CREATE INDEX IF NOT EXISTS idx_post_status_deleted_like ON blog_post (status, is_deleted, like_count DESC);
-
--- 9. 通知列表查询优化
-CREATE INDEX IF NOT EXISTS idx_notification_user_read_create ON blog_notification (user_id, is_read, create_time DESC);
-
--- 10. 用户创建时间索引（统计增长趋势）
-CREATE INDEX IF NOT EXISTS idx_user_create_time ON sys_user (create_time DESC);
-
--- 11. 评论文章ID索引（统计评论数）
-CREATE INDEX IF NOT EXISTS idx_comment_post_id ON blog_comment (post_id, create_time DESC);
-
--- 12. 点赞文章ID索引（统计点赞数）
-CREATE INDEX IF NOT EXISTS idx_like_post_id ON blog_like (post_id, create_time DESC);
-
--- 13. 收藏文章ID索引（统计收藏数）
-CREATE INDEX IF NOT EXISTS idx_collect_post_id ON blog_collect (post_id, create_time DESC);
-
--- 14. 标签文章计数优化
-CREATE INDEX IF NOT EXISTS idx_post_tag_tag_id ON blog_post_tag (tag_id, post_id);
-
--- 15. 校友圈评论优化
-CREATE INDEX IF NOT EXISTS idx_circle_comment_post ON blog_circle_comment (post_id, create_time DESC);
-
--- 16. 关注关系创建时间索引
-CREATE INDEX IF NOT EXISTS idx_follow_create_time ON blog_follow (create_time DESC);
+-- ============================================================================
+-- 默认管理员账户（密码：Admin123）
+-- ============================================================================
+INSERT INTO `sys_user` (`username`, `password`, `nickname`, `avatar`, `role`, `status`, `email`, `bio`)
+VALUES ('admin', '$2a$12$ShVWnPHU2PI/YQQM4ZqAoOSSJRPl7M5yyJe5SLRLu7PHnd3SQcQWq', '管理员', NULL, 'admin', 1, 'admin@campusblog.com', '系统管理员');

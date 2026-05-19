@@ -33,8 +33,9 @@ public class Topic implements Serializable {
 
     /**
      * 关联动态数
+     * 【已冗余】通过 blog_circle_post.topic_id 实时聚合，不再维护此字段
      */
-    private Integer postCount;
+    // private Integer postCount;
 
     /**
      * 热度分数

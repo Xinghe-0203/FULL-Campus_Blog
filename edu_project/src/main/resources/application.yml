@@ -62,8 +62,10 @@ spring:
   servlet:
     multipart:
       enabled: true
-      max-file-size: ${UPLOAD_MAX_FILE_SIZE:50MB}
-      max-request-size: ${UPLOAD_MAX_REQUEST_SIZE:100MB}
+      # 注意：Spring Boot 只支持字节格式，不接受 "50MB" 字符串
+      # 50MB = 52428800 字节，100MB = 104857600 字节
+      max-file-size: ${UPLOAD_MAX_FILE_SIZE:52428800}
+      max-request-size: ${UPLOAD_MAX_REQUEST_SIZE:104857600}
 
   # ==================== 邮件配置 ====================
   mail:

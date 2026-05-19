@@ -28,7 +28,7 @@ export const messageApi = {
    * @returns {Promise<{code: number, message: string, data: Object}>}
    */
   sendMessage(data) {
-    return api.post('/message/send', data)
+    return api.post('/message', data)
   },
 
   /**

@@ -19,7 +19,7 @@ export const collectApi = {
    * @returns {Promise<{code: number, message: string, data: Object}>}
    */
   checkCollectStatus(postId) {
-    return api.get(`/collect/check/${postId}`)
+    return api.get(`/collect/${postId}/status`)
   },
 
   /**

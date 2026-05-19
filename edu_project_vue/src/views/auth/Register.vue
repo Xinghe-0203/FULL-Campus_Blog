@@ -25,8 +25,10 @@
               v-model="form.username" 
               type="text" 
               class="form-input"
-              placeholder="请输入用户名"
+              placeholder="6位以上小写英文字母、数字"
               required
+              pattern="[a-z0-9]{6,}"
+              title="用户名需为6位以上的小写英文字母和数字"
             />
           </div>
           
@@ -215,8 +217,8 @@ const handleRegister = async () => {
     return
   }
 
-  if (usernameTrimmed.length < 3 || usernameTrimmed.length > 20) {
-    toast.error('用户名长度应为3-20个字符')
+  if (!/^[a-z0-9]{6,20}$/.test(usernameTrimmed)) {
+    toast.error('用户名需为6-20位小写英文字母和数字')
     return
   }
 

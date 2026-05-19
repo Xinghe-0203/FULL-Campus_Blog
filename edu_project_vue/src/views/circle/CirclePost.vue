@@ -110,16 +110,18 @@
           </div>
 
           <div class="topic-selector">
-            <div v-if="selectedTopic" class="selected-topic">
-              <span class="topic-badge glass-chip">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
-                {{ selectedTopic.name }}
-              </span>
-              <button class="remove-topic" @click="removeTopic" title="移除话题">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
+            <div v-if="selectedTopics.length" class="selected-topics">
+              <div v-for="topic in selectedTopics" :key="topic.id" class="selected-topic">
+                <span class="topic-badge glass-chip">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                  {{ topic.name }}
+                </span>
+                <button class="remove-topic" @click="removeTopic(topic)" title="移除话题">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
             </div>
-            <div v-else class="topic-input-wrapper">
+            <div class="topic-input-wrapper">
               <div class="topic-search-box glass">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 <input v-model="topicSearch" placeholder="添加话题..." @focus="showTopicDropdown = true" @blur="hideTopicDropdown" />
@@ -132,6 +134,9 @@
                   </div>
                 </div>
               </transition>
+              <div v-if="topicSearch.trim() && !filteredTopics.length" class="no-topics">
+                <button class="btn btn-text btn-xs" @click="createTopicAndAdd">创建「{{ topicSearch }}」话题</button>
+              </div>
             </div>
           </div>
 
@@ -213,23 +218,8 @@ const currentUploadIndex = ref(0)
 const totalUploadCount = ref(0)
 const textareaRef = ref(null)
 
-const topicSearch = ref('')
+const selectedTopics = ref([])
 const showTopicDropdown = ref(false)
-const selectedTopic = ref(null)
-const allTopics = ref([])
-
-const showMentionDropdown = ref(false)
-const mentionLoading = ref(false)
-const mentionResults = ref([])
-const mentionSearchTimer = ref(null)
-const mentionKeyword = ref('')
-
-const showLocationInput = ref(false)
-
-const tagInput = ref('')
-
-const allowComment = ref(true)
-const allowRepost = ref(true)
 
 const filteredTopics = computed(() => {
   if (!topicSearch.value) return allTopics.value
@@ -238,14 +228,34 @@ const filteredTopics = computed(() => {
 })
 
 const selectTopic = (topic) => {
-  selectedTopic.value = topic
+  if (!selectedTopics.value.find(t => t.id === topic.id)) {
+    selectedTopics.value.push(topic)
+  }
   topicSearch.value = ''
   showTopicDropdown.value = false
 }
 
-const removeTopic = () => {
-  selectedTopic.value = null
-  topicSearch.value = ''
+const removeTopic = (topic) => {
+  selectedTopics.value = selectedTopics.value.filter(t => t.id !== topic.id)
+}
+
+async function createTopicAndAdd() {
+  const name = topicSearch.value.trim()
+  if (!name) return
+  try {
+    const res = await topicApi.createTopic({ name, description: '' })
+    const newTopic = res.data
+    if (newTopic && newTopic.id) {
+      if (!selectedTopics.value.find(t => t.id === newTopic.id)) {
+        selectedTopics.value.push(newTopic)
+      }
+    }
+    await fetchTopics()
+    toast.success('话题已创建')
+  } catch (err) {
+    logger.error('create topic error', { error: err.message })
+    toast.error(err.response?.data?.message || '创建话题失败')
+  }
 }
 
 const hideTopicDropdown = () => {
@@ -447,7 +457,8 @@ onMounted(() => {
   }
   document.title = '发布动态 - 校友圈'
   topicApi.getTopicList({ pageNum: 1, pageSize: 100 }).then(res => {
-    allTopics.value = Array.isArray(res.data) ? res.data : []
+    const data = res.data
+    allTopics.value = Array.isArray(data) ? data : (data?.records || [])
   }).catch(() => {})
 })
 </script>
@@ -521,7 +532,7 @@ onMounted(() => {
   border-radius: var(--radius-full);
   object-fit: cover;
   flex-shrink: 0;
-  border: 2px solid var(--glass-border);
+  border: 2px solid var(--border-solid);
   box-shadow: var(--shadow-sm);
 }
 
@@ -1160,6 +1171,133 @@ onMounted(() => {
 
 .tag-input::placeholder {
   color: var(--text-muted);
+}
+
+/* 话题选择 */
+.topic-selector {
+  margin-bottom: var(--spacing-md);
+}
+
+.selected-topic {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--glass-bg);
+  border-radius: var(--radius);
+}
+
+.topic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.remove-topic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.6;
+  transition: all var(--transition);
+  border-radius: var(--radius-full);
+}
+
+.remove-topic:hover {
+  opacity: 1;
+  background: var(--primary);
+  color: white;
+}
+
+.topic-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.topic-search-box {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  transition: all var(--transition);
+}
+
+.topic-search-box:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.topic-search-box svg {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+}
+
+.topic-search-box input {
+  flex: 1;
+  border: none;
+  font-size: 0.875rem;
+  background: transparent;
+  color: var(--text-primary);
+  padding: 0 var(--spacing-sm);
+}
+
+.topic-search-box input::placeholder {
+  color: var(--text-muted);
+}
+
+.topic-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: var(--spacing-xs);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  box-shadow: var(--shadow-md);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.topic-dropdown-item {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.topic-dropdown-item:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.no-topics {
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.no-topics button {
+  margin-top: var(--spacing-sm);
 }
 
 .toggle-options {

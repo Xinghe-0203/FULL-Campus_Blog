@@ -33,6 +33,8 @@ import com.example.edu_project.service.BlogTagService;
 import com.example.edu_project.service.NotificationService;
 import com.example.edu_project.service.TopicService;
 import com.example.edu_project.service.TrendingService;
+import com.example.edu_project.common.enums.IsDeleted;
+import com.example.edu_project.common.enums.PostStatus;
 import com.example.edu_project.config.CaffeineCacheConfig;
 import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.SecurityUtils;
@@ -125,11 +127,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         );
     }
 
-    @Override
-    @CacheEvict(value = CaffeineCacheConfig.TRENDING_CACHE, allEntries = true)
-    @Transactional(rollbackFor = Exception.class)
-    public Long createPost(PostCreateRequest request, Long userId, boolean isAdmin) {
-        // 参数校验
+    private void validatePostRequest(PostCreateRequest request) {
         if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
             throw new BusinessException(400, "文章标题不能为空");
         }
@@ -142,6 +140,14 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         if (request.getContent() != null && request.getContent().length() > 50000) {
             throw new BusinessException(400, "文章内容不能超过50000字符");
         }
+    }
+
+    @Override
+    @CacheEvict(value = {CaffeineCacheConfig.TRENDING_CACHE, CaffeineCacheConfig.STATS_CACHE, CaffeineCacheConfig.CATEGORY_CACHE}, allEntries = true)
+    @Transactional(rollbackFor = Exception.class)
+    public Long createPost(PostCreateRequest request, Long userId, boolean isAdmin) {
+        // 参数校验
+        validatePostRequest(request);
 
         // XSS 防护：对用户输入进行 HTML 过滤
         String sanitizedTitle = htmlSanitizer.sanitizeRichText(request.getTitle());
@@ -166,9 +172,11 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         post.setCommentCount(0);
         post.setCollectCount(0);
         // 管理员和普通用户均可直接发布，无需审核
-        post.setStatus(1);
+        post.setStatus(PostStatus.PUBLISHED.getValue());
         post.setCoverUrl(request.getCoverImage());
-        post.setTopicId(request.getTopicId());
+        if (request.getTopicIds() != null && !request.getTopicIds().isEmpty()) {
+            post.setTopicIds(cn.hutool.json.JSONUtil.toJsonStr(request.getTopicIds()));
+        }
 
         this.save(post);
 
@@ -188,25 +196,14 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     }
 
     @Override
-    @CacheEvict(value = CaffeineCacheConfig.TRENDING_CACHE, allEntries = true)
+    @CacheEvict(value = {CaffeineCacheConfig.TRENDING_CACHE, CaffeineCacheConfig.STATS_CACHE, CaffeineCacheConfig.CATEGORY_CACHE}, allEntries = true)
     @Transactional(rollbackFor = Exception.class)
-    public void updatePost(PostCreateRequest request, Long userId, boolean isAdmin, boolean isPostAuthor) {
+    public void updatePost(PostCreateRequest request, Long userId, boolean isAdmin) {
         // 参数校验
         if (request.getId() == null) {
             throw new BusinessException(400, "文章ID不能为空");
         }
-        if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
-            throw new BusinessException(400, "文章标题不能为空");
-        }
-        if (request.getContent() == null || request.getContent().trim().isEmpty()) {
-            throw new BusinessException(400, "文章内容不能为空");
-        }
-        if (request.getTitle().length() > 200) {
-            throw new BusinessException(400, "文章标题不能超过200字符");
-        }
-        if (request.getContent() != null && request.getContent().length() > 50000) {
-            throw new BusinessException(400, "文章内容不能超过50000字符");
-        }
+        validatePostRequest(request);
 
         if (userId == null) {
             throw new BusinessException(401, "用户未登录");
@@ -239,13 +236,15 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
             post.setCategory(htmlSanitizer.sanitizePlainText(request.getCategory()));
         }
         post.setCoverUrl(request.getCoverImage());
-        if (request.getTopicId() != null) {
-            post.setTopicId(request.getTopicId());
+        if (request.getTopicIds() != null && !request.getTopicIds().isEmpty()) {
+            post.setTopicIds(cn.hutool.json.JSONUtil.toJsonStr(request.getTopicIds()));
+        } else {
+            post.setTopicIds(null);
         }
 
         // 编辑文章后保持已发布状态（无需重新审核）
         if (post.getStatus() == null) {
-            post.setStatus(1);
+            post.setStatus(PostStatus.PUBLISHED.getValue());
         }
 
         this.updateById(post);
@@ -262,18 +261,12 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updatePost(PostCreateRequest request, Long userId, boolean isAdmin) {
-        updatePost(request, userId, isAdmin, false);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
     public void updatePost(PostCreateRequest request, Long userId) {
-        updatePost(request, userId, false, false);
+        updatePost(request, userId, false);
     }
 
     @Override
-    @CacheEvict(value = CaffeineCacheConfig.TRENDING_CACHE, allEntries = true)
+    @CacheEvict(value = {CaffeineCacheConfig.TRENDING_CACHE, CaffeineCacheConfig.STATS_CACHE, CaffeineCacheConfig.CATEGORY_CACHE}, allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public void deletePost(Long postId, Long userId, boolean isAdmin) {
         BlogPost post = this.getById(postId);
@@ -281,17 +274,12 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
             throw new BusinessException(404, "文章不存在");
         }
         // 检查是否已被删除
-        if (post.getIsDeleted() != null && post.getIsDeleted() == 1) {
+        if (post.getIsDeleted() != null && post.getIsDeleted() == IsDeleted.DELETED.getValue()) {
             throw new BusinessException(404, "文章不存在");
         }
         // 检查权限：作者本人或管理员可以删除
         if (!Objects.equals(userId, post.getUserId()) && !isAdmin) {
             throw new BusinessException(403, "无权删除此文章");
-        }
-        // 作者删除时，如果文章在待审核状态，禁止删除
-        // DEAD CODE: createPost always sets status=1, so status==0 never occurs
-        if (!isAdmin && post.getStatus() != null && post.getStatus() == 0) {
-            throw new BusinessException(400, "待审核文章不能被删除，请等待审核结果");
         }
 
         // 删除文章
@@ -320,14 +308,14 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         if (post == null) {
             throw new BusinessException(404, "文章不存在");
         }
-        if (post.getIsDeleted() != null && post.getIsDeleted() == 1) {
+        if (post.getIsDeleted() != null && post.getIsDeleted() == IsDeleted.DELETED.getValue()) {
             throw new BusinessException(404, "文章不存在");
         }
 
         Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
         boolean isAuthor = currentUserId != null && currentUserId.equals(post.getUserId());
 
-        if (post.getStatus() == null || post.getStatus() != 1) {
+        if (post.getStatus() == null || post.getStatus() != PostStatus.PUBLISHED.getValue()) {
             if (!isAuthor) {
                 throw new BusinessException(404, "文章不存在");
             }
@@ -361,12 +349,16 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         response.setTags(getTagsByPostId(post.getId()));
 
         // 获取话题信息
-        response.setTopicId(post.getTopicId());
-        if (post.getTopicId() != null) {
+        if (post.getTopicIds() != null && !post.getTopicIds().isEmpty()) {
             try {
-                Topic topic = topicService.getTopicById(post.getTopicId());
-                response.setTopicName(topic.getName());
-            } catch (BusinessException e) {
+                List<Long> ids = cn.hutool.json.JSONUtil.toList(post.getTopicIds(), Long.class);
+                if (!ids.isEmpty()) {
+                    response.setTopicId(ids.get(0));
+                    Topic topic = topicService.getTopicById(ids.get(0));
+                    response.setTopicName(topic.getName());
+                }
+            } catch (Exception e) {
+                response.setTopicId(null);
                 response.setTopicName(null);
             }
         }
@@ -571,19 +563,25 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
 
     private Map<Long, String> getTopicNamesMapByPostIds(List<Long> postIds, List<BlogPost> posts) {
         Map<Long, String> map = new HashMap<>();
-        List<Long> topicIds = posts.stream()
-                .map(BlogPost::getTopicId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .collect(Collectors.toList());
-        if (topicIds.isEmpty()) {
+        List<Long> allTopicIds = new ArrayList<>();
+        for (BlogPost post : posts) {
+            if (post.getTopicIds() != null && !post.getTopicIds().isEmpty()) {
+                try {
+                    List<Long> ids = cn.hutool.json.JSONUtil.toList(post.getTopicIds(), Long.class);
+                    allTopicIds.addAll(ids);
+                } catch (Exception e) {
+                    // ignore parse errors
+                }
+            }
+        }
+        if (allTopicIds.isEmpty()) {
             return map;
         }
-        List<Topic> topics = topicService.listByIds(topicIds);
+        List<Topic> topics = topicService.listByIds(allTopicIds.stream().distinct().collect(Collectors.toList()));
         return topics.stream().collect(Collectors.toMap(Topic::getId, Topic::getName, (a, b) -> a));
     }
 
-    @Cacheable(value = CaffeineCacheConfig.CATEGORY_CACHE, key = "'postTags:' + #postIds.hashCode()")
+    @Cacheable(value = CaffeineCacheConfig.CATEGORY_CACHE, key = "'postTags:' + #postIds.![#this].sort().join(',')")
     public Map<Long, List<PostDetailResponse.TagVO>> getTagsMapByPostIds(List<Long> postIds) {
         if (postIds == null || postIds.isEmpty()) {
             return Collections.emptyMap();
@@ -622,8 +620,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
                 ));
     }
 
-    private PostListResponse convertToListResponse(BlogPost post, SysUser user, List<PostDetailResponse.TagVO> tags, String topicName) {
-        PostListResponse response = new PostListResponse();
+    private void setCommonPostFields(PostListResponse response, BlogPost post, SysUser user, List<PostDetailResponse.TagVO> tags, String topicName) {
         response.setId(post.getId());
         response.setUserId(post.getUserId());
         response.setTitle(post.getTitle());
@@ -636,17 +633,24 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         response.setShareCount(post.getShareCount());
         response.setCreateTime(post.getCreateTime());
         response.setCoverImage(post.getCoverUrl());
-        response.setTopicId(post.getTopicId());
+        if (post.getTopicIds() != null && !post.getTopicIds().isEmpty()) {
+            try {
+                List<Long> ids = cn.hutool.json.JSONUtil.toList(post.getTopicIds(), Long.class);
+                if (!ids.isEmpty()) {
+                    response.setTopicId(ids.get(0));
+                }
+            } catch (Exception e) {
+                response.setTopicId(null);
+            }
+        }
         response.setTopicName(topicName);
 
-        // 使用预获取的作者信息
         if (user != null) {
             response.setUsername(user.getUsername());
             response.setNickname(user.getNickname());
             response.setAvatar(user.getAvatar());
         }
 
-        // 使用预获取的标签信息
         if (tags != null) {
             response.setTags(tags.stream()
                     .map(tag -> {
@@ -659,7 +663,11 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         } else {
             response.setTags(Collections.emptyList());
         }
+    }
 
+    private PostListResponse convertToListResponse(BlogPost post, SysUser user, List<PostDetailResponse.TagVO> tags, String topicName) {
+        PostListResponse response = new PostListResponse();
+        setCommonPostFields(response, post, user, tags, topicName);
         return response;
     }
 
@@ -1172,13 +1180,11 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         return result;
     }
 
-    private PostDetailResponse convertToDetailResponse(BlogPost post, SysUser user, List<PostDetailResponse.TagVO> tags, String topicName) {
-        PostDetailResponse response = new PostDetailResponse();
+    private void setCommonPostFields(PostDetailResponse response, BlogPost post, SysUser user, List<PostDetailResponse.TagVO> tags, String topicName) {
         response.setId(post.getId());
         response.setUserId(post.getUserId());
         response.setTitle(post.getTitle());
         response.setSummary(post.getSummary());
-        response.setContent(post.getContent());
         response.setCategory(post.getCategory());
         response.setViewCount(post.getViewCount() != null ? post.getViewCount() : 0L);
         response.setLikeCount(post.getLikeCount());
@@ -1201,7 +1207,12 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         }
 
         response.setTags(tags != null ? tags : Collections.emptyList());
+    }
 
+    private PostDetailResponse convertToDetailResponse(BlogPost post, SysUser user, List<PostDetailResponse.TagVO> tags, String topicName) {
+        PostDetailResponse response = new PostDetailResponse();
+        setCommonPostFields(response, post, user, tags, topicName);
+        response.setContent(post.getContent());
         return response;
     }
 
@@ -1212,7 +1223,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         if (post == null) {
             throw new BusinessException(404, "文章不存在");
         }
-        if (post.getIsDeleted() != null && post.getIsDeleted() == 1) {
+        if (post.getIsDeleted() != null && post.getIsDeleted() == IsDeleted.DELETED.getValue()) {
             throw new BusinessException(404, "文章不存在");
         }
 
@@ -1306,14 +1317,14 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         if (post == null) {
             throw new BusinessException(404, "文章不存在");
         }
-        if (post.getIsDeleted() != null && post.getIsDeleted() == 1) {
+        if (post.getIsDeleted() != null && post.getIsDeleted() == IsDeleted.DELETED.getValue()) {
             throw new BusinessException(404, "文章不存在");
         }
         if (post.getStatus() != 0) {
             throw new BusinessException(400, "文章不在待审核状态，无法审核");
         }
 
-        post.setStatus(1);
+        post.setStatus(PostStatus.PUBLISHED.getValue());
         post.setReviewerId(reviewerId);
         post.setReviewTime(LocalDateTime.now());
         post.setRejectReason(null);
@@ -1326,7 +1337,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         String approveContent = "您的文章《" + post.getTitle() + "》已通过审核，现已正式发布";
         notificationService.sendNotification("AUDIT", approveTitle, approveContent, reviewerId, post.getUserId(), "POST", post.getId());
 
-log.info("文章审核通过: postId={}, reviewerId={}, title={}", postId, reviewerId, post.getTitle());
+        log.info("文章审核通过: postId={}, reviewerId={}, title={}", postId, reviewerId, post.getTitle());
     }
 
     @Override
@@ -1343,14 +1354,14 @@ log.info("文章审核通过: postId={}, reviewerId={}, title={}", postId, revie
         if (post == null) {
             throw new BusinessException(404, "文章不存在");
         }
-        if (post.getIsDeleted() != null && post.getIsDeleted() == 1) {
+        if (post.getIsDeleted() != null && post.getIsDeleted() == IsDeleted.DELETED.getValue()) {
             throw new BusinessException(404, "文章不存在");
         }
         if (post.getStatus() != 0) {
             throw new BusinessException(400, "文章不在待审核状态，无法驳回");
         }
 
-        post.setStatus(2); // 已驳回
+        post.setStatus(PostStatus.REJECTED.getValue()); // 已驳回
         post.setReviewerId(reviewerId);
         post.setReviewTime(LocalDateTime.now());
         post.setRejectReason(htmlSanitizer.sanitizePlainText(reason));

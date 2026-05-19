@@ -19,7 +19,7 @@ export const likeApi = {
    * @returns {Promise<{code: number, message: string, data: Object}>}
    */
   checkLikeStatus(postId) {
-    return api.get(`/like/check/${postId}`)
+    return api.get(`/like/${postId}/status`)
   },
 
   /**

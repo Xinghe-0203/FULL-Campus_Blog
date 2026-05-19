@@ -18,7 +18,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -43,9 +44,9 @@ public class JwtUtils {
     /**
      * Token黑名单：存储已撤销的Token
      * 生产环境应使用 Redis 实现分布式 Token 黑名单
-     * 使用 LinkedBlockingQueue 实现有界队列，队满时自动淘汰最老的条目
+     * 使用 ConcurrentHashMap 存储，带有过期时间，用于自动清理
      */
-    private final Set<String> tokenBlacklist = ConcurrentHashMap.newKeySet();
+    private final Map<String, Long> tokenBlacklist = new ConcurrentHashMap<>();
 
     /**
      * 用户设备会话映射: userId -> deviceTokens (CopyOnWriteArraySet for concurrent iteration)
@@ -55,11 +56,19 @@ public class JwtUtils {
 
     /**
      * 黑名单最大容量，防止内存无限增长
-     * 队满时清理已过期的token后再添加
      */
     private static final int BLACKLIST_MAX_SIZE = 100_000;
 
     private static final int MAX_DEVICES_PER_USER = 10;
+
+    /**
+     * 清理器：定时清理过期黑名单条目
+     */
+    private final ScheduledExecutorService cleanupScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "jwt-blacklist-cleanup");
+        t.setDaemon(true);
+        return t;
+    });
 
     @PostConstruct
     public void validateSecret() {
@@ -107,8 +116,21 @@ public class JwtUtils {
             while (devices.size() > MAX_DEVICES_PER_USER) {
                 String oldestToken = devices.iterator().next();
                 devices.remove(oldestToken);
-                tokenBlacklist.add(oldestToken);
+                // 旧设备Token加入黑名单（记录过期时间用于自动清理）
+                tokenBlacklist.put(oldestToken, getExpirationFromToken(oldestToken));
             }
+        }
+    }
+
+    /**
+     * 获取Token的过期时间戳（毫秒）
+     */
+    private Long getExpirationFromToken(String token) {
+        try {
+            Claims claims = parseToken(token);
+            return claims.getExpiration().getTime();
+        } catch (Exception e) {
+            return 0L;
         }
     }
 
@@ -125,7 +147,8 @@ public class JwtUtils {
         if (devices != null) {
             devices.remove(token);
         }
-        tokenBlacklist.add(token);
+        // 加入黑名单并记录过期时间
+        tokenBlacklist.put(token, getExpirationFromToken(token));
         log.info("设备登出: userId={}, deviceToken={}", userId, token.substring(0, Math.min(20, token.length())));
     }
 
@@ -142,7 +165,7 @@ public class JwtUtils {
         if (devices != null) {
             for (String deviceToken : devices) {
                 if (!deviceToken.equals(excludeToken)) {
-                    tokenBlacklist.add(deviceToken);
+                    tokenBlacklist.put(deviceToken, getExpirationFromToken(deviceToken));
                 }
             }
             devices.clear();
@@ -198,14 +221,12 @@ public class JwtUtils {
             if (isTokenExpired(token)) {
                 return;
             }
-            synchronized (tokenBlacklist) {
-                if (tokenBlacklist.size() >= BLACKLIST_MAX_SIZE) {
-                    cleanExpiredTokens();
-                }
-                if (tokenBlacklist.size() < BLACKLIST_MAX_SIZE) {
-                    tokenBlacklist.add(token);
-                }
+            // 容量检查和清理
+            if (tokenBlacklist.size() >= BLACKLIST_MAX_SIZE) {
+                cleanExpiredTokens();
             }
+            // 使用 put 而非 add，支持过期时间记录
+            tokenBlacklist.put(token, getExpirationFromToken(token));
         } catch (Exception e) {
             log.warn("撤销token失败: {}", e.getMessage());
         }
@@ -215,7 +236,16 @@ public class JwtUtils {
      * 检查Token是否已被撤销
      */
     public boolean isTokenRevoked(String token) {
-        return tokenBlacklist.contains(token);
+        if (!tokenBlacklist.containsKey(token)) {
+            return false;
+        }
+        // 检查黑名单中的token是否已过期（过期则移除）
+        Long expiration = tokenBlacklist.get(token);
+        if (expiration != null && expiration > 0 && expiration < System.currentTimeMillis()) {
+            tokenBlacklist.remove(token);
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -249,18 +279,65 @@ public class JwtUtils {
     }
 
     /**
+     * 撤销用户的所有Token（踢出所有设备）
+     * @param userId 用户ID
+     */
+    public void revokeAllUserTokens(Long userId) {
+        if (userId == null) {
+            return;
+        }
+        Set<String> devices = userDeviceTokens.get(userId);
+        if (devices != null) {
+            for (String deviceToken : devices) {
+                tokenBlacklist.put(deviceToken, getExpirationFromToken(deviceToken));
+            }
+            devices.clear();
+        }
+        log.info("已撤销用户所有Token: userId={}", userId);
+    }
+
+    /**
      * 清理过期Token黑名单
      * 注意：生产环境应使用Redis并设置TTL自动过期
      */
     public void cleanExpiredTokens() {
-        tokenBlacklist.removeIf(token -> {
-            try {
-                return isTokenExpired(token);
-            } catch (Exception e) {
-                // 无效Token直接移除
-                return true;
-            }
+        long now = System.currentTimeMillis();
+        tokenBlacklist.entrySet().removeIf(entry -> {
+            Long expiration = entry.getValue();
+            return expiration == null || expiration <= 0 || expiration < now;
         });
+    }
+
+    /**
+     * 启动定时清理任务
+     * 每小时清理一次过期Token，避免内存无限增长
+     */
+    @PostConstruct
+    public void initCleanupScheduler() {
+        // 每小时清理一次
+        cleanupScheduler.scheduleAtFixedRate(() -> {
+            try {
+                cleanExpiredTokens();
+                log.debug("Token黑名单清理完成，当前黑名单大小: {}", tokenBlacklist.size());
+            } catch (Exception e) {
+                log.warn("Token黑名单清理失败: {}", e.getMessage());
+            }
+        }, 1, 1, TimeUnit.HOURS);
+    }
+
+    /**
+     * 应用关闭时清理资源
+     */
+    public void shutdown() {
+        cleanupScheduler.shutdown();
+        try {
+            if (!cleanupScheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                cleanupScheduler.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            cleanupScheduler.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     /**

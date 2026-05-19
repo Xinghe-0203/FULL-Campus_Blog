@@ -13,6 +13,10 @@ import com.example.edu_project.service.CircleService;
 import com.example.edu_project.service.FollowService;
 import com.example.edu_project.service.NotificationService;
 import com.example.edu_project.service.TopicService;
+import com.example.edu_project.common.enums.BooleanStatus;
+import com.example.edu_project.common.enums.IsDeleted;
+import com.example.edu_project.common.enums.PostStatus;
+import com.example.edu_project.common.enums.Visibility;
 import com.example.edu_project.utils.FineGrainedLockManager;
 import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.TimeUtils;
@@ -63,6 +67,9 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
     @Autowired
     private TopicService topicService;
 
+    @Autowired
+    private TopicMapper topicMapper;
+
     private final FineGrainedLockManager lockManager = FineGrainedLockManager.getInstance();
 
     @Override
@@ -70,7 +77,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
     public Long createPost(String content, List<String> images, List<String> videos, String location, Long repostId,
                            List<String> tags, Long userId,
                            Integer visibility, Integer allowComment, Integer allowRepost,
-                           Long topicId) {
+                           List<Long> explicitTopicIds) {
         // 参数校验
         if (StrUtil.isBlank(content) && (images == null || images.isEmpty()) && (videos == null || videos.isEmpty()) && repostId == null) {
             throw new BusinessException(400, "动态内容不能为空");
@@ -90,7 +97,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                 throw new BusinessException(404, "原动态不存在");
             }
             // 检查原动态是否允许转发
-            if (originalPost.getAllowRepost() != null && originalPost.getAllowRepost() == 0) {
+            if (originalPost.getAllowRepost() != null && originalPost.getAllowRepost() == BooleanStatus.DISABLE.getValue()) {
                 throw new BusinessException(403, "该动态禁止转发");
             }
             // 检查是否有权限查看原动态（才能转发）
@@ -98,8 +105,8 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                 throw new BusinessException(403, "无权转发此动态");
             }
             // 如果原动态是仅自己可见，转发时自动设为仅关注者可见
-            if (originalPost.getVisibility() != null && originalPost.getVisibility() == 2) {
-                visibility = 1;
+            if (originalPost.getVisibility() != null && originalPost.getVisibility() == Visibility.PRIVATE.getValue()) {
+                visibility = Visibility.FOLLOWERS.getValue();
             }
             contentType = 3; // 转发
         } else if (videos != null && !videos.isEmpty()) {
@@ -134,11 +141,15 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             }
         }
 
-        // 显式指定的话题ID
-        if (topicId != null && !topicIds.contains(topicId)) {
-            Topic topic = topicService.getById(topicId);
-            if (topic != null && topic.getStatus() == 1) {
-                topicIds.add(topic.getId());
+        // 显式指定的话题ID列表
+        if (explicitTopicIds != null && !explicitTopicIds.isEmpty()) {
+            for (Long tid : explicitTopicIds) {
+                if (!topicIds.contains(tid)) {
+                    Topic topic = topicService.getById(tid);
+                    if (topic != null && topic.getStatus() == PostStatus.PUBLISHED.getValue()) {
+                        topicIds.add(tid);
+                    }
+                }
             }
         }
 
@@ -147,7 +158,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         post.setUserId(userId);
         post.setContent(sanitizedContent);
         post.setContentType(contentType);
-        post.setLocation(location);
+        post.setLocation(location != null ? htmlSanitizer.sanitizePlainText(location) : null);
         post.setRepostId(repostId);
         post.setViewCount(0L);
         post.setLikeCount(0);
@@ -156,9 +167,9 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         post.setIsTop(0);
         post.setStatus(1);
         // 可见性设置
-        post.setVisibility(visibility != null ? visibility : 0);
-        post.setAllowComment(allowComment != null ? allowComment : 1);
-        post.setAllowRepost(allowRepost != null ? allowRepost : 1);
+        post.setVisibility(visibility != null ? visibility : Visibility.PUBLIC.getValue());
+        post.setAllowComment(allowComment != null ? allowComment : BooleanStatus.ENABLE.getValue());
+        post.setAllowRepost(allowRepost != null ? allowRepost : BooleanStatus.ENABLE.getValue());
 
         // 图片列表转为 JSON
         if (images != null && !images.isEmpty()) {
@@ -188,14 +199,29 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
 
         this.save(post);
 
+        // 更新关联话题的热度
+        if (!topicIds.isEmpty()) {
+            Long postIdVal = post.getId();
+            List<Long> topicsToUpdate = new ArrayList<>(topicIds);
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        for (Long tid : topicsToUpdate) {
+                            topicMapper.incrementTrendingScore(tid, 1);
+                        }
+                    }
+                });
+            } else {
+                for (Long tid : topicIds) {
+                    topicMapper.incrementTrendingScore(tid, 1);
+                }
+            }
+        }
+
         // 如果是转发，增加原动态的转发数
         if (repostId != null) {
             baseMapper.incrementRepostCount(repostId);
-        }
-
-        // 批量更新话题的动态数，避免 N+1
-        if (!topicIds.isEmpty()) {
-            baseMapper.batchIncrementTopicPostCount(topicIds);
         }
 
         if (!mentionedUsers.isEmpty()) {
@@ -322,14 +348,6 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         circleLikeMapper.logicalDeleteByPostId(postId);
         circleRepostMapper.logicalDeleteByOriginalPostId(postId);
 
-        // 减少话题的动态数
-        if (post.getTopicIds() != null && !post.getTopicIds().isEmpty()) {
-            List<Long> topicIds = cn.hutool.json.JSONUtil.toList(post.getTopicIds(), Long.class);
-            if (!topicIds.isEmpty()) {
-                baseMapper.batchDecrementTopicPostCount(topicIds);
-            }
-        }
-
         // 逻辑删除：MyBatis Plus @TableLogic 自动处理（SET is_deleted = 1）
         this.removeById(postId);
     }
@@ -426,12 +444,12 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         }
 
         // 公开动态谁都可以看
-        if (post.getVisibility() == null || post.getVisibility() == 0) {
+        if (post.getVisibility() == null || post.getVisibility() == Visibility.PUBLIC.getValue()) {
             return true;
         }
 
         // 仅关注者可见，需要检查是否关注了作者
-        if (post.getVisibility() == 1) {
+        if (post.getVisibility() == Visibility.FOLLOWERS.getValue()) {
             if (currentUserId == null) {
                 return false;
             }
@@ -513,7 +531,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                 .collect(Collectors.toSet());
         if (!allTopicIds.isEmpty()) {
             topicService.listByIds(allTopicIds).stream()
-                    .filter(t -> t.getStatus() == 1)
+                    .filter(t -> t.getStatus() == PostStatus.PUBLISHED.getValue())
                     .forEach(t -> topicNameMap.put(t.getId(), t.getName()));
         }
 
@@ -527,7 +545,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             vo.setCommentCount(post.getCommentCount());
             vo.setRepostCount(post.getRepostCount());
             vo.setViewCount(post.getViewCount() != null ? post.getViewCount() : 0L);
-            vo.setIsTop(post.getIsTop() == 1);
+            vo.setIsTop(post.getIsTop() == BooleanStatus.ENABLE.getValue());
             vo.setIsLiked(finalLikedPostIds.contains(post.getId()));
             vo.setIsReposted(finalRepostedPostIds.contains(post.getId()));
             vo.setVisibility(post.getVisibility());
@@ -643,39 +661,58 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             throw new BusinessException(403, "无权操作此动态");
         }
 
-        // 使用细粒度锁
-        String lockKey = userId + "-" + postId;
-        synchronized (lockManager.getLock(lockKey)) {
-            LambdaQueryWrapper<CircleLike> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(CircleLike::getUserId, userId)
-                   .eq(CircleLike::getPostId, postId);
+        // 使用数据库级别的原子操作解决竞态问题
+        LambdaQueryWrapper<CircleLike> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CircleLike::getUserId, userId)
+               .eq(CircleLike::getPostId, postId)
+               .eq(CircleLike::getIsDeleted, 0);
 
-            CircleLike existingLike = circleLikeMapper.selectOne(wrapper);
+        CircleLike existingLike = circleLikeMapper.selectOne(wrapper);
 
-            if (existingLike != null) {
-                // 取消点赞：逻辑删除记录（解决软删除+唯一约束冲突）
-                circleLikeMapper.logicalDeleteById(existingLike.getId());
-                baseMapper.decrementLikeCount(postId);
-                result.setAction("unlike");
-            } else {
-                // 点赞：使用 try-catch 处理并发插入
-                CircleLike newLike = new CircleLike();
-                newLike.setUserId(userId);
-                newLike.setPostId(postId);
-                try {
-                    circleLikeMapper.insert(newLike);
-                    baseMapper.incrementLikeCount(postId);
-                    result.setAction("like");
-                } catch (DuplicateKeyException e) {
-                    // 并发情况下另一个请求已经插入了，查询当前状态
-                    CircleLike concurrentLike = circleLikeMapper.selectOne(wrapper);
-                    if (concurrentLike != null) {
-                        // 如果已存在，说明另一个请求刚插入，我们执行取消
-                        circleLikeMapper.logicalDeleteById(concurrentLike.getId());
-                        baseMapper.decrementLikeCount(postId);
-                        result.setAction("unlike");
-                    } else {
+        if (existingLike != null) {
+            // 取消点赞：逻辑删除记录（解决软删除+唯一约束冲突）
+            circleLikeMapper.logicalDeleteById(existingLike.getId());
+            baseMapper.decrementLikeCount(postId);
+            result.setAction("unlike");
+        } else {
+            // 点赞：使用 try-catch 处理并发插入，依赖数据库唯一约束保证原子性
+            CircleLike newLike = new CircleLike();
+            newLike.setUserId(userId);
+            newLike.setPostId(postId);
+            try {
+                circleLikeMapper.insert(newLike);
+                baseMapper.incrementLikeCount(postId);
+                result.setAction("like");
+                // 发送点赞通知给帖子作者
+                Long postAuthorId = post.getUserId();
+                if (postAuthorId != null && !postAuthorId.equals(userId)) {
+                    notificationService.sendNotification(
+                            "LIKE",
+                            "有人赞了你的动态",
+                            "用户赞了你的动态",
+                            userId,
+                            postAuthorId,
+                            "POST",
+                            postId
+                    );
+                }
+            } catch (DuplicateKeyException e) {
+                // 并发情况下另一个请求已经插入了，查询当前状态并执行取消
+                CircleLike concurrentLike = circleLikeMapper.selectOne(wrapper);
+                if (concurrentLike != null) {
+                    circleLikeMapper.logicalDeleteById(concurrentLike.getId());
+                    baseMapper.decrementLikeCount(postId);
+                    result.setAction("unlike");
+                } else {
+                    // 极端情况：并发请求也删除了，重新尝试点赞
+                    try {
+                        circleLikeMapper.insert(newLike);
+                        baseMapper.incrementLikeCount(postId);
                         result.setAction("like");
+                    } catch (DuplicateKeyException e2) {
+                        // 再次冲突，查询最终状态
+                        CircleLike finalLike = circleLikeMapper.selectOne(wrapper);
+                        result.setAction(finalLike != null ? "unlike" : "like");
                     }
                 }
             }
@@ -717,7 +754,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         }
 
         // 检查评论权限
-        if (post.getAllowComment() != null && post.getAllowComment() == 0) {
+        if (post.getAllowComment() != null && post.getAllowComment() == BooleanStatus.DISABLE.getValue()) {
             throw new BusinessException(403, "该动态禁止评论");
         }
 
@@ -732,7 +769,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         // 如果是回复，检查父评论是否存在
         if (parentId != null) {
             CircleComment parentComment = circleCommentMapper.selectById(parentId);
-            if (parentComment == null || parentComment.getIsDeleted() == 1) {
+            if (parentComment == null || parentComment.getIsDeleted() == IsDeleted.DELETED.getValue()) {
                 throw new BusinessException(404, "父评论不存在");
             }
             // 检查父评论是否属于同一动态
@@ -756,6 +793,20 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
 
         // 增加动态评论数
         baseMapper.incrementCommentCount(postId);
+
+        // 发送评论通知给帖子作者
+        Long postAuthorId = post.getUserId();
+        if (postAuthorId != null && !postAuthorId.equals(userId)) {
+            notificationService.sendNotification(
+                    "COMMENT",
+                    "有人评论了你的动态",
+                    "用户评论了你的动态",
+                    userId,
+                    postAuthorId,
+                    "POST",
+                    postId
+            );
+        }
 
         return comment.getId();
     }
@@ -838,7 +889,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
     @Transactional(rollbackFor = Exception.class)
     public void deleteComment(Long commentId, Long userId) {
         CircleComment comment = circleCommentMapper.selectById(commentId);
-        if (comment == null || comment.getIsDeleted() == 1) {
+        if (comment == null || comment.getIsDeleted() == IsDeleted.DELETED.getValue()) {
             throw new BusinessException(404, "评论不存在");
         }
 
@@ -891,7 +942,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                 List<CircleComment> children = childrenMap.get(parentId);
                 if (children != null) {
                     for (CircleComment child : children) {
-                        if (child.getIsDeleted() == 0) {
+                        if (child.getIsDeleted() == IsDeleted.NORMAL.getValue()) {
                             result.add(child.getId());
                             stack.push(child.getId());
                         }
@@ -953,7 +1004,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         }
 
         // 检查是否允许转发
-        if (originalPost.getAllowRepost() != null && originalPost.getAllowRepost() == 0) {
+        if (originalPost.getAllowRepost() != null && originalPost.getAllowRepost() == BooleanStatus.DISABLE.getValue()) {
             throw new BusinessException(403, "该动态禁止转发");
         }
 
@@ -973,6 +1024,8 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         newPost.setRepostId(originalPostId);
         // 转发时记录被转发者的用户ID
         newPost.setRepostUserId(originalPost.getUserId());
+        // 转发时保存原动态内容作为repostContent
+        newPost.setRepostContent(originalPost.getContent());
         newPost.setLikeCount(0);
         newPost.setCommentCount(0);
         newPost.setRepostCount(0);
@@ -995,6 +1048,20 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
 
         // 增加原动态的转发数
         baseMapper.incrementRepostCount(originalPostId);
+
+        // 发送转发通知给原帖作者
+        Long originalAuthorId = originalPost.getUserId();
+        if (originalAuthorId != null && !originalAuthorId.equals(userId)) {
+            notificationService.sendNotification(
+                    "REPOST",
+                    "有人转发了你的动态",
+                    "用户转发了你的动态",
+                    userId,
+                    originalAuthorId,
+                    "POST",
+                    originalPostId
+            );
+        }
 
         return newPost.getId();
     }

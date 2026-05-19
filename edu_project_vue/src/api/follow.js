@@ -28,7 +28,7 @@ export const followApi = {
    * @returns {Promise<{code: number, message: string, data: Object}>}
    */
   checkFollowStatus(targetUserId) {
-    return api.get(`/follow/check/${targetUserId}`)
+    return api.get(`/follow/${targetUserId}/status`)
   },
 
   /**

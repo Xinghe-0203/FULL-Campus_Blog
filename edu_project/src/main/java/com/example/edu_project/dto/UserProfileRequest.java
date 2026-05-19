@@ -1,6 +1,7 @@
 package com.example.edu_project.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -15,7 +16,7 @@ public class UserProfileRequest {
 
     @NotBlank(message = "昵称不能为空")
     @Size(min = 1, max = 50, message = "昵称长度必须在1-50字符之间")
-    @Schema(description = "昵称", required = true)
+    @Schema(description = "昵称", requiredMode = RequiredMode.REQUIRED)
     private String nickname;
 
     @Size(max = 200, message = "个人简介不能超过200字符")

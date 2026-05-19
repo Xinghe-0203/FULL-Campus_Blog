@@ -31,9 +31,10 @@ public class BlogTag implements Serializable {
 
     /**
      * 文章数量
+     * 【已冗余】通过 blog_post_tag 实时聚合，不再维护此字段
      */
-    @Schema(description = "文章数量")
-    private Integer postCount;
+    // @Schema(description = "文章数量")
+    // private Integer postCount;
 
     /**
      * 逻辑删除：0-正常，1-删除

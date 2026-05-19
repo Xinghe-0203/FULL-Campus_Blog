@@ -23,11 +23,13 @@ public interface BlogCommentService extends IService<BlogComment> {
     Long createComment(CommentCreateRequest request, Long userId);
 
     /**
-     * 获取文章评论列表（树形结构）
+     * 获取文章评论列表（树形结构，分页）
      * @param postId 文章ID
-     * @return 评论列表
+     * @param pageNum 页码
+     * @param pageSize 每页数量
+     * @return 分页评论列表
      */
-    List<CommentVO> getCommentsByPostId(Long postId);
+    IPage<CommentVO> getCommentsByPostId(Long postId, Integer pageNum, Integer pageSize);
 
     /**
      * 获取单个评论详情

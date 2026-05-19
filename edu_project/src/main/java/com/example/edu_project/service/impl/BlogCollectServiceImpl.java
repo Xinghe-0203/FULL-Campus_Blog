@@ -11,6 +11,7 @@ import com.example.edu_project.entity.BlogPost;
 import com.example.edu_project.entity.BlogPostTag;
 import com.example.edu_project.entity.BlogTag;
 import com.example.edu_project.entity.SysUser;
+import com.example.edu_project.common.enums.PostStatus;
 import com.example.edu_project.event.CollectCreatedEvent;
 import com.example.edu_project.mapper.BlogCollectMapper;
 import com.example.edu_project.mapper.BlogPostMapper;
@@ -198,7 +199,7 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
         List<BlogPost> posts = blogPostMapper.selectBatchIds(postIds);
         // 过滤掉未发布和已删除的文章
         posts = posts.stream()
-                .filter(p -> p.getStatus() != null && p.getStatus() == 1)
+                .filter(p -> p.getStatus() != null && p.getStatus() == PostStatus.PUBLISHED.getValue())
                 .filter(p -> p.getIsDeleted() == null || p.getIsDeleted() != 1)
                 .collect(Collectors.toList());
         Map<Long, BlogPost> postMap = posts.stream()

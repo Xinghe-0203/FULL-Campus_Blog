@@ -1,6 +1,7 @@
 package com.example.edu_project.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -14,12 +15,12 @@ import lombok.Data;
 public class ChangePasswordRequest {
 
     @NotBlank(message = "旧密码不能为空")
-    @Schema(description = "旧密码", required = true)
+    @Schema(description = "旧密码", requiredMode = RequiredMode.REQUIRED)
     private String oldPassword;
 
     @NotBlank(message = "新密码不能为空")
     @Size(min = 8, message = "新密码长度至少为8位")
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$", message = "新密码必须包含大小写字母和数字")
-    @Schema(description = "新密码", required = true)
+    @Schema(description = "新密码", requiredMode = RequiredMode.REQUIRED)
     private String newPassword;
 }

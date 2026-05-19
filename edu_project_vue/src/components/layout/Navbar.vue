@@ -72,7 +72,7 @@
           </button>
 
           <!-- 用户下拉菜单 -->
-          <div class="user-dropdown" @click.self="toggleDropdown">
+          <div class="user-dropdown" @mouseenter="openDropdown" @mouseleave="scheduleClose">
             <img 
               :src="userStore.avatar || '/default-avatar.png'" 
               :alt="userStore.nickname"
@@ -84,7 +84,7 @@
             
             <!-- 下拉菜单 -->
             <transition name="dropdown">
-              <div v-if="isDropdownOpen" class="dropdown-menu">
+              <div v-if="isDropdownOpen" class="dropdown-menu" @mouseenter="openDropdown" @mouseleave="scheduleClose">
                 <div class="dropdown-header">
                   <img 
                     :src="userStore.avatar || '/default-avatar.png'" 
@@ -247,8 +247,18 @@ const handleSearch = () => {
 }
 
 // 下拉菜单
+let dropdownCloseTimer = null
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value
+}
+
+const openDropdown = () => {
+  if (dropdownCloseTimer) { clearTimeout(dropdownCloseTimer); dropdownCloseTimer = null }
+  isDropdownOpen.value = true
+}
+
+const scheduleClose = () => {
+  dropdownCloseTimer = setTimeout(() => { isDropdownOpen.value = false }, 300)
 }
 
 const closeDropdown = () => {
@@ -545,8 +555,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 4px;
-  border-radius: var(--radius);
+  padding: 6px 8px;
+  border-radius: var(--radius-lg);
   transition: all var(--transition);
 }
 
@@ -555,8 +565,8 @@ onUnmounted(() => {
 }
 
 .user-avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-full);
   object-fit: cover;
   border: 2px solid var(--glass-border);

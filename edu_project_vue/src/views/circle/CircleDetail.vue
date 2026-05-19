@@ -119,6 +119,9 @@
               </svg>
               <span>{{ formatNumber(post.repostCount) }}</span>
             </button>
+            <button class="action-btn" @click="openReport" title="举报">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            </button>
           </div>
         </div>
 
@@ -412,6 +415,11 @@ const openRepostModal = () => {
   repostContent.value = ''
 }
 
+const openReport = () => {
+  if (!post.value) return
+  router.push(`/report/post/${post.value.id}`)
+}
+
 const closeRepostModal = () => {
   showRepostModal.value = false
   repostContent.value = ''
@@ -519,7 +527,7 @@ watch(() => route.params.id, () => {
   height: 44px;
   border-radius: var(--radius-full);
   object-fit: cover;
-  border: 2px solid var(--glass-border);
+  border: 2px solid var(--border-solid);
   transition: all var(--transition);
 }
 
@@ -860,6 +868,12 @@ watch(() => route.params.id, () => {
   border-color: var(--accent);
 }
 
+.action-btn:hover[title="举报"] {
+  color: var(--error);
+  border-color: var(--error);
+  background: var(--error-light);
+}
+
 .action-btn.active-comment {
   color: var(--primary);
   background: var(--primary-light);
@@ -905,7 +919,7 @@ watch(() => route.params.id, () => {
   border-radius: var(--radius-full);
   object-fit: cover;
   flex-shrink: 0;
-  border: 2px solid var(--glass-border);
+  border: 2px solid var(--border-solid);
 }
 
 .comment-form-body {
@@ -1034,7 +1048,7 @@ watch(() => route.params.id, () => {
   border-radius: var(--radius-full);
   object-fit: cover;
   flex-shrink: 0;
-  border: 2px solid var(--glass-border);
+  border: 2px solid var(--border-solid);
 }
 
 .comment-body {
@@ -1120,7 +1134,7 @@ watch(() => route.params.id, () => {
   border-radius: var(--radius-full);
   object-fit: cover;
   flex-shrink: 0;
-  border: 2px solid var(--glass-border);
+  border: 2px solid var(--border-solid);
 }
 
 .reply-body {

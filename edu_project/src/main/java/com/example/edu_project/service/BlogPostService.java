@@ -51,15 +51,6 @@ public interface BlogPostService extends IService<BlogPost> {
     void updatePost(PostCreateRequest request, Long userId, boolean isAdmin);
 
     /**
-     * 更新文章
-     * @param request 更新请求
-     * @param userId 操作人ID
-     * @param isAdmin 是否是管理员
-     * @param isPostAuthor 是否是文章作者（作者不需要审核）
-     */
-    void updatePost(PostCreateRequest request, Long userId, boolean isAdmin, boolean isPostAuthor);
-
-    /**
      * 删除文章
      * @param postId 文章ID
      * @param userId 操作人ID

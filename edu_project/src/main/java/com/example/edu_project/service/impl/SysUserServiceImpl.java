@@ -14,6 +14,8 @@ import com.example.edu_project.dto.UserSearchRequest;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.SysUserService;
+import com.example.edu_project.common.enums.IsDeleted;
+import com.example.edu_project.common.enums.UserStatus;
 import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.JwtUtils;
 import com.example.edu_project.utils.SecurityUtils;
@@ -171,11 +173,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         // 检查账户是否被锁定
         if (user.getLockUntil() != null && user.getLockUntil().isAfter(LocalDateTime.now())) {
-            throw new BusinessException(403, "登录失败次数过多，请稍后再试");
+            long minutesLeft = java.time.Duration.between(LocalDateTime.now(), user.getLockUntil()).toMinutes() + 1;
+            throw new BusinessException(403, "登录失败次数过多，请" + minutesLeft + "分钟后再试");
         }
 
         // 检查账号状态（先于密码验证）
-        if (user.getStatus() == 0) {
+        if (user.getStatus() == UserStatus.DISABLED.getValue()) {
             throw new BusinessException(403, "账号已被禁用");
         }
 
@@ -191,8 +194,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             // 重新查询获取最新锁定状态
             SysUser updatedUser = this.getById(user.getId());
             if (updatedUser.getLockUntil() != null && updatedUser.getLockUntil().isAfter(LocalDateTime.now())) {
+                long minutesLeft = java.time.Duration.between(LocalDateTime.now(), updatedUser.getLockUntil()).toMinutes() + 1;
                 log.warn("用户登录失败: username={}, 原因=账号已被锁定至{}", request.getUsername(), updatedUser.getLockUntil());
-                throw new BusinessException(403, "登录失败次数过多，请稍后再试");
+                throw new BusinessException(403, "登录失败次数过多，请" + minutesLeft + "分钟后再试");
             }
             throw new BusinessException(401, "用户名或密码错误");
         }
@@ -208,6 +212,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         String token = jwtUtils.generateToken(user.getId(), user.getUsername(), user.getRole());
         // 生成刷新Token（7天有效期）
         String refreshToken = jwtUtils.generateRefreshToken(user.getId(), user.getUsername(), user.getRole());
+
+        // 注册设备Token
+        jwtUtils.registerDeviceToken(user.getId(), token);
 
         log.info("用户登录成功: username={}, userId={}", user.getUsername(), user.getId());
         return new UserLoginResponse(
@@ -271,6 +278,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 更新密码
         user.setPassword(passwordEncoder.encode(newPassword));
         this.updateById(user);
+
+        // 密码修改后使当前用户所有 Token 失效
+        jwtUtils.revokeAllUserTokens(userId);
         log.info("用户修改密码成功: userId={}", userId);
     }
 
@@ -294,10 +304,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         IPage<SysUser> userPage = this.page(page, wrapper);
 
-        // 转换为 UserVO
+        // 转换为 UserVO（搜索用户只返回公开信息，隐藏email和role）
         IPage<UserVO> result = new Page<>(userPage.getCurrent(), userPage.getSize(), userPage.getTotal());
         result.setRecords(userPage.getRecords().stream()
-                .map(UserConverter::toUserVO)
+                .map(user -> {
+                    UserVO vo = UserConverter.toUserVO(user);
+                    vo.setEmail(null);
+                    vo.setRole(null);
+                    return vo;
+                })
                 .collect(java.util.stream.Collectors.toList()));
 
         return result;

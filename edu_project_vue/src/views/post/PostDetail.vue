@@ -313,7 +313,7 @@ import { collectApi } from '../../api/collect'
 import { followApi } from '../../api/follow'
 import { shareApi } from '../../api/share'
 import { useUserStore } from '../../stores/user'
-import { formatRelativeTime } from '../../utils'
+import { formatRelativeTime, copyToClipboard } from '../../utils'
 import { useLogger } from '../../utils/logger'
 import { toast } from '../../utils/toast'
 import { useConfirm } from '../../composables/useConfirm'
@@ -624,28 +624,16 @@ const cancelReply = () => {
 // 分享文章
 const sharePost = async () => {
   const url = window.location.href
-  try {
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(url)
-      toast.success('链接已复制到剪贴板')
-    } else {
-      const textarea = document.createElement('textarea')
-      textarea.value = url
-      textarea.style.position = 'fixed'
-      textarea.style.opacity = '0'
-      document.body.appendChild(textarea)
-      textarea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textarea)
-      toast.success('链接已复制到剪贴板')
-    }
+  const success = await copyToClipboard(url)
+  if (success) {
+    toast.success('链接已复制到剪贴板')
     try {
       await shareApi.recordShare(route.params.id, 'web')
       post.value.shareCount = (post.value.shareCount || 0) + 1
     } catch (err) {
       logger.warn('Failed to record share', { error: err.message })
     }
-  } catch {
+  } else {
     toast.error('复制失败，请手动复制链接')
   }
 }

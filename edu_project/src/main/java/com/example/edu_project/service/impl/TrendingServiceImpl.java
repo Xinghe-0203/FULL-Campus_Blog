@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.edu_project.entity.*;
 import com.example.edu_project.mapper.*;
+import com.example.edu_project.common.enums.IsDeleted;
+import com.example.edu_project.common.enums.PostStatus;
 import com.example.edu_project.config.CaffeineCacheConfig;
 import com.example.edu_project.service.TrendingService;
 import com.example.edu_project.vo.HotContentVO;
@@ -48,11 +50,12 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
     private TopicMapper topicMapper;
 
     /**
-     * 热度计算公式：score = view*1 + like*5 + comment*10
+     * 热度计算公式：score = views*1 + likes*5 + comments*10 + reposts*8
      */
     private static final int VIEW_WEIGHT = 1;
     private static final int LIKE_WEIGHT = 5;
     private static final int COMMENT_WEIGHT = 10;
+    private static final int REPOST_WEIGHT = 8;
 
     /**
      * 热门文章默认获取最近7天的数据
@@ -88,7 +91,7 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
         List<HotPostVO> result = new ArrayList<>();
         for (BlogTrending trending : trendingPage.getRecords()) {
             BlogPost post = postMap.get(trending.getPostId());
-            if (post != null && post.getStatus() == 1 && post.getIsDeleted() == 0) { // 只返回已发布的文章且未被删除
+            if (post != null && post.getStatus() == PostStatus.PUBLISHED.getValue() && post.getIsDeleted() == IsDeleted.NORMAL.getValue()) { // 只返回已发布的文章且未被删除
                 HotPostVO vo = new HotPostVO();
                 vo.setId(post.getId());
                 vo.setTitle(post.getTitle());
@@ -161,7 +164,7 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
                 .collect(Collectors.toList());
 
         Map<Long, BlogPost> postMap = blogPostMapper.selectBatchIds(postIds).stream()
-                .filter(p -> p.getStatus() == 1 && p.getIsDeleted() == 0)
+                .filter(p -> p.getStatus() == PostStatus.PUBLISHED.getValue() && p.getIsDeleted() == IsDeleted.NORMAL.getValue())
                 .collect(Collectors.toMap(BlogPost::getId, p -> p, (a, b) -> a));
 
         if (postMap.isEmpty()) return Collections.emptyList();
@@ -229,7 +232,8 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
             int likes = circle.getLikeCount() != null ? circle.getLikeCount() : 0;
             int comments = circle.getCommentCount() != null ? circle.getCommentCount() : 0;
             int reposts = circle.getRepostCount() != null ? circle.getRepostCount() : 0;
-            double score = likes * 3.0 + comments * 5.0 + reposts * 2.0;
+            long views = circle.getViewCount() != null ? circle.getViewCount() : 0L;
+            double score = views * 1.0 + likes * 5.0 + comments * 10.0 + reposts * 8.0;
 
             HotContentVO vo = new HotContentVO();
             vo.setId(circle.getId());
@@ -371,7 +375,7 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
     @Transactional(rollbackFor = Exception.class)
     public void updatePostTrending(Long postId) {
         BlogPost post = blogPostMapper.selectById(postId);
-        if (post == null || post.getIsDeleted() == 1) {
+        if (post == null || post.getIsDeleted() == IsDeleted.DELETED.getValue()) {
             return;
         }
         // 仅更新已发布的文章热度
@@ -382,7 +386,8 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
         // 计算热度评分（使用 null-safe 取值）
         int score = (post.getViewCount() != null ? post.getViewCount().intValue() : 0) * VIEW_WEIGHT
                 + (post.getLikeCount() != null ? post.getLikeCount() : 0) * LIKE_WEIGHT
-                + (post.getCommentCount() != null ? post.getCommentCount() : 0) * COMMENT_WEIGHT;
+                + (post.getCommentCount() != null ? post.getCommentCount() : 0) * COMMENT_WEIGHT
+                + (post.getShareCount() != null ? post.getShareCount() : 0) * REPOST_WEIGHT;
 
         // 查询是否已存在今天的趋势记录
         LocalDateTime now = LocalDateTime.now();
@@ -409,7 +414,7 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = CaffeineCacheConfig.TRENDING_CACHE, allEntries = true)
+    @CacheEvict(value = {CaffeineCacheConfig.TRENDING_CACHE, CaffeineCacheConfig.HOT_TAGS_CACHE}, allEntries = true)
     @Scheduled(cron = "0 0 0 * * ?", zone = "Asia/Shanghai") // 每天凌晨执行
     public void scheduledUpdateAllTrending() {
         // 分页查询未删除的文章，避免一次性加载所有文章导致OOM
@@ -449,13 +454,18 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
             }
             pageNum++;
         }
+
+        // 更新话题热度分数（基于关联的已发布文章数）
+        topicMapper.recalculateAllTrendingScore();
+        log.debug("定时任务: 更新所有话题的热度分数完成");
     }
 
     private void updatePostTrendingBatch(BlogPost post, LocalDateTime todayStart, BlogTrending existingTrending) {
         // 计算热度评分（使用 null-safe 取值）
         int score = (post.getViewCount() != null ? post.getViewCount().intValue() : 0) * VIEW_WEIGHT
                 + (post.getLikeCount() != null ? post.getLikeCount() : 0) * LIKE_WEIGHT
-                + (post.getCommentCount() != null ? post.getCommentCount() : 0) * COMMENT_WEIGHT;
+                + (post.getCommentCount() != null ? post.getCommentCount() : 0) * COMMENT_WEIGHT
+                + (post.getShareCount() != null ? post.getShareCount() : 0) * REPOST_WEIGHT;
 
         BlogTrending trending = new BlogTrending();
         trending.setPostId(post.getId());

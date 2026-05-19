@@ -1,5 +1,26 @@
 # 变更日志
 
+## v2.0.11 - 2026-05-19
+
+### 🐛 Bug 修复
+- **PostEdit.vue** - 修复选择标签/分类时白屏问题
+  - 补全缺失的 `categoryLabel()`、`saveStatusText`、`wordCount`、`readingTime` 4 个未定义属性/函数
+  - 补全缺失的 `hideTopicDropdown()` 函数（@blur 引用但未定义）
+  - 移除废弃的 `form.tags` 字段
+- **话题多选支持** - 保存/发布文章时 `topicIds` 改为使用 `selectedTopics` 数组替代单个 `form.topicId`
+
+### 🔧 后端修复
+- **数据库表** - 添加默认管理员账户（admin / Admin123）INSERT 语句
+- **SQL 列名修正** - CirclePostMapper 中 `topicIds` → `topic_ids` 对齐数据库实际列名
+- **/user/register 禁用** - 直接注册端点被关闭，仅允许邮箱验证注册
+- **举报处理通知** - 已核实举报通知被举报内容作者
+- **话题热度更新** - 定时任务同步更新 `blog_topic.trending_score`
+- **举报类型枚举校验** - `ReportRequest.targetType` 添加 `@Pattern` 校验
+- **Token 失效** - 密码修改时调用 `revokeAllUserTokens()` 使现有 Token 失效
+
+### 📝 文档更新
+- CHANGELOG.md / README.md / campus_blog.md 同步更新至 v2.0.11
+
 ## v2.0 - 2026-05-17
 
 ### 🎨 前端 UI 全面改造 (Rainy Glassmorphism)

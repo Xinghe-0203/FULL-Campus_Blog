@@ -38,8 +38,8 @@ public class CirclePostCreateRequest {
     @Schema(description = "标签列表")
     private List<String> tags;
 
-    @Schema(description = "关联话题ID")
-    private Long topicId;
+    @Schema(description = "关联话题ID数组")
+    private List<Long> topicIds;
 
     @Schema(description = "可见性：0=公开，1=仅关注者，2=仅自己", example = "0")
     @Min(value = 0, message = "可见性取值范围为0-2")

@@ -42,7 +42,7 @@ public class JwtUtilsTest {
         ReflectionTestUtils.setField(jwtUtils, "refreshExpiration", TEST_REFRESH_EXPIRATION);
         jwtUtils.cleanExpiredTokens();
         // 清理共享的 tokenBlacklist 和 userDeviceTokens（JwtUtils 是单例，跨测试污染）
-        Set<String> blacklist = (Set<String>) ReflectionTestUtils.getField(jwtUtils, "tokenBlacklist");
+        Map<String, Long> blacklist = (Map<String, Long>) ReflectionTestUtils.getField(jwtUtils, "tokenBlacklist");
         if (blacklist != null) blacklist.clear();
         Map<Long, Set<String>> devices = (Map<Long, Set<String>>) ReflectionTestUtils.getField(jwtUtils, "userDeviceTokens");
         if (devices != null) devices.clear();

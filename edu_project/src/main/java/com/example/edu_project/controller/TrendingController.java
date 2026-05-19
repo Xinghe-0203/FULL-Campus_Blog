@@ -65,7 +65,7 @@ public class TrendingController {
      * 更新单篇文章热度（手动触发，仅管理员可用）
      */
     @Operation(summary = "更新文章热度")
-    @PutMapping("/update/{postId}")
+    @PutMapping("/{postId}")
     @PreAuthorize("hasRole('admin')")
     public Result<Void> updatePostTrending(@PathVariable Long postId) {
         trendingService.updatePostTrending(postId);

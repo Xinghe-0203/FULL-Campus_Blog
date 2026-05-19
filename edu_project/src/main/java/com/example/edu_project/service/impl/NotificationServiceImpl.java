@@ -18,6 +18,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,7 +63,10 @@ public class NotificationServiceImpl extends ServiceImpl<BlogNotificationMapper,
     }
 
     @Override
-    @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadNotif:' + #userId")
+    @Caching(evict = {
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadNotif:' + #userId"),
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, allEntries = true)
+    })
     @Transactional(rollbackFor = Exception.class)
     public void markAsRead(Long notificationId, Long userId) {
         BlogNotification notification = this.getById(notificationId);
@@ -78,7 +82,10 @@ public class NotificationServiceImpl extends ServiceImpl<BlogNotificationMapper,
     }
 
     @Override
-    @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadNotif:' + #userId")
+    @Caching(evict = {
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadNotif:' + #userId"),
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, allEntries = true)
+    })
     @Transactional(rollbackFor = Exception.class)
     public void markAllAsRead(Long userId) {
         LambdaQueryWrapper<BlogNotification> wrapper = new LambdaQueryWrapper<>();
@@ -91,7 +98,10 @@ public class NotificationServiceImpl extends ServiceImpl<BlogNotificationMapper,
     }
 
     @Override
-    @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadNotif:' + #userId")
+    @Caching(evict = {
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadNotif:' + #userId"),
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, allEntries = true)
+    })
     @Transactional(rollbackFor = Exception.class)
     public void deleteNotification(Long notificationId, Long userId) {
         BlogNotification notification = this.getById(notificationId);
@@ -107,7 +117,10 @@ public class NotificationServiceImpl extends ServiceImpl<BlogNotificationMapper,
     }
 
     @Override
-    @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadNotif:' + #toUserId")
+    @Caching(evict = {
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadNotif:' + #toUserId"),
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, allEntries = true)
+    })
     @Transactional(rollbackFor = Exception.class)
     public void sendNotification(String type, String title, String content, Long fromUserId, Long toUserId, String targetType, Long targetId) {
         // 不通知自己

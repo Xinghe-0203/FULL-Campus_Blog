@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v2.0 |
+| **当前版本** | v2.0.11 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/FULL-Campus_Blog |
 
 ---
@@ -1278,7 +1278,7 @@ edu_project/
 
 | 日期 | 版本 | 更新内容 |
 | :--- | :--- | :--- |
-| 2026-05-17 | v2.0 | ✨ **性能优化**：新增 16 个数据库索引，覆盖高频查询场景<br>✨ **Caffeine 缓存**：5 个具名缓存差异化配置（用户、标签、热门文章、话题、配置）<br>✨ **校友圈增强**：@提及、位置信息、动态标签、可见性控制、评论/转发开关<br>✨ **雨天毛玻璃 UI**：全新 Glassmorphism 视觉风格<br>✨ **表结构更新**：sys_user 新增 cover_image/bio，blog_post 新增 topic_id/share_count/cover_url，view_count 升级为 BIGINT<br>🔧 **依赖升级**：MyBatis Plus 3.5.8、JJWT 0.12.6、Hutool 5.8.40、Caffeine 3.2.0<br>🔧 **移除**：Bootstrap 5 依赖、Highlight.js 依赖<br>🔧 **GitHub URL 修正**：https://github.com/Xinghe-0203/FULL-Campus_Blog<br>📦 **缓存策略**：userCache(1000/30min)、tagCache(500/60min)、hotPostCache(200/10min)、topicCache(300/30min)、configCache(100/120min) |
+| 2026-05-19 | v2.0.11 | 🐛 **白屏修复**：PostEdit 补全 categoryLabel/saveStatusText/wordCount/readingTime 四个缺失定义<br>🐛 **话题多选**：保存时发送 topicIds 数组替代单个 topicId<br>🐛 **后端修复**：禁用直接注册端点、举报通知作者、话题热度更新、Token 失效、枚举校验<br>🐛 **SQL 列名**：CirclePostMapper topicIds → topic_ids 对齐数据库<br>📦 **数据库表**：添加默认管理员账户 INSERT（admin / Admin123） |
 | 2026-05-16 | v1.52 | ✨ **热搜榜改版**：新增 `GET /trending/content` 接口（文章+动态混排，按热度评分排序）<br>✨ **校友圈话题**：发布/详情页新增话题选择器，feed 卡片显示话题标签 |
 | 2026-04-27 | v1.35 | ✨ **速率限制**：新增 `RateLimitInterceptor` 基于 Caffeine 的接口频率限制<br>✨ **缓存策略修复**：SimpleCacheManager 具名缓存差异化配置<br>✨ **CirclePost 逻辑删除统一**：添加 is_deleted + @TableLogic 支持<br>✨ **JSON 列 TypeHandler**：JacksonTypeHandler 配置处理 CirclePost JSON 字段<br>✨ **BlogDraft 1NF 规范化**：新建 `blog_draft_tag` 关联表分离草稿标签多值依赖<br>✨ **BlogPostMedia 逻辑删除统一**：统一软删除机制<br>✨ **外键约束参考 SQL**：新增 29 条 ALTER TABLE 外键语句<br>✨ **view_count 类型升级**：INT → BIGINT<br>✨ **线程池参数可配置化**：@Value 注入 AsyncConfig 核心参数<br>✨ **新增工具类**：TimeUtils、StringMaskUtils、UserConverter<br>📦 **新增表**：`blog_draft_tag`（第21张表）<br>📦 **新增 Mapper/Entity**：`BlogDraftTagMapper`、`BlogDraftTag` |
 | 2026-04-27 | v1.34 | ✨ **内容审核流程**：新增 `AdminPostController` 和 `AdminCommentController`（审核文章/评论列表、修改状态、删除）<br>✨ **私信功能**：新增 `Message` 实体、`MessageService`、`MessageController`（发送/接收/已读/删除私信、未读计数）<br>✨ **密码找回功能**：新增 `EmailService` 和 `EmailServiceImpl`（发送HTML邮件、验证码管理）<br>新增 `PasswordController`（`/user/send-code`、`/user/reset-password`）<br>新增 `SendCodeRequest`、`ResetPasswordRequest` DTO<br>添加 `spring-boot-starter-mail` 依赖，邮件配置支持环境变量<br>验证码5分钟有效期、3次验证尝试、60秒发送间隔限制<br>🔧 **Entity修复**：`TopicMapper.java` 和 `MessageMapper.java` 移除（已改为实体类 `Topic.java` 和 `Message.java`）<br>🐛 **测试配置修复**：H2数据库支持、Flyway配置修正 |

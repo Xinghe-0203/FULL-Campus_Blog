@@ -50,7 +50,6 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
         Topic topic = new Topic();
         topic.setName(sanitizedName);
         topic.setDescription(description != null ? htmlSanitizer.sanitizePlainText(description) : null);
-        topic.setPostCount(0);
         topic.setTrendingScore(0);
         topic.setStatus(1);
 
@@ -118,7 +117,6 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
         Topic topic = new Topic();
         topic.setName(sanitizedName);
         topic.setDescription(null);
-        topic.setPostCount(0);
         topic.setTrendingScore(0);
         topic.setStatus(1);
 

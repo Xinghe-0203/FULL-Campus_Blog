@@ -46,6 +46,6 @@ export const trendingApi = {
    * @returns {Promise<{code: number, message: string, data: Object}>}
    */
   updateTrending(postId) {
-    return api.put(`/trending/update/${postId}`)
+    return api.put(`/trending/${postId}`)
   }
 }

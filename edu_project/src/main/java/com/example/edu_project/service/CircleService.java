@@ -31,7 +31,7 @@ public interface CircleService extends IService<CirclePost> {
      */
     Long createPost(String content, List<String> images, List<String> videos, String location, Long repostId,
                     List<String> tags, Long userId, Integer visibility, Integer allowComment, Integer allowRepost,
-                    Long topicId);
+                    List<Long> topicIds);
 
     /**
      * 删除动态

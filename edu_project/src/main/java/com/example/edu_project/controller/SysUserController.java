@@ -6,8 +6,6 @@ import com.example.edu_project.common.result.Result;
 import com.example.edu_project.dto.ChangePasswordRequest;
 import com.example.edu_project.dto.UserLoginRequest;
 import com.example.edu_project.dto.UserProfileRequest;
-import com.example.edu_project.dto.UserRegisterRequest;
-import com.example.edu_project.dto.UserRegisterResponse;
 import com.example.edu_project.dto.UserSearchRequest;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.service.SysUserService;
@@ -18,6 +16,7 @@ import com.example.edu_project.vo.UserVO;
 import io.jsonwebtoken.JwtException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,13 +45,12 @@ public class SysUserController {
     private JwtUtils jwtUtils;
 
     /**
-     * 用户注册
+     * 用户注册（已关闭）
      */
-    @Operation(summary = "用户注册")
+    @Operation(summary = "用户注册", description = "注册功能已关闭，请使用邮箱验证注册")
     @PostMapping("/register")
-    public Result<UserRegisterResponse> register(@Valid @RequestBody UserRegisterRequest request) {
-        UserRegisterResponse response = sysUserService.register(request);
-        return Result.success(response);
+    public Result<Void> register() {
+        throw new BusinessException(403, "注册已关闭，请使用邮箱验证注册");
     }
 
     /**
@@ -183,6 +181,9 @@ public class SysUserController {
             if (currentUser == null) {
                 throw new BusinessException(401, "用户不存在或已注销");
             }
+            if (currentUser.getIsDeleted() != null && currentUser.getIsDeleted() == 1) {
+                throw new BusinessException(401, "用户不存在或已注销");
+            }
             if (currentUser.getStatus() != null && currentUser.getStatus() == 0) {
                 throw new BusinessException(403, "账号已被禁用");
             }
@@ -259,7 +260,7 @@ public class SysUserController {
         if (avatar == null || avatar.trim().isEmpty()) {
             throw new BusinessException(400, "头像URL不能为空");
         }
-        validateAvatarUrl(avatar);
+        validateImageUrl(avatar, "头像URL");
         sysUserService.updateAvatar(userId, avatar);
         return Result.success("头像修改成功", null);
     }
@@ -274,61 +275,36 @@ public class SysUserController {
         if (userId == null) {
             throw new BusinessException(401, "请先登录");
         }
-        validateCoverImageUrl(coverImage);
+        validateImageUrl(coverImage, "封面图URL");
         sysUserService.updateCoverImage(userId, coverImage);
         return Result.success("封面图修改成功", null);
     }
 
-    private void validateAvatarUrl(String avatar) {
-        if (avatar.length() > 2048) {
-            throw new BusinessException(400, "头像URL长度不能超过2048字符");
+    private void validateImageUrl(String url, String fieldName) {
+        if (url == null || url.trim().isEmpty()) {
+            throw new BusinessException(400, fieldName + "不能为空");
+        }
+        if (url.length() > 2048) {
+            throw new BusinessException(400, fieldName + "长度不能超过2048字符");
         }
         // 允许相对路径（本地上传）和绝对URL（CDN）
-        if (avatar.startsWith("/")) {
+        if (url.startsWith("/")) {
             return;
         }
-        if (!avatar.startsWith("http://") && !avatar.startsWith("https://")) {
-            throw new BusinessException(400, "头像URL格式无效");
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            throw new BusinessException(400, fieldName + "格式无效");
         }
         try {
-            URL url = new URL(avatar);
-            String host = url.getHost().toLowerCase();
+            URL parsedUrl = new URL(url);
+            String host = parsedUrl.getHost().toLowerCase();
             List<String> allowedDomains = Arrays.asList(allowedAvatarDomainsConfig.split(","));
             boolean allowed = allowedDomains.stream().anyMatch(domain ->
                     host.equals(domain.trim()) || host.endsWith("." + domain.trim()));
             if (!allowed) {
-                throw new BusinessException(400, "头像URL域名不在允许范围内");
+                throw new BusinessException(400, fieldName + "域名不在允许范围内");
             }
         } catch (java.net.MalformedURLException e) {
-            throw new BusinessException(400, "头像URL格式无效");
-        }
-    }
-
-    private void validateCoverImageUrl(String coverImage) {
-        if (coverImage == null || coverImage.trim().isEmpty()) {
-            throw new BusinessException(400, "封面图URL不能为空");
-        }
-        if (coverImage.length() > 2048) {
-            throw new BusinessException(400, "封面图URL长度不能超过2048字符");
-        }
-        // 允许相对路径（本地上传）和绝对URL（CDN）
-        if (coverImage.startsWith("/")) {
-            return;
-        }
-        if (!coverImage.startsWith("http://") && !coverImage.startsWith("https://")) {
-            throw new BusinessException(400, "封面图URL格式无效");
-        }
-        try {
-            URL url = new URL(coverImage);
-            String host = url.getHost().toLowerCase();
-            List<String> allowedDomains = Arrays.asList(allowedAvatarDomainsConfig.split(","));
-            boolean allowed = allowedDomains.stream().anyMatch(domain ->
-                    host.equals(domain.trim()) || host.endsWith("." + domain.trim()));
-            if (!allowed) {
-                throw new BusinessException(400, "封面图URL域名不在允许范围内");
-            }
-        } catch (java.net.MalformedURLException e) {
-            throw new BusinessException(400, "封面图URL格式无效");
+            throw new BusinessException(400, fieldName + "格式无效");
         }
     }
 }

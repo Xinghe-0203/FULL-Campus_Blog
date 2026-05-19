@@ -1,6 +1,6 @@
 # AGENTS.md — 校园博客论坛系统
 
-> Spring Boot 3 + Vue 3 全栈项目。当前版本 v2.0。
+> Spring Boot 3 + Vue 3 全栈项目。当前版本 v2.0.11。
 
 ## 项目结构
 

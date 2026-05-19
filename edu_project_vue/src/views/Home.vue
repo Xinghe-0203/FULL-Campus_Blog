@@ -1,285 +1,22 @@
-<template>
-  <div class="home-page">
-    <div class="home-container">
-      <main class="main-content">
-        <div class="section-header">
-          <h2 class="section-title">文章列表</h2>
-          <div class="filter-tabs">
-            <button
-              v-for="f in filters"
-              :key="f.value"
-              class="filter-tab"
-              :class="{ active: currentFilter === f.value }"
-              @click="setFilter(f.value)"
-            >
-              {{ f.label }}
-            </button>
-            <span class="filter-indicator" :style="indicatorStyle"></span>
-          </div>
-        </div>
-
-        <Transition name="fade" mode="out-in">
-          <div v-if="loading" key="loading" class="skeleton-list">
-            <div v-for="i in 3" :key="i" class="skeleton-card">
-              <div class="skeleton-card-header">
-                <div class="skeleton skeleton-avatar"></div>
-                <div class="skeleton skeleton-name"></div>
-              </div>
-              <div class="skeleton skeleton-title"></div>
-              <div class="skeleton skeleton-text"></div>
-              <div class="skeleton skeleton-text short"></div>
-              <div class="skeleton-card-footer">
-                <div class="skeleton skeleton-stat"></div>
-                <div class="skeleton skeleton-stat"></div>
-                <div class="skeleton skeleton-stat"></div>
-              </div>
-            </div>
-          </div>
-
-          <div v-else-if="error" key="error" class="error-state">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <h3>加载失败</h3>
-            <p>{{ errorMessage }}</p>
-            <button class="btn btn-primary" @click="retryFetch">重新加载</button>
-          </div>
-
-          <div v-else-if="posts.length === 0" key="empty" class="empty-state">
-            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="12" y1="18" x2="12" y2="12"/>
-              <line x1="9" y1="15" x2="15" y2="15"/>
-            </svg>
-            <h3 class="empty-title">还没有文章</h3>
-            <p class="empty-desc">成为第一个分享知识的人吧</p>
-            <router-link to="/post-edit" class="btn btn-primary">写第一篇</router-link>
-          </div>
-
-          <div v-else key="list" class="post-list">
-            <TransitionGroup name="stagger">
-              <article
-                v-for="(post, index) in posts"
-                :key="post.id"
-                class="post-card"
-                :style="{ '--i': index }"
-              >
-                <div class="post-card-inner">
-                  <div class="post-author-row">
-                    <router-link :to="`/user/${post.userId}`" class="post-author">
-                      <img :src="post.avatar || '/default-avatar.png'" alt="" class="author-avatar" loading="lazy" />
-                      <span class="author-name">{{ post.nickname || post.username }}</span>
-                    </router-link>
-                    <span class="post-time">{{ formatRelativeTime(post.createTime) }}</span>
-                  </div>
-                  <img v-if="post.coverImage" :src="getSafeImageUrl(post.coverImage)" alt="" class="post-cover" @click="openPreview([getSafeImageUrl(post.coverImage)], 0)" style="cursor: pointer" />
-                  <h3 class="post-title">
-                    <router-link :to="`/post/${post.id}`">{{ post.title }}</router-link>
-                  </h3>
-                  <p class="post-excerpt" v-if="post.summary">{{ post.summary }}</p>
-                  <div class="post-tags" v-if="post.tags?.length">
-                    <span
-                      v-for="tag in post.tags.slice(0, 3)"
-                      :key="tag.id"
-                      class="tag"
-                    >
-                      {{ tag.name }}
-                    </span>
-                  </div>
-                  <div class="post-actions">
-                    <button
-                      class="action-btn like-btn"
-                      :class="{ active: likedPosts.has(post.id) }"
-                      @click="toggleLike(post)"
-                      :disabled="!userStore.isLoggedIn"
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" :fill="likedPosts.has(post.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                      </svg>
-                      <span>{{ post.likeCount || 0 }}</span>
-                    </button>
-                    <button class="action-btn comment-btn" @click="goToPost(post)">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                      </svg>
-                      <span>{{ post.commentCount || 0 }}</span>
-                    </button>
-                    <button
-                      class="action-btn collect-btn"
-                      :class="{ active: collectedPosts.has(post.id) }"
-                      @click="toggleCollect(post)"
-                      :disabled="!userStore.isLoggedIn"
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" :fill="collectedPosts.has(post.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                      </svg>
-                      <span>{{ post.collectCount || 0 }}</span>
-                    </button>
-                    <button class="action-btn share-btn" @click="sharePost(post)">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="18" cy="5" r="3"/>
-                        <circle cx="6" cy="12" r="3"/>
-                        <circle cx="18" cy="19" r="3"/>
-                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                      </svg>
-                      <span>{{ post.shareCount || 0 }}</span>
-                    </button>
-                  </div>
-                </div>
-              </article>
-            </TransitionGroup>
-          </div>
-        </Transition>
-
-        <div v-if="totalPages > 1" class="pagination">
-          <button class="page-btn" :disabled="currentPage <= 1" @click="changePage(currentPage - 1)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="15 18 9 12 15 6"/>
-            </svg>
-            上一页
-          </button>
-          <button
-            v-for="page in displayedPages"
-            :key="page"
-            class="page-btn"
-            :class="{ active: page === currentPage }"
-            @click="changePage(page)"
-          >
-            {{ page }}
-          </button>
-          <button class="page-btn" :disabled="currentPage >= totalPages" @click="changePage(currentPage + 1)">
-            下一页
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </button>
-        </div>
-      </main>
-
-      <aside class="sidebar">
-        <div class="sidebar-card">
-          <h3 class="sidebar-title">热门文章</h3>
-          <div v-if="sidebarLoading" class="sidebar-skeleton">
-            <div v-for="i in 5" :key="i" class="sidebar-skeleton-item">
-              <div class="skeleton skeleton-rank"></div>
-              <div class="skeleton skeleton-line"></div>
-            </div>
-          </div>
-          <div v-else-if="hotPosts.length > 0" class="hot-posts">
-            <router-link
-              v-for="(item, index) in hotPosts"
-              :key="item.id"
-              :to="`/post/${item.id}`"
-              class="hot-post-item"
-            >
-              <span class="hot-rank" :class="{ top: index < 3 }">{{ index + 1 }}</span>
-              <span class="hot-post-title">{{ item.title }}</span>
-              <span class="hot-views">{{ formatNumber(item.viewCount || 0) }}</span>
-            </router-link>
-          </div>
-          <div v-else class="sidebar-empty">暂无热门文章</div>
-        </div>
-
-        <div class="sidebar-card">
-          <h3 class="sidebar-title">热门标签</h3>
-          <div v-if="sidebarLoading" class="sidebar-skeleton">
-            <div class="skeleton skeleton-tag-line"></div>
-          </div>
-          <div v-else-if="hotTags.length > 0" class="tag-cloud">
-            <router-link
-              v-for="tag in hotTags"
-              :key="tag.id"
-              :to="`/search?keyword=${encodeURIComponent(tag.name)}`"
-              class="tag-item"
-              :style="{ fontSize: getTagSize(tag.postCount || 0) }"
-            >
-              {{ tag.name }}
-              <sup class="tag-count">{{ tag.postCount }}</sup>
-            </router-link>
-          </div>
-          <div v-else class="sidebar-empty">暂无热门标签</div>
-        </div>
-
-        <div class="sidebar-card">
-          <h3 class="sidebar-title">社区统计</h3>
-          <div v-if="sidebarLoading" class="sidebar-skeleton">
-            <div class="stats-grid-skeleton">
-              <div v-for="i in 4" :key="i" class="skeleton skeleton-stat-item"></div>
-            </div>
-          </div>
-          <div v-else class="stats-grid">
-            <div class="stat-item">
-              <div class="stat-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/>
-                  <line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
-              </div>
-              <div class="stat-value">{{ formatNumber(stats.postCount || 0) }}</div>
-              <div class="stat-label">文章</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-              </div>
-              <div class="stat-value">{{ formatNumber(stats.userCount || 0) }}</div>
-              <div class="stat-label">用户</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-              </div>
-              <div class="stat-value">{{ formatNumber(stats.commentCount || 0) }}</div>
-              <div class="stat-label">评论</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                  <line x1="7" y1="7" x2="7.01" y2="7"/>
-                </svg>
-              </div>
-              <div class="stat-value">{{ formatNumber(stats.tagCount || 0) }}</div>
-              <div class="stat-label">标签</div>
-            </div>
-          </div>
-        </div>
-      </aside>
-    </div>
-    <ImagePreview :images="previewImages" :initial-index="previewIndex" :show="previewShow" @close="previewShow = false" />
-  </div>
-</template>
-
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { postApi } from '@/api/post'
 import { trendingApi } from '@/api/trending'
 import { statsApi } from '@/api/admin'
 import { likeApi } from '@/api/like'
 import { collectApi } from '@/api/collect'
-import { shareApi } from '@/api/share'
 import { useUserStore } from '@/stores/user'
 import ImagePreview from '../components/common/ImagePreview.vue'
-import { formatRelativeTime, formatNumber, getSafeImageUrl } from '@/utils'
+import { formatNumber } from '@/utils'
 import { useLogger } from '@/utils/logger'
 import { toast } from '@/utils/toast'
 
+import HomeFilters from '@/components/home/HomeFilters.vue'
+import PostCardList from '@/components/home/PostCardList.vue'
+import HomeSidebar from '@/components/home/HomeSidebar.vue'
+
 const route = useRoute()
-const router = useRouter()
 const userStore = useUserStore()
 const logger = useLogger('Home')
 
@@ -302,12 +39,6 @@ const previewShow = ref(false)
 const previewImages = ref([])
 const previewIndex = ref(0)
 
-const openPreview = (images, index) => {
-  previewImages.value = images
-  previewIndex.value = index
-  previewShow.value = true
-}
-
 const filters = [
   { label: '最新', value: 'latest' },
   { label: '最热', value: 'hot' },
@@ -320,11 +51,6 @@ const displayedPages = computed(() => {
   const end = Math.min(totalPages.value, start + 4)
   for (let i = start; i <= end; i++) pages.push(i)
   return pages
-})
-
-const indicatorStyle = computed(() => {
-  const idx = filters.findIndex(f => f.value === currentFilter.value)
-  return { transform: `translateX(${idx * 100}%)` }
 })
 
 const fetchPosts = async () => {
@@ -351,6 +77,67 @@ const fetchPosts = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const checkUserInteractionStatus = async () => {
+  if (!userStore.isLoggedIn) return
+  const postIds = posts.value.map(p => p.id)
+  if (postIds.length === 0) return
+  try {
+    const results = await Promise.allSettled([
+      likeApi.checkLikeStatusBatch(postIds),
+      collectApi.checkCollectStatusBatch(postIds)
+    ])
+    if (results[0].status === 'fulfilled') {
+      const likedList = results[0].value?.data || []
+      likedPosts.value = new Set(postIds.filter((_, i) => likedList[i] === true))
+    } else {
+      logger.error('Failed to check like status batch', { error: results[0].reason?.message })
+    }
+    if (results[1].status === 'fulfilled') {
+      const collectedList = results[1].value?.data || []
+      collectedPosts.value = new Set(postIds.filter((_, i) => collectedList[i] === true))
+    } else {
+      logger.error('Failed to check collect status batch', { error: results[1].reason?.message })
+    }
+  } catch (err) {
+    logger.error('Failed to check interaction status', { error: err.message })
+  }
+}
+
+const handlePreview = (images, index) => {
+  previewImages.value = images
+  previewIndex.value = index
+  previewShow.value = true
+}
+
+const setFilter = (value) => {
+  if (currentFilter.value === value) return
+  currentFilter.value = value
+  currentPage.value = 1
+  fetchPosts()
+}
+
+const retryFetch = () => {
+  fetchPosts()
+}
+
+const changePage = (page) => {
+  currentPage.value = page
+  fetchPosts()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const fetchSidebarData = async () => {
+  if (sidebarLoaded.value) return
+  sidebarLoaded.value = true
+  sidebarLoading.value = true
+  await Promise.allSettled([
+    fetchHotPosts(),
+    fetchHotTags(),
+    fetchStats()
+  ])
+  sidebarLoading.value = false
 }
 
 const fetchHotPosts = async () => {
@@ -383,139 +170,6 @@ const fetchStats = async () => {
   }
 }
 
-const checkUserInteractionStatus = async () => {
-  if (!userStore.isLoggedIn) return
-  const postIds = posts.value.map(p => p.id)
-  if (postIds.length === 0) return
-  try {
-    const results = await Promise.allSettled([
-      likeApi.checkLikeStatusBatch(postIds),
-      collectApi.checkCollectStatusBatch(postIds)
-    ])
-    if (results[0].status === 'fulfilled') {
-      const likedList = results[0].value?.data || []
-      likedPosts.value = new Set(postIds.filter((_, i) => likedList[i] === true))
-    } else {
-      logger.error('Failed to check like status batch', { error: results[0].reason?.message })
-    }
-    if (results[1].status === 'fulfilled') {
-      const collectedList = results[1].value?.data || []
-      collectedPosts.value = new Set(postIds.filter((_, i) => collectedList[i] === true))
-    } else {
-      logger.error('Failed to check collect status batch', { error: results[1].reason?.message })
-    }
-  } catch (err) {
-    logger.error('Failed to check interaction status', { error: err.message })
-  }
-}
-
-const toggleLike = async (post) => {
-  if (!userStore.isLoggedIn) {
-    router.push('/login')
-    return
-  }
-  try {
-    await likeApi.toggleLike(post.id)
-    if (likedPosts.value.has(post.id)) {
-      likedPosts.value.delete(post.id)
-      post.likeCount = Math.max(0, (post.likeCount || 0) - 1)
-    } else {
-      likedPosts.value.add(post.id)
-      post.likeCount = (post.likeCount || 0) + 1
-    }
-  } catch (err) {
-    logger.error('Failed to toggle like', { error: err.message })
-    toast.error(err.response?.data?.message || '操作失败')
-  }
-}
-
-const toggleCollect = async (post) => {
-  if (!userStore.isLoggedIn) {
-    router.push('/login')
-    return
-  }
-  try {
-    await collectApi.toggleCollect(post.id)
-    if (collectedPosts.value.has(post.id)) {
-      collectedPosts.value.delete(post.id)
-      post.collectCount = Math.max(0, (post.collectCount || 0) - 1)
-    } else {
-      collectedPosts.value.add(post.id)
-      post.collectCount = (post.collectCount || 0) + 1
-    }
-  } catch (err) {
-    logger.error('Failed to toggle collect', { error: err.message })
-    toast.error(err.response?.data?.message || '操作失败')
-  }
-}
-
-const sharePost = async (post) => {
-  const url = `${window.location.origin}/post/${post.id}`
-  try {
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(url)
-    } else {
-      const textarea = document.createElement('textarea')
-      textarea.value = url
-      textarea.style.position = 'fixed'
-      textarea.style.opacity = '0'
-      document.body.appendChild(textarea)
-      textarea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textarea)
-    }
-    toast.success('链接已复制')
-    if (userStore.isLoggedIn) {
-      try {
-        await shareApi.recordShare(post.id)
-        post.shareCount = (post.shareCount || 0) + 1
-      } catch {}
-    }
-  } catch {
-    toast.error('复制失败，请手动复制链接')
-  }
-}
-
-const goToPost = (post) => {
-  router.push(`/post/${post.id}`)
-}
-
-const setFilter = (value) => {
-  if (currentFilter.value === value) return
-  currentFilter.value = value
-  currentPage.value = 1
-  fetchPosts()
-}
-
-const retryFetch = () => {
-  fetchPosts()
-}
-
-const changePage = (page) => {
-  currentPage.value = page
-  fetchPosts()
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
-const getTagSize = (count) => {
-  if (count > 20) return '0.95rem'
-  if (count > 10) return '0.875rem'
-  if (count > 5) return '0.8125rem'
-  return '0.75rem'
-}
-
-const fetchSidebarData = async () => {
-  if (sidebarLoaded.value) return
-  sidebarLoaded.value = true
-  sidebarLoading.value = true
-  await Promise.allSettled([
-    fetchHotPosts(),
-    fetchHotTags(),
-    fetchStats()
-  ])
-  sidebarLoading.value = false
-}
-
 watch(() => route.query.page, (newPage) => {
   if (newPage) {
     currentPage.value = parseInt(newPage) || 1
@@ -531,6 +185,70 @@ onMounted(() => {
   fetchSidebarData()
 })
 </script>
+
+<template>
+  <div class="home-page">
+    <div class="home-container">
+      <main class="main-content">
+        <div class="section-header">
+          <h2 class="section-title">文章列表</h2>
+          <HomeFilters
+            :filters="filters"
+            :current-filter="currentFilter"
+            @update="setFilter"
+          />
+        </div>
+
+        <PostCardList
+          :posts="posts"
+          :liked-posts="likedPosts"
+          :collected-posts="collectedPosts"
+          :loading="loading"
+          :error="error"
+          :error-message="errorMessage"
+          @retry="retryFetch"
+        />
+
+        <div v-if="totalPages > 1" class="pagination">
+          <button class="page-btn" :disabled="currentPage <= 1" @click="changePage(currentPage - 1)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            上一页
+          </button>
+          <button
+            v-for="page in displayedPages"
+            :key="page"
+            class="page-btn"
+            :class="{ active: page === currentPage }"
+            @click="changePage(page)"
+          >
+            {{ page }}
+          </button>
+          <button class="page-btn" :disabled="currentPage >= totalPages" @click="changePage(currentPage + 1)">
+            下一页
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+      </main>
+
+      <HomeSidebar
+        :hot-posts="hotPosts"
+        :hot-tags="hotTags"
+        :stats="stats"
+        :loading="sidebarLoading"
+      />
+    </div>
+    <ImagePreview
+      :images="previewImages"
+      :initial-index="previewIndex"
+      :show="previewShow"
+      @close="previewShow = false"
+    />
+  </div>
+</template>
 
 <style scoped>
 .home-page {
@@ -564,428 +282,6 @@ onMounted(() => {
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.01em;
-}
-
-.filter-tabs {
-  position: relative;
-  display: flex;
-  gap: 0;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-  padding: 4px;
-  box-shadow: var(--glass-shadow);
-}
-
-.filter-tab {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  padding: 8px 20px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  background: transparent;
-  border: none;
-  border-radius: calc(var(--radius) - 4px);
-  cursor: pointer;
-  transition: all var(--transition);
-  text-align: center;
-}
-
-.filter-tab:hover:not(.active) {
-  color: var(--text-primary);
-  background: var(--primary-light);
-}
-
-.filter-tab.active {
-  color: white;
-}
-
-.filter-indicator {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  width: calc((100% - 8px) / 3);
-  height: calc(100% - 8px);
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-  border-radius: calc(var(--radius) - 4px);
-  transition: transform var(--transition-slow) cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 0;
-  box-shadow: 0 2px 8px var(--primary-glow);
-}
-
-.skeleton-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.skeleton-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-wet);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  box-shadow: var(--glass-shadow-wet);
-}
-
-.skeleton-card-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.skeleton-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-}
-
-.skeleton-name {
-  width: 100px;
-  height: 14px;
-  border-radius: var(--radius);
-}
-
-.skeleton-title {
-  width: 65%;
-  height: 20px;
-  margin-bottom: 12px;
-  border-radius: var(--radius);
-}
-
-.skeleton-text {
-  width: 100%;
-  height: 14px;
-  margin-bottom: 8px;
-  border-radius: var(--radius);
-}
-
-.skeleton-text.short {
-  width: 45%;
-}
-
-.skeleton-card-footer {
-  display: flex;
-  gap: 24px;
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--glass-border);
-}
-
-.skeleton-stat {
-  width: 60px;
-  height: 14px;
-  border-radius: var(--radius);
-}
-
-.skeleton {
-  background: linear-gradient(90deg, 
-    var(--skeleton-base) 0%, 
-    var(--skeleton-highlight) 50%, 
-    var(--skeleton-base) 100%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s ease-in-out infinite;
-}
-
-@keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-.error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-  color: var(--text-muted);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-wet);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--glass-shadow-wet);
-}
-
-.error-state svg {
-  margin-bottom: 16px;
-  color: var(--error);
-}
-
-.error-state h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-}
-
-.error-state p {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: 20px;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-  color: var(--text-muted);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-wet);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--glass-shadow-wet);
-}
-
-.empty-state svg {
-  margin-bottom: 16px;
-  opacity: 0.4;
-}
-
-.empty-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-}
-
-.empty-desc {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: 20px;
-}
-
-.post-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.post-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-wet);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--glass-shadow-wet);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: card-enter 0.4s ease both;
-  animation-delay: calc(var(--i, 0) * 0.08s);
-  overflow: hidden;
-}
-
-.post-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg), 0 0 0 1px var(--primary-light);
-  background: var(--glass-hover);
-}
-
-.post-card-inner {
-  padding: 20px;
-}
-
-.post-cover {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  border-radius: var(--radius);
-  margin-bottom: 14px;
-  transition: transform var(--transition-slow);
-}
-
-.post-card:hover .post-cover {
-  transform: scale(1.02);
-}
-
-@keyframes card-enter {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.post-author-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.post-author {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  color: var(--text-primary);
-  transition: color var(--transition-fast);
-}
-
-.post-author:hover {
-  color: var(--primary);
-}
-
-.author-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-  border: 2px solid var(--glass-border);
-  flex-shrink: 0;
-  transition: transform var(--transition-fast);
-}
-
-.post-author:hover .author-avatar {
-  transform: scale(1.1);
-}
-
-.author-name {
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.post-time {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.post-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 10px;
-  line-height: 1.4;
-}
-
-.post-title a {
-  color: var(--text-primary);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-}
-
-.post-title a:hover {
-  color: var(--primary);
-}
-
-.post-excerpt {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 14px;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.post-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.tag {
-  padding: 4px 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  background: var(--primary-light);
-  color: var(--primary);
-  border-radius: var(--radius-full);
-  text-decoration: none;
-  transition: all var(--transition-fast);
-  border: 1px solid transparent;
-}
-
-.tag:hover {
-  background: var(--primary);
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px var(--primary-glow);
-}
-
-.post-actions {
-  display: flex;
-  gap: 4px;
-  padding-top: 14px;
-  border-top: 1px solid var(--glass-border);
-}
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 8px 14px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.action-btn:hover:not(:disabled) {
-  background: var(--primary-light);
-  color: var(--primary);
-  transform: translateY(-1px);
-}
-
-.action-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.action-btn.active {
-  color: var(--primary);
-  background: var(--primary-light);
-}
-
-.like-btn.active {
-  color: var(--accent);
-  background: var(--accent-light);
-}
-
-.like-btn.active svg {
-  animation: heart-pop 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.collect-btn.active {
-  color: var(--warning);
-  background: var(--warning-light);
-}
-
-.collect-btn.active svg {
-  animation: collect-pop 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes heart-pop {
-  0% { transform: scale(1); }
-  30% { transform: scale(1.35); }
-  60% { transform: scale(0.9); }
-  100% { transform: scale(1); }
-}
-
-@keyframes collect-pop {
-  0% { transform: scale(1) rotate(0deg); }
-  30% { transform: scale(1.3) rotate(-5deg); }
-  60% { transform: scale(0.9) rotate(3deg); }
-  100% { transform: scale(1) rotate(0deg); }
 }
 
 .pagination {
@@ -1037,287 +333,9 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
-.sidebar {
-  position: sticky;
-  top: 84px;
-}
-
-.sidebar-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-wet);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--glass-shadow-wet);
-  padding: 20px;
-  margin-bottom: 16px;
-  transition: all var(--transition-slow);
-}
-
-.sidebar-card:hover {
-  box-shadow: var(--shadow-lg);
-}
-
-.sidebar-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--glass-border);
-  position: relative;
-}
-
-.sidebar-title::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 36px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--primary-start), var(--primary-end));
-  border-radius: 1px;
-}
-
-.hot-posts {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.hot-post-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--radius);
-  text-decoration: none;
-  transition: all var(--transition-fast);
-}
-
-.hot-post-item:hover {
-  background: var(--primary-light);
-}
-
-.hot-post-item:hover .hot-post-title {
-  color: var(--primary);
-}
-
-.hot-rank {
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-  transition: all var(--transition-fast);
-}
-
-.hot-rank.top {
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-  color: white;
-  border-color: transparent;
-  box-shadow: 0 2px 8px var(--primary-glow);
-}
-
-.hot-post-title {
-  flex: 1;
-  font-size: 0.8125rem;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: color var(--transition-fast);
-}
-
-.hot-views {
-  font-size: 0.6875rem;
-  color: var(--text-muted);
-  flex-shrink: 0;
-  padding: 2px 8px;
-  background: var(--glass-bg);
-  border-radius: var(--radius-full);
-  border: 1px solid var(--glass-border);
-}
-
-.tag-cloud {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.tag-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 6px 14px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-full);
-  text-decoration: none;
-  transition: all var(--transition-fast);
-  line-height: 1.4;
-  box-shadow: var(--glass-shadow);
-}
-
-.tag-item:hover {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md), var(--shadow-glow-primary);
-}
-
-.tag-count {
-  font-size: 0.625rem;
-  color: var(--text-muted);
-  font-weight: 400;
-  opacity: 0.7;
-}
-
-.tag-item:hover .tag-count {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
-.stat-item {
-  text-align: center;
-  padding: 16px 8px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-  transition: all var(--transition-fast);
-  box-shadow: var(--glass-shadow);
-}
-
-.stat-item:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--primary-light);
-}
-
-.stat-icon {
-  color: var(--primary);
-  margin-bottom: 8px;
-  opacity: 0.8;
-}
-
-.stat-value {
-  font-size: 1.375rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1.2;
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.sidebar-empty {
-  text-align: center;
-  padding: 16px;
-  color: var(--text-muted);
-  font-size: 0.8125rem;
-}
-
-.sidebar-skeleton {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.sidebar-skeleton-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 0;
-}
-
-.skeleton-rank {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-}
-
-.skeleton-line {
-  flex: 1;
-  height: 14px;
-  border-radius: var(--radius);
-}
-
-.skeleton-tag-line {
-  width: 100%;
-  height: 32px;
-  border-radius: var(--radius);
-}
-
-.stats-grid-skeleton {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
-.skeleton-stat-item {
-  height: 72px;
-  border-radius: var(--radius);
-}
-
-.stagger-enter-active {
-  transition: all 0.4s ease;
-  transition-delay: calc(var(--i, 0) * 0.08s);
-}
-
-.stagger-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.25s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
 @media (max-width: 992px) {
   .home-container {
     grid-template-columns: 1fr;
-  }
-  .sidebar {
-    position: static;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-  .sidebar-card {
-    margin-bottom: 0;
   }
 }
 
@@ -1333,21 +351,6 @@ onMounted(() => {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
-  }
-  .filter-tabs {
-    width: 100%;
-  }
-  .sidebar {
-    grid-template-columns: 1fr;
-  }
-  .post-card-inner {
-    padding: 16px;
-  }
-  .post-actions {
-    flex-wrap: wrap;
-  }
-  .post-cover {
-    height: 140px;
   }
   .pagination {
     flex-wrap: wrap;

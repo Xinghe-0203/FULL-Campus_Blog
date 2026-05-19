@@ -35,7 +35,7 @@ public class MessageController {
      * 发送私信
      */
     @Operation(summary = "发送私信")
-    @PostMapping("/send")
+    @PostMapping
     public Result<MessageVO> sendMessage(@Valid @RequestBody SendMessageRequest request) {
         Long senderId = SecurityUtils.getCurrentUserIdOrNull();
         if (senderId == null) {

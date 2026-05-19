@@ -17,8 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
  * 评论控制器
  */
@@ -50,8 +48,11 @@ public class BlogCommentController {
      */
     @Operation(summary = "获取文章评论列表")
     @GetMapping("/post/{postId}")
-    public Result<List<CommentVO>> getCommentsByPostId(@PathVariable Long postId) {
-        List<CommentVO> comments = blogCommentService.getCommentsByPostId(postId);
+    public Result<IPage<CommentVO>> getCommentsByPostId(
+            @PathVariable Long postId,
+            @RequestParam(defaultValue = "1") @Min(1) Integer pageNum,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) Integer pageSize) {
+        IPage<CommentVO> comments = blogCommentService.getCommentsByPostId(postId, pageNum, pageSize);
         return Result.success(comments);
     }
 

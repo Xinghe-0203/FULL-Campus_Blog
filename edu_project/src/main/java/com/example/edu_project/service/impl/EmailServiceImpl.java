@@ -37,6 +37,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class EmailServiceImpl implements EmailService {
 
+    private static final int MAX_DAILY_SEND_COUNT = 10; // 每邮箱每天最大发送次数
+
     @Autowired
     private JavaMailSender mailSender;
 
@@ -61,8 +63,13 @@ public class EmailServiceImpl implements EmailService {
     // 发送时间记录: type:email -> lastSendTime
     private final Map<String, Long> sendTimeStore = new ConcurrentHashMap<>();
 
+    // 每日发送次数记录: email -> [sendCount, date]
+    private final Map<String, DailySendCount> dailySendCountStore = new ConcurrentHashMap<>();
+
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final int CODE_LENGTH = 6;
+    // 易混淆字符排除: 0, O, I, l, 1
+    private static final String CODE_CHARS = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 
     private final ScheduledExecutorService cleanupExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
         Thread t = new Thread(r, "verification-cleanup");
@@ -117,6 +124,19 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
+    /**
+     * 每日发送计数数据结构
+     */
+    private static class DailySendCount {
+        AtomicInteger count;
+        int date; // yyyyMMdd格式
+
+        DailySendCount(int date) {
+            this.count = new AtomicInteger(0);
+            this.date = date;
+        }
+    }
+
     @Override
     public boolean sendVerificationCode(String to, VerificationType type) {
         if (to == null || to.trim().isEmpty()) {
@@ -124,6 +144,9 @@ public class EmailServiceImpl implements EmailService {
         }
 
         String key = type + ":" + to;
+
+        // 检查每日发送次数限制
+        checkDailySendLimit(to);
 
         String code;
         synchronized (sendTimeStore) {
@@ -147,6 +170,7 @@ public class EmailServiceImpl implements EmailService {
                     ? "校园博客论坛 - 注册验证码"
                     : "校园博客论坛 - 密码找回验证码";
             sendHtmlEmail(to, code, subject);
+            incrementDailySendCount(to);
             log.info("验证码已发送至: {}, type={}", StringMaskUtils.maskEmail(to), type);
             return true;
         } catch (MailException e) {
@@ -171,6 +195,9 @@ public class EmailServiceImpl implements EmailService {
 
         String key = VerificationType.REGISTER + ":" + to;
 
+        // 检查每日发送次数限制
+        checkDailySendLimit(to);
+
         String code;
         synchronized (sendTimeStore) {
             Long currentSendTime = sendTimeStore.get(key);
@@ -190,6 +217,7 @@ public class EmailServiceImpl implements EmailService {
 
         try {
             sendHtmlEmail(to, code, "校园博客论坛 - 注册验证码");
+            incrementDailySendCount(to);
             log.info("注册验证码已发送至: {}, username={}", StringMaskUtils.maskEmail(to), username);
             return true;
         } catch (MailException e) {
@@ -250,14 +278,47 @@ public class EmailServiceImpl implements EmailService {
     }
 
     /**
-     * 生成安全的6位随机验证码
+     * 生成安全的8位混合验证码（排除易混淆字符）
      */
     private String generateSecureCode() {
         StringBuilder code = new StringBuilder(CODE_LENGTH);
         for (int i = 0; i < CODE_LENGTH; i++) {
-            code.append(SECURE_RANDOM.nextInt(10));
+            code.append(CODE_CHARS.charAt(SECURE_RANDOM.nextInt(CODE_CHARS.length())));
         }
         return code.toString();
+    }
+
+    /**
+     * 检查每日发送次数限制
+     */
+    private void checkDailySendLimit(String email) {
+        int today = Integer.parseInt(java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")));
+        DailySendCount dailyCount = dailySendCountStore.computeIfAbsent(email, k -> new DailySendCount(today));
+
+        // 日期变更检查，重置计数
+        if (dailyCount.date != today) {
+            dailyCount = new DailySendCount(today);
+            dailySendCountStore.put(email, dailyCount);
+        }
+
+        if (dailyCount.count.get() >= MAX_DAILY_SEND_COUNT) {
+            throw new BusinessException(429, "该邮箱今日发送次数已用完，请明天再试");
+        }
+    }
+
+    /**
+     * 增加每日发送计数
+     */
+    private void incrementDailySendCount(String email) {
+        int today = Integer.parseInt(java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")));
+        DailySendCount dailyCount = dailySendCountStore.computeIfAbsent(email, k -> new DailySendCount(today));
+
+        if (dailyCount.date != today) {
+            dailyCount = new DailySendCount(today);
+            dailySendCountStore.put(email, dailyCount);
+        }
+
+        dailyCount.count.incrementAndGet();
     }
 
     /**

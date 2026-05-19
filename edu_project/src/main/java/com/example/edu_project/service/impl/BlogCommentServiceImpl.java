@@ -62,6 +62,8 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
     @Autowired
     private BlogPostMapper blogPostMapper;
 
+    private static final int MAX_RECURSION_DEPTH = 100; // 最大递归深度，防止栈溢出
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createComment(CommentCreateRequest request, Long userId) {
@@ -130,7 +132,7 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
 
     @Override
     @Transactional(readOnly = true)
-    public List<CommentVO> getCommentsByPostId(Long postId) {
+    public IPage<CommentVO> getCommentsByPostId(Long postId, Integer pageNum, Integer pageSize) {
         // 先检查文章是否存在且已发布
         BlogPost post = blogPostService.getById(postId);
         if (post == null) {
@@ -141,15 +143,16 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
             throw new BusinessException(403, "文章未发布或已下架");
         }
 
-        // 查询该文章的最新评论（限制数量）
+        // 分页查询该文章的评论
+        Page<BlogComment> pageParam = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogComment::getPostId, postId)
-              .orderByDesc(BlogComment::getCreateTime)
-              .last("LIMIT 100");
-        List<BlogComment> comments = this.list(wrapper);
+               .orderByDesc(BlogComment::getCreateTime);
+        IPage<BlogComment> commentPage = this.page(pageParam, wrapper);
 
+        List<BlogComment> comments = commentPage.getRecords();
         if (comments.isEmpty()) {
-            return List.of();
+            return new Page<>(pageNum, pageSize, 0);
         }
 
         // 获取所有评论者用户ID
@@ -176,7 +179,7 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
                         vo.setUsername(user.getUsername());
                         vo.setUserAvatar(user.getAvatar());
                     }
-                    // 如果是回复，使用 Map O(1) 查找父评论（替代原来的 O(n) stream filter）
+                    // 如果是回复，使用 Map O(1) 查找父评论
                     if (comment.getParentId() != null) {
                         BlogComment parentComment = commentMapById.get(comment.getParentId());
                         if (parentComment != null) {
@@ -191,17 +194,15 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
                 })
                 .collect(Collectors.toList());
 
-        // 构建树形结构（使用已有的 commentVOs 构建 Map）
-        List<CommentVO> rootComments = new ArrayList<>();
+        // 构建树形结构
         Map<Long, CommentVO> voMap = commentVOs.stream()
                 .collect(Collectors.toMap(CommentVO::getId, c -> c));
 
+        List<CommentVO> rootComments = new ArrayList<>();
         for (CommentVO vo : commentVOs) {
             if (vo.getParentId() == null) {
-                // 一级评论
                 rootComments.add(vo);
             } else {
-                // 子评论，添加到父评论的replies中
                 CommentVO parent = voMap.get(vo.getParentId());
                 if (parent != null) {
                     parent.getReplies().add(vo);
@@ -209,7 +210,9 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
             }
         }
 
-        return rootComments;
+        IPage<CommentVO> result = new Page<>(commentPage.getCurrent(), commentPage.getSize(), commentPage.getTotal());
+        result.setRecords(rootComments);
+        return result;
     }
 
     @Override
@@ -258,8 +261,6 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
         // 更新热门趋势数据
         trendingService.updatePostTrending(comment.getPostId());
     }
-
-    private static final int MAX_RECURSION_DEPTH = 100; // 最大递归深度，防止栈溢出
 
     /**
      * 批量收集所有子评论ID（解决N+1问题）

@@ -50,7 +50,7 @@ public class BlogCollectController {
      * 检查是否已收藏
      */
     @Operation(summary = "检查是否已收藏")
-    @GetMapping("/check/{postId}")
+    @GetMapping("/{postId}/status")
     public Result<CollectStatusVO> checkCollectStatus(@PathVariable Long postId) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         CollectStatusVO status = blogCollectService.checkCollectStatus(postId, userId);

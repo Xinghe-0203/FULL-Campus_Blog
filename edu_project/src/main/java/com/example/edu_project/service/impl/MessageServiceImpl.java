@@ -12,6 +12,7 @@ import com.example.edu_project.mapper.BlogNotificationMapper;
 import com.example.edu_project.mapper.MessageMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.MessageService;
+import com.example.edu_project.common.enums.UserStatus;
 import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.utils.TimeUtils;
@@ -19,8 +20,10 @@ import com.example.edu_project.utils.UserConverter;
 import com.example.edu_project.vo.ConversationVO;
 import com.example.edu_project.vo.MessageVO;
 import com.example.edu_project.vo.UserVO;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import lombok.extern.slf4j.Slf4j;
@@ -48,9 +51,16 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     @Autowired
     private HtmlSanitizer htmlSanitizer;
 
+    @Autowired
+    private CacheManager cacheManager;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadMsg:' + #receiverId")
+    @Caching(evict = {
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadMsg:' + #receiverId"),
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'conversations:' + #receiverId"),
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'conversations:' + #senderId")
+    })
     public MessageVO sendMessage(Long senderId, Long receiverId, String content) {
         if (senderId == null) {
             throw new BusinessException(401, "请先登录");
@@ -70,7 +80,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (receiver == null) {
             throw new BusinessException(404, "用户不存在");
         }
-        if (receiver.getStatus() != null && receiver.getStatus() == 0) {
+        if (receiver.getStatus() != null && receiver.getStatus() == UserStatus.DISABLED.getValue()) {
             throw new BusinessException(400, "该用户已被封禁，无法发送私信");
         }
         SysUser sender = sysUserMapper.selectById(senderId);
@@ -156,7 +166,10 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadMsg:' + #userId")
+    @Caching(evict = {
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadMsg:' + #userId"),
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'conversations:' + #userId")
+    })
     public void markAsRead(Long messageId, Long userId) {
         Message message = this.getById(messageId);
         if (message == null) {
@@ -172,7 +185,10 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadMsg:' + #userId")
+    @Caching(evict = {
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadMsg:' + #userId"),
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'conversations:' + #userId")
+    })
     public void deleteMessage(Long messageId, Long userId) {
         Message message = this.getById(messageId);
         if (message == null) {
@@ -182,13 +198,23 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (!Objects.equals(message.getSenderId(), userId) && !Objects.equals(message.getReceiverId(), userId)) {
             throw new BusinessException(403, "无权删除此私信");
         }
+        // 清除对方的未读消息缓存
+        Long partnerId = Objects.equals(message.getSenderId(), userId) ? message.getReceiverId() : message.getSenderId();
+        if (cacheManager.getCache(CaffeineCacheConfig.USER_CACHE) != null) {
+            cacheManager.getCache(CaffeineCacheConfig.USER_CACHE).evict("unreadMsg:" + partnerId);
+            cacheManager.getCache(CaffeineCacheConfig.USER_CACHE).evict("conversations:" + partnerId);
+        }
         // 逻辑删除
         this.removeById(messageId);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadMsg:' + #userId")
+    @Caching(evict = {
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'unreadMsg:' + #userId"),
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'conversations:' + #userId"),
+            @CacheEvict(value = CaffeineCacheConfig.USER_CACHE, key = "'conversations:' + #partnerUserId")
+    })
     public void markConversationAsRead(Long userId, Long partnerUserId) {
         // 检查是否存在会话（双方互发过消息）
         LambdaQueryWrapper<Message> existWrapper = new LambdaQueryWrapper<>();
@@ -196,7 +222,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
                 .or(w2 -> w2.eq(Message::getSenderId, partnerUserId).eq(Message::getReceiverId, userId)));
         long conversationCount = this.count(existWrapper);
         if (conversationCount == 0) {
-            throw new BusinessException(404, "会话不存在");
+            return;
         }
 
         // 标记用户收到的未读消息为已读

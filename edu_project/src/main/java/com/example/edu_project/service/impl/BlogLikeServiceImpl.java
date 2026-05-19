@@ -10,6 +10,7 @@ import com.example.edu_project.entity.BlogPost;
 import com.example.edu_project.entity.BlogPostTag;
 import com.example.edu_project.entity.BlogTag;
 import com.example.edu_project.entity.SysUser;
+import com.example.edu_project.common.enums.PostStatus;
 import com.example.edu_project.event.LikeCreatedEvent;
 import com.example.edu_project.mapper.BlogLikeMapper;
 import com.example.edu_project.mapper.BlogPostMapper;
@@ -88,7 +89,8 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
             // 检查是否存在非删除的点赞记录
             LambdaQueryWrapper<BlogLike> activeWrapper = new LambdaQueryWrapper<>();
             activeWrapper.eq(BlogLike::getUserId, userId)
-                  .eq(BlogLike::getPostId, postId);
+                  .eq(BlogLike::getPostId, postId)
+                  .ne(BlogLike::getIsDeleted, 1);
             BlogLike activeLike = this.getOne(activeWrapper);
 
             if (activeLike != null) {
@@ -214,6 +216,7 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
 
         LambdaQueryWrapper<BlogLike> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogLike::getUserId, userId)
+                .ne(BlogLike::getIsDeleted, 1)
                 .orderByDesc(BlogLike::getCreateTime);
 
         IPage<BlogLike> likeResult = this.page(likePage, wrapper);
@@ -232,7 +235,7 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
         List<BlogPost> posts = blogPostMapper.selectBatchIds(postIds);
         // 过滤掉未发布的文章和已删除的文章
         posts = posts.stream()
-                .filter(p -> p.getStatus() != null && p.getStatus() == 1)
+                .filter(p -> p.getStatus() != null && p.getStatus() == PostStatus.PUBLISHED.getValue())
                 .filter(p -> p.getIsDeleted() == null || p.getIsDeleted() != 1)
                 .collect(Collectors.toList());
         Map<Long, BlogPost> postMap = posts.stream()
@@ -316,7 +319,8 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
         }
         LambdaQueryWrapper<BlogLike> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogLike::getUserId, userId)
-               .in(BlogLike::getPostId, postIds);
+               .in(BlogLike::getPostId, postIds)
+               .ne(BlogLike::getIsDeleted, 1);
         List<BlogLike> likedList = this.list(wrapper);
         List<Long> likedPostIds = likedList.stream()
                 .map(BlogLike::getPostId)
