@@ -1,5 +1,23 @@
 # 变更日志
 
+## v2.0.12 - 2026-05-20
+
+### 🎨 前端话题功能重构
+- **文章话题功能移除** - PostEdit.vue 移除话题选择器 UI 和相关逻辑
+  - 删除话题选择器组件、话题变量、话题函数
+  - 删除话题相关 CSS 样式（约130行）
+  - 保留标签功能作为替代
+- **校友圈话题功能保留并修复** - CirclePost.vue
+  - 修复话题传递 bug：`topicId` → `topicIds`（复数）
+  - 修复变量名错误：`selectedTopic` → `selectedTopics`
+  - 修复 API 返回数据路径：`data.records` → `data.data.records`
+  - 新增缺失变量声明：`topicSearch`、`allTopics`
+- **文章详情页话题展示移除** - PostDetail.vue 删除话题展示区域
+
+### 🔧 Bug 修复
+- **PostEdit.vue** - 补全缺失的 Vue import 语句（ref, reactive, computed 等）
+- **CirclePost.vue** - 修复话题创建函数调用错误（`fetchTopics` → `topicApi.getTopicList`）
+
 ## v2.0.11 - 2026-05-19
 
 ### 🐛 Bug 修复

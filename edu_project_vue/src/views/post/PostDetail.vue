@@ -65,14 +65,6 @@
               </router-link>
             </div>
           </div>
-          
-          <!-- 话题 -->
-          <div v-if="post.topicName" class="post-topic">
-            <router-link :to="`/search?keyword=${encodeURIComponent('#' + post.topicName)}`" class="topic-badge">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h16M4 15h16M10 3l-2 6M14 15l-2 6M14 3l2 6M10 15l-2 6"/></svg>
-              #{{ post.topicName }}
-            </router-link>
-          </div>
 
           <!-- 标签 -->
           <div v-if="post.tags && post.tags.length" class="post-tags">
@@ -844,32 +836,6 @@ watch(() => route.params.id, () => {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-}
-
-/* 话题徽章 */
-.post-topic {
-  margin-bottom: var(--spacing-md);
-}
-
-.topic-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0.375rem 0.875rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, var(--warning), var(--error));
-  color: #fff;
-  border-radius: var(--radius);
-  text-decoration: none;
-  transition: all var(--transition);
-  box-shadow: var(--shadow-sm);
-}
-
-.topic-badge:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
 }
 
 /* 标签 */

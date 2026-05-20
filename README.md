@@ -1,7 +1,7 @@
 # 校园博客论坛系统 / Campus Blog Forum System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-v2.0.11-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
+[![Version](https://img.shields.io/badge/version-v2.0.12-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-green)](https://spring.io/projects/spring-boot)
 [![Vue](https://img.shields.io/badge/Vue-3.4.21-brightgreen)](https://vuejs.org/)
@@ -10,11 +10,14 @@
 
 一个基于 **Spring Boot 3 + Vue 3 + MyBatis Plus** 的全栈校园博客论坛系统，支持文章发布、校友圈动态、点赞收藏、关注互动、消息通知等功能。
 
+**v2.0.12 最新修复：**
+- 文章话题功能移除（标签功能保留）
+- 校友圈话题功能修复并完善
+- 话题数据路径修复（data.data.records）
+- PostEdit.vue import 语句补全
+
 **v2.0.11 最新修复：**
 - 修复写文章选择标签时白屏的运行时错误
-- 补全 PostEdit 中 4 个缺失的模板引用（categoryLabel, saveStatusText, wordCount, readingTime）
-- 话题多选保存支持（selectedTopics 数组替代单个 topicId）
-- 后端多项安全与功能修复（举报通知、Token 失效、枚举校验）
 
 **v2.0 全新升级：**
 - Rainy Glassmorphism UI 设计系统（水滴、涟漪、光泽动效）

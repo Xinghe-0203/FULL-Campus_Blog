@@ -273,15 +273,24 @@
                     <input v-model="topicSearch" placeholder="添加话题..." @focus="showTopicDropdown = true" @blur="hideTopicDropdown" />
                   </div>
                   <transition name="dropdown">
-                    <div v-if="showTopicDropdown && filteredTopics.length" class="topic-dropdown glass">
+                    <div v-if="showTopicDropdown" class="topic-dropdown glass">
                       <div v-if="topicsLoading" class="topic-loading">
                         <span class="spinner-small"></span> 加载中...
                       </div>
-                      <div v-else>
+                      <div v-else-if="filteredTopics.length">
                         <div v-for="topic in filteredTopics" :key="topic.id" class="topic-dropdown-item" @mousedown.prevent="selectTopic(topic)">
                           <span class="topic-name">#{{ topic.name }}</span>
                           <span class="topic-count">{{ topic.postCount || 0 }} 篇</span>
                         </div>
+                        <div class="topic-create-divider"></div>
+                        <div class="topic-dropdown-item topic-create-item" @mousedown.prevent="openCreateTopicModal">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                          <span class="topic-create-text">创建话题 "{{ topicSearch || '新话题' }}"</span>
+                        </div>
+                      </div>
+                      <div v-else class="topic-create-item" @mousedown.prevent="openCreateTopicModal">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span class="topic-create-text">创建话题 "{{ topicSearch || '新话题' }}"</span>
                       </div>
                     </div>
                   </transition>
@@ -357,6 +366,39 @@
               <button class="btn btn-ghost" @click="closeRepostModal">取消</button>
               <button class="btn btn-primary" @click="confirmRepost" :disabled="reposting">
                 {{ reposting ? '转发中...' : '转发' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </teleport>
+
+    <teleport to="body">
+      <transition name="modal">
+        <div v-if="showCreateTopicModal" class="modal-overlay" @click.self="showCreateTopicModal = false">
+          <div class="modal-content glass create-topic-modal">
+            <div class="modal-header">
+              <h3>创建新话题</h3>
+              <button class="close-btn" @click="showCreateTopicModal = false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group">
+                <label class="form-label">话题名称</label>
+                <input v-model="newTopic.name" class="form-input" placeholder="请输入话题名称" maxlength="20" />
+                <div class="char-count">{{ newTopic.name.length }}/20</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">话题描述（可选）</label>
+                <textarea v-model="newTopic.description" class="form-textarea" placeholder="简单描述一下这个话题..." rows="3" maxlength="200"></textarea>
+                <div class="char-count">{{ newTopic.description.length }}/200</div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-ghost" @click="showCreateTopicModal = false">取消</button>
+              <button class="btn btn-primary" @click="confirmCreateTopic" :disabled="!newTopic.name.trim() || creatingTopic">
+                {{ creatingTopic ? '创建中...' : '创建' }}
               </button>
             </div>
           </div>
@@ -445,6 +487,13 @@ const selectedTopic = ref(null)
 const allTopics = ref([])
 const topicsLoading = ref(false)
 
+const showCreateTopicModal = ref(false)
+const creatingTopic = ref(false)
+const newTopic = reactive({
+  name: '',
+  description: ''
+})
+
 const hotTopics = ref([])
 const hotTopicsLoading = ref(false)
 const hotPosts = ref([])
@@ -473,6 +522,41 @@ const removeTopic = () => {
 
 const hideTopicDropdown = () => {
   setTimeout(() => { showTopicDropdown.value = false }, 200)
+}
+
+const openCreateTopicModal = () => {
+  showTopicDropdown.value = false
+  newTopic.name = topicSearch.value || ''
+  newTopic.description = ''
+  showCreateTopicModal.value = true
+}
+
+const confirmCreateTopic = async () => {
+  if (!newTopic.name.trim()) return
+  creatingTopic.value = true
+  try {
+    const res = await topicApi.createTopic({
+      name: newTopic.name.trim(),
+      description: newTopic.description.trim() || null
+    })
+    const topicId = res.data
+    const createdTopic = {
+      id: topicId,
+      name: newTopic.name.trim(),
+      description: newTopic.description.trim(),
+      postCount: 0
+    }
+    allTopics.value.unshift(createdTopic)
+    selectedTopic.value = createdTopic
+    topicSearch.value = ''
+    showCreateTopicModal.value = false
+    toast.success('话题创建成功')
+  } catch (err) {
+    logger.error('createTopic error', { error: err.message })
+    toast.error(err.response?.data?.message || '话题创建失败')
+  } finally {
+    creatingTopic.value = false
+  }
 }
 
 const isVideo = (url) => {
@@ -1667,6 +1751,63 @@ onBeforeUnmount(() => {
   border-top: 1px solid var(--glass-border);
 }
 
+.create-topic-modal .form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.create-topic-modal .form-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.create-topic-modal .form-input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  transition: all var(--transition);
+  box-sizing: border-box;
+  box-shadow: var(--glass-shadow);
+}
+
+.create-topic-modal .form-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
+}
+
+.create-topic-modal .form-textarea {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  resize: vertical;
+  font-family: inherit;
+  transition: all var(--transition);
+  box-sizing: border-box;
+  box-shadow: var(--glass-shadow);
+}
+
+.create-topic-modal .form-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
+}
+
 .repost-original-card {
   padding: var(--spacing-md);
   border-radius: var(--radius-md);
@@ -1954,6 +2095,31 @@ onBeforeUnmount(() => {
 
 .topic-dropdown-item:not(:last-child) {
   border-bottom: 1px solid var(--glass-border);
+}
+
+.topic-create-divider {
+  height: 1px;
+  background: var(--glass-border);
+  margin: var(--spacing-xs) 0;
+}
+
+.topic-create-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  transition: all var(--transition);
+  color: var(--primary);
+}
+
+.topic-create-item:hover {
+  background: var(--primary-light);
+}
+
+.topic-create-text {
+  font-size: 0.8125rem;
+  font-weight: 500;
 }
 
 .topic-name {

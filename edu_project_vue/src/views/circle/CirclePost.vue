@@ -220,6 +220,8 @@ const textareaRef = ref(null)
 
 const selectedTopics = ref([])
 const showTopicDropdown = ref(false)
+const topicSearch = ref('')
+const allTopics = ref([])
 
 const filteredTopics = computed(() => {
   if (!topicSearch.value) return allTopics.value
@@ -250,7 +252,10 @@ async function createTopicAndAdd() {
         selectedTopics.value.push(newTopic)
       }
     }
-    await fetchTopics()
+    topicApi.getTopicList({ pageNum: 1, pageSize: 100 }).then(res => {
+      const data = res.data
+      allTopics.value = Array.isArray(data) ? data : (data?.data?.records || [])
+    })
     toast.success('话题已创建')
   } catch (err) {
     logger.error('create topic error', { error: err.message })
@@ -430,7 +435,7 @@ const publishPost = async () => {
       location: form.location || null,
       tags: form.tags,
       mentions: [],
-      topicId: selectedTopic.value?.id || null,
+      topicIds: selectedTopics.value.map(t => t.id),
       visibility: form.visibility,
       allowComment: allowComment.value ? 1 : 0,
       allowRepost: allowRepost.value ? 1 : 0
@@ -458,7 +463,7 @@ onMounted(() => {
   document.title = '发布动态 - 校友圈'
   topicApi.getTopicList({ pageNum: 1, pageSize: 100 }).then(res => {
     const data = res.data
-    allTopics.value = Array.isArray(data) ? data : (data?.records || [])
+    allTopics.value = Array.isArray(data) ? data : (data?.data?.records || [])
   }).catch(() => {})
 })
 </script>
