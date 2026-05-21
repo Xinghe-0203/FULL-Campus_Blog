@@ -181,7 +181,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await userApi.login(credentials)
       const loginData = response.data || response
 
-      let { token: newToken, refreshToken: newRefreshToken, id, username, nickname, avatar, role } = loginData
+      let { token: newToken, refreshToken: newRefreshToken, id, username, nickname, avatar, email, role } = loginData
 
       if (!id && loginData.data) {
         const nestedData = loginData.data
@@ -191,6 +191,7 @@ export const useAuthStore = defineStore('auth', () => {
         username = nestedData.username
         nickname = nestedData.nickname
         avatar = nestedData.avatar
+        email = nestedData.email
         role = nestedData.role
       }
 
@@ -206,7 +207,7 @@ export const useAuthStore = defineStore('auth', () => {
         username: username || loginData.username || loginData.data?.username,
         nickname: nickname || loginData.nickname || loginData.data?.nickname,
         avatar: avatar || loginData.avatar || loginData.data?.avatar,
-        email: loginData.email || loginData.data?.email,
+        email: email || loginData.email || loginData.data?.email,
         role: role || loginData.role || loginData.data?.role
       }
 

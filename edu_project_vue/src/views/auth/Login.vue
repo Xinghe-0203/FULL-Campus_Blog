@@ -18,12 +18,12 @@
         
         <form class="auth-form" @submit.prevent="handleLogin">
           <div class="form-group">
-            <label class="form-label">用户名</label>
+            <label class="form-label">用户名 / 邮箱</label>
             <input 
-              v-model="form.username" 
+              v-model="form.account" 
               type="text" 
               class="form-input"
-              placeholder="请输入用户名"
+              placeholder="请输入用户名或邮箱"
               required
             />
           </div>
@@ -79,20 +79,34 @@ const logger = useLogger('Login')
 
 const loading = ref(false)
 const form = reactive({
-  username: '',
+  account: '',
   password: '',
   remember: false
 })
 
+// 判断输入是邮箱还是用户名
+const isEmail = (str) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str)
+}
+
 const handleLogin = async () => {
-  if (!form.username || !form.password) {
-    toast.error('请输入用户名和密码')
+  if (!form.account || !form.password) {
+    toast.error('请输入用户名/邮箱和密码')
     return
   }
 
-  const usernameTrimmed = form.username.trim()
-  if (usernameTrimmed.length < 3 || usernameTrimmed.length > 20) {
+  const accountTrimmed = form.account.trim()
+  const accountIsEmail = isEmail(accountTrimmed)
+
+  // 用户名格式校验（如果不是邮箱格式）
+  if (!accountIsEmail && (accountTrimmed.length < 3 || accountTrimmed.length > 20)) {
     toast.error('用户名长度应为3-20个字符')
+    return
+  }
+
+  // 邮箱格式校验
+  if (accountIsEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(accountTrimmed)) {
+    toast.error('请输入有效的邮箱地址')
     return
   }
 
@@ -104,11 +118,19 @@ const handleLogin = async () => {
   loading.value = true
   
   try {
-    const result = await userStore.login({
-      username: usernameTrimmed,
+    const loginData = {
       password: form.password,
       remember: form.remember
-    })
+    }
+    
+    // 根据输入类型选择登录字段
+    if (accountIsEmail) {
+      loginData.email = accountTrimmed
+    } else {
+      loginData.username = accountTrimmed
+    }
+    
+    const result = await userStore.login(loginData)
     
     if (result.success) {
       logger.info('Login successful')

@@ -26,6 +26,9 @@ public class UserLoginResponse {
     @Schema(description = "头像URL")
     private String avatar;
 
+    @Schema(description = "邮箱")
+    private String email;
+
     @Schema(description = "JWT Token")
     private String token;
 

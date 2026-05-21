@@ -246,17 +246,20 @@ async function createTopicAndAdd() {
   if (!name) return
   try {
     const res = await topicApi.createTopic({ name, description: '' })
-    const newTopic = res.data
-    if (newTopic && newTopic.id) {
+    // 后端返回 Result.success(topicId)，res.data 是话题ID（Long类型）
+    const newTopicId = res.data
+    if (newTopicId) {
+      const newTopic = { id: newTopicId, name: name }
       if (!selectedTopics.value.find(t => t.id === newTopic.id)) {
         selectedTopics.value.push(newTopic)
       }
     }
     topicApi.getTopicList({ pageNum: 1, pageSize: 100 }).then(res => {
       const data = res.data
-      allTopics.value = Array.isArray(data) ? data : (data?.data?.records || [])
+      allTopics.value = Array.isArray(data) ? data : (data?.records || [])
     })
     toast.success('话题已创建')
+    topicSearch.value = ''
   } catch (err) {
     logger.error('create topic error', { error: err.message })
     toast.error(err.response?.data?.message || '创建话题失败')
@@ -463,7 +466,7 @@ onMounted(() => {
   document.title = '发布动态 - 校友圈'
   topicApi.getTopicList({ pageNum: 1, pageSize: 100 }).then(res => {
     const data = res.data
-    allTopics.value = Array.isArray(data) ? data : (data?.data?.records || [])
+    allTopics.value = Array.isArray(data) ? data : (data?.records || [])
   }).catch(() => {})
 })
 </script>

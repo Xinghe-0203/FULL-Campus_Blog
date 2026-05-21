@@ -3,7 +3,7 @@ package com.example.edu_project.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.edu_project.common.exception.BusinessException;
-import com.example.edu_project.common.security.UserContext;
+import com.example.edu_project.utils.UserContext;
 import com.example.edu_project.dto.CommentCreateRequest;
 import com.example.edu_project.service.BlogCommentService;
 import com.example.edu_project.utils.JwtUtils;
@@ -56,7 +56,7 @@ class BlogCommentControllerTest {
     }
 
     private void setUpSecurityContext(Long userId, boolean isAdmin) {
-        UserContext userContext = new UserContext(userId, isAdmin);
+        UserContext userContext = new UserContext(userId, isAdmin ? "admin" : "user");
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(userContext, null, Collections.emptyList());
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -88,8 +88,7 @@ class BlogCommentControllerTest {
         mockMvc.perform(post("/comment")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"postId\":1,\"content\":\"Test Comment Content\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(401));
+                .andExpect(status().is(401));
     }
 
     @Test
@@ -112,28 +111,31 @@ class BlogCommentControllerTest {
         CommentVO comment = new CommentVO();
         comment.setId(1L);
         comment.setContent("Test Comment");
-        when(blogCommentService.getCommentsByPostId(1L))
-                .thenReturn(List.of(comment));
+        Page<CommentVO> page = new Page<>(1, 10);
+        page.setRecords(List.of(comment));
+        when(blogCommentService.getCommentsByPostId(eq(1L), anyInt(), anyInt()))
+                .thenReturn(page);
 
         // When & Then
         mockMvc.perform(get("/comment/post/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data[0].id").value(1));
+                .andExpect(jsonPath("$.data.records[0].id").value(1));
     }
 
     @Test
     @DisplayName("getCommentsByPostId_EmptyList_ReturnsEmptyArray")
     void getCommentsByPostId_EmptyList_ReturnsEmptyArray() throws Exception {
         // Given
-        when(blogCommentService.getCommentsByPostId(1L))
-                .thenReturn(Collections.emptyList());
+        Page<CommentVO> emptyPage = new Page<>(1, 10);
+        when(blogCommentService.getCommentsByPostId(eq(1L), anyInt(), anyInt()))
+                .thenReturn(emptyPage);
 
         // When & Then
         mockMvc.perform(get("/comment/post/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data").isEmpty());
+                .andExpect(jsonPath("$.data.records").isEmpty());
     }
 
     @Test
@@ -161,8 +163,7 @@ class BlogCommentControllerTest {
 
         // When & Then
         mockMvc.perform(get("/comment/999"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(404));
+                .andExpect(status().is(404));
     }
 
     @Test
@@ -185,8 +186,7 @@ class BlogCommentControllerTest {
 
         // When & Then
         mockMvc.perform(delete("/comment/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(401));
+                .andExpect(status().is(401));
     }
 
     @Test
@@ -199,8 +199,7 @@ class BlogCommentControllerTest {
 
         // When & Then
         mockMvc.perform(delete("/comment/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(403));
+                .andExpect(status().is(403));
     }
 
     @Test
@@ -231,7 +230,6 @@ class BlogCommentControllerTest {
         mockMvc.perform(get("/comment/my")
                         .param("pageNum", "1")
                         .param("pageSize", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(401));
+                .andExpect(status().is(401));
     }
 }

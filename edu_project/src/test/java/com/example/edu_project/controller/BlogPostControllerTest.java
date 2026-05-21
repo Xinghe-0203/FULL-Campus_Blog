@@ -3,7 +3,7 @@ package com.example.edu_project.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.edu_project.common.exception.BusinessException;
-import com.example.edu_project.common.security.UserContext;
+import com.example.edu_project.utils.UserContext;
 import com.example.edu_project.dto.PostCreateRequest;
 import com.example.edu_project.dto.PostQueryRequest;
 import com.example.edu_project.service.BlogPostService;
@@ -63,7 +63,7 @@ class BlogPostControllerTest {
     }
 
     private void setUpSecurityContext(Long userId, boolean isAdmin) {
-        UserContext userContext = new UserContext(userId, isAdmin);
+        UserContext userContext = new UserContext(userId, isAdmin ? "admin" : "user");
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(userContext, null, Collections.emptyList());
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -95,8 +95,7 @@ class BlogPostControllerTest {
         mockMvc.perform(post("/post")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Test Title\",\"content\":\"Test Content\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(401));
+                .andExpect(status().is(401));
     }
 
     @Test
@@ -136,8 +135,7 @@ class BlogPostControllerTest {
         mockMvc.perform(put("/post/100")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Updated Title\",\"content\":\"Updated Content\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(401));
+                .andExpect(status().is(401));
     }
 
     @Test
@@ -160,8 +158,7 @@ class BlogPostControllerTest {
 
         // When & Then
         mockMvc.perform(delete("/post/100"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(401));
+                .andExpect(status().is(401));
     }
 
     @Test
@@ -224,8 +221,7 @@ class BlogPostControllerTest {
         mockMvc.perform(get("/post/my")
                         .param("pageNum", "1")
                         .param("pageSize", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(401));
+                .andExpect(status().is(401));
     }
 
     @Test
@@ -255,8 +251,7 @@ class BlogPostControllerTest {
         mockMvc.perform(post("/post/draft")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Draft Title\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(401));
+                .andExpect(status().is(401));
     }
 
     @Test

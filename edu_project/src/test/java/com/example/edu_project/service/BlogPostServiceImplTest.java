@@ -36,6 +36,9 @@ class BlogPostServiceImplTest {
     @MockBean
     private BlogPostMapper blogPostMapper;
 
+    @MockBean
+    private com.example.edu_project.mapper.BlogTagMapper blogTagMapper;
+
     private PostCreateRequest validPostRequest;
     private Long testUserId = 1L;
     private Long testPostId = 100L;
@@ -46,6 +49,26 @@ class BlogPostServiceImplTest {
         validPostRequest.setTitle("Test Title");
         validPostRequest.setContent("Test Content");
         validPostRequest.setCategory("Test Category");
+
+        // Stub insert to simulate ID generation
+        when(blogPostMapper.insert(any(BlogPost.class))).thenAnswer(invocation -> {
+            BlogPost post = invocation.getArgument(0);
+            if (post.getId() == null) {
+                post.setId(System.currentTimeMillis());
+            }
+            return 1;
+        });
+
+        // Stub tag validation to accept any tag IDs
+        when(blogTagMapper.selectBatchIds(anyList())).thenAnswer(invocation -> {
+            List<Long> ids = invocation.getArgument(0);
+            return ids.stream().map(id -> {
+                com.example.edu_project.entity.BlogTag tag = new com.example.edu_project.entity.BlogTag();
+                tag.setId(id);
+                tag.setName("tag" + id);
+                return tag;
+            }).collect(java.util.stream.Collectors.toList());
+        });
     }
 
     @Test

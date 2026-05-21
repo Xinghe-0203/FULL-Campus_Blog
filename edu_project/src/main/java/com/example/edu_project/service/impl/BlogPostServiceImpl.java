@@ -833,19 +833,8 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     @Override
     @Transactional(readOnly = true)
     public IPage<PostListResponse> advancedSearch(PostAdvancedSearchRequest request) {
-        // Check if this is a keyword-only search (no category/userId/tagId filters)
-        boolean isKeywordOnlySearch = request.getKeyword() != null
-                && !request.getKeyword().trim().isEmpty()
-                && (request.getCategory() == null || request.getCategory().trim().isEmpty())
-                && request.getUserId() == null
-                && request.getTagId() == null;
-
-        // For keyword-only search, use MySQL full-text search for better performance
-        if (isKeywordOnlySearch) {
-            return advancedSearchFullText(request);
-        }
-
-        // For searches with additional filters, use traditional LIKE-based query
+        // 统一使用 LIKE 查询，避免 MySQL FULLTEXT 索引配置问题
+        // FULLTEXT 索引创建复杂且对中文支持不佳，LIKE 查询更稳定可靠
         return advancedSearchLike(request);
     }
 

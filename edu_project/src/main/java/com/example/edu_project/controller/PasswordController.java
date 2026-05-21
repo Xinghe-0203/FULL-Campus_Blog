@@ -37,6 +37,10 @@ public class PasswordController {
     @Operation(summary = "发送验证码", description = "发送密码找回验证码到指定邮箱")
     @PostMapping("/send-code")
     public Result<Void> sendCode(@Valid @RequestBody SendCodeRequest request) {
+        // 检查邮箱是否已注册（未注册的邮箱不能重置密码）
+        if (!emailService.isEmailRegistered(request.getEmail())) {
+            throw new BusinessException(400, "该邮箱未注册");
+        }
         emailService.sendVerificationCode(request.getEmail(), EmailService.VerificationType.PASSWORD_RESET);
         return Result.success("验证码已发送", null);
     }

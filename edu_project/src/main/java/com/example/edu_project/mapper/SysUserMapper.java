@@ -27,7 +27,7 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      */
     @Update("UPDATE sys_user SET login_fail_count = LEAST(login_fail_count + 1, 2147483647), " +
             "lock_until = CASE WHEN login_fail_count + 1 >= #{maxFailCount} " +
-            "THEN DATE_ADD(NOW(), INTERVAL #{lockMinutes} MINUTE) ELSE lock_until END " +
+            "THEN TIMESTAMPADD('MINUTE', #{lockMinutes}, NOW()) ELSE lock_until END " +
             "WHERE id = #{userId} AND (lock_until IS NULL OR lock_until <= NOW())")
     int incrementLoginFailCount(@Param("userId") Long userId, @Param("maxFailCount") int maxFailCount, @Param("lockMinutes") int lockMinutes);
 

@@ -93,7 +93,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             LambdaQueryWrapper<SysUser> emailWrapper = new LambdaQueryWrapper<>();
             emailWrapper.eq(SysUser::getEmail, request.getEmail());
             if (this.count(emailWrapper) > 0) {
-                throw new BusinessException(400, "注册失败，请稍后重试");
+                throw new BusinessException(400, "该邮箱已被注册，请使用其他邮箱");
             }
         }
 
@@ -132,7 +132,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         LambdaQueryWrapper<SysUser> emailWrapper = new LambdaQueryWrapper<>();
         emailWrapper.eq(SysUser::getEmail, request.getEmail());
         if (this.count(emailWrapper) > 0) {
-            throw new BusinessException(400, "注册失败，请稍后重试");
+            throw new BusinessException(400, "该邮箱已被注册，请使用其他邮箱或直接登录");
         }
 
         SysUser user = new SysUser();
@@ -156,19 +156,41 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public UserLoginResponse login(UserLoginRequest request) {
-        // 参数校验
-        if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
-            throw new BusinessException(400, "用户名不能为空");
+        // 参数校验：支持用户名或邮箱登录
+        String loginAccount = request.getUsername();
+        boolean isEmailLogin = false;
+
+        if (loginAccount == null || loginAccount.trim().isEmpty()) {
+            loginAccount = request.getEmail();
+            isEmailLogin = true;
         }
 
-        // 查询用户
-        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SysUser::getUsername, request.getUsername());
-        SysUser user = this.getOne(wrapper);
+        if (loginAccount == null || loginAccount.trim().isEmpty()) {
+            throw new BusinessException(400, "用户名或邮箱不能为空");
+        }
 
-        if (user == null) {
-            log.warn("用户登录失败: username={}, 原因=用户名或密码错误", request.getUsername());
-            throw new BusinessException(401, "用户名或密码错误");
+        loginAccount = loginAccount.trim();
+
+        // 查询用户：优先按用户名查询，如果失败且输入是邮箱格式则按邮箱查询
+        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+        SysUser user = null;
+
+        if (isEmailLogin || loginAccount.contains("@")) {
+            // 邮箱登录
+            wrapper.eq(SysUser::getEmail, loginAccount);
+            user = this.getOne(wrapper);
+            if (user == null) {
+                log.warn("用户登录失败: email={}, 原因=邮箱或密码错误", StringMaskUtils.maskEmail(loginAccount));
+                throw new BusinessException(401, "邮箱或密码错误");
+            }
+        } else {
+            // 用户名登录
+            wrapper.eq(SysUser::getUsername, loginAccount);
+            user = this.getOne(wrapper);
+            if (user == null) {
+                log.warn("用户登录失败: username={}, 原因=用户名或密码错误", loginAccount);
+                throw new BusinessException(401, "用户名或密码错误");
+            }
         }
 
         // 检查账户是否被锁定
@@ -184,7 +206,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         // 验证密码
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            log.warn("用户登录失败: username={}, 原因=用户名或密码错误", request.getUsername());
+            String accountLabel = isEmailLogin ? "邮箱" : "用户名";
+            log.warn("用户登录失败: account={}, 原因={}或密码错误", loginAccount, accountLabel);
             // 密码错误，使用原子操作增加失败计数
             int affected = handleLoginFailAtomic(user.getId());
             if (affected == 0) {
@@ -195,10 +218,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             SysUser updatedUser = this.getById(user.getId());
             if (updatedUser.getLockUntil() != null && updatedUser.getLockUntil().isAfter(LocalDateTime.now())) {
                 long minutesLeft = java.time.Duration.between(LocalDateTime.now(), updatedUser.getLockUntil()).toMinutes() + 1;
-                log.warn("用户登录失败: username={}, 原因=账号已被锁定至{}", request.getUsername(), updatedUser.getLockUntil());
+                log.warn("用户登录失败: account={}, 原因=账号已被锁定至{}", loginAccount, updatedUser.getLockUntil());
                 throw new BusinessException(403, "登录失败次数过多，请" + minutesLeft + "分钟后再试");
             }
-            throw new BusinessException(401, "用户名或密码错误");
+            throw new BusinessException(401, accountLabel + "或密码错误");
         }
 
         // 登录成功，重置失败计数和锁定
@@ -216,12 +239,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 注册设备Token
         jwtUtils.registerDeviceToken(user.getId(), token);
 
-        log.info("用户登录成功: username={}, userId={}", user.getUsername(), user.getId());
+        log.info("用户登录成功: username={}, userId={}, email={}", user.getUsername(), user.getId(),
+                user.getEmail() != null ? StringMaskUtils.maskEmail(user.getEmail()) : "未设置");
         return new UserLoginResponse(
                 user.getId(),
                 user.getUsername(),
                 user.getNickname(),
                 user.getAvatar(),
+                user.getEmail(),
                 token,
                 refreshToken,
                 user.getRole()

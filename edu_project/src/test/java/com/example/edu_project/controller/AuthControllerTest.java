@@ -52,14 +52,15 @@ class AuthControllerTest {
         verifyRequest.setEmail("test@example.com");
         verifyRequest.setCode("123456");
         verifyRequest.setUsername("testuser");
+        verifyRequest.setPassword("Test1234!");
     }
 
     @Test
     @DisplayName("sendRegisterCode_Success_Returns200")
     void sendRegisterCode_Success_Returns200() throws Exception {
         // Given
-        doNothing().when(emailService)
-                .sendRegisterVerificationCode(anyString(), anyString());
+        when(emailService.sendRegisterVerificationCode(anyString(), anyString()))
+                .thenReturn(true);
 
         // When & Then
         mockMvc.perform(post("/auth/register/send-code")
@@ -74,15 +75,14 @@ class AuthControllerTest {
     @DisplayName("sendRegisterCode_InvalidEmail_Returns400")
     void sendRegisterCode_InvalidEmail_Returns400() throws Exception {
         // Given
-        when(emailService)
-                .sendRegisterVerificationCode(anyString(), anyString()))
+        when(emailService.sendRegisterVerificationCode(anyString(), anyString()))
                 .thenThrow(new BusinessException(400, "邮箱格式不正确"));
 
         // When & Then
         mockMvc.perform(post("/auth/register/send-code")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"invalid-email\",\"username\":\"testuser\"}"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(400))
                 .andExpect(jsonPath("$.code").value(400));
     }
 
@@ -90,15 +90,14 @@ class AuthControllerTest {
     @DisplayName("sendRegisterCode_TooManyRequests_Returns429")
     void sendRegisterCode_TooManyRequests_Returns429() throws Exception {
         // Given
-        when(emailService)
-                .sendRegisterVerificationCode(anyString(), anyString()))
+        when(emailService.sendRegisterVerificationCode(anyString(), anyString()))
                 .thenThrow(new BusinessException(429, "发送过于频繁，请稍后再试"));
 
         // When & Then
         mockMvc.perform(post("/auth/register/send-code")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"test@example.com\",\"username\":\"testuser\"}"))
-                .andExpect(status().isOk())
+                .andExpect(status().is(429))
                 .andExpect(jsonPath("$.code").value(429));
     }
 
@@ -113,7 +112,7 @@ class AuthControllerTest {
         // When & Then
         mockMvc.perform(post("/auth/register/verify")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"test@example.com\",\"code\":\"123456\",\"username\":\"testuser\"}"))
+                        .content("{\"email\":\"test@example.com\",\"code\":\"123456\",\"username\":\"testuser\",\"password\":\"Test1234!\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("注册成功"));
@@ -129,24 +128,9 @@ class AuthControllerTest {
         // When & Then
         mockMvc.perform(post("/auth/register/verify")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"test@example.com\",\"code\":\"wrongcode\",\"username\":\"testuser\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500));
-    }
-
-    @Test
-    @DisplayName("verifyAndRegister_ExpiredCode_ReturnsError")
-    void verifyAndRegister_ExpiredCode_ReturnsError() throws Exception {
-        // Given
-        when(emailService.verifyCode(anyString(), anyString(), any(EmailService.VerificationType.class)))
-                .thenThrow(new BusinessException(BaseErrorCode.VERIFICATION_CODE_ERROR));
-
-        // When & Then
-        mockMvc.perform(post("/auth/register/verify")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"test@example.com\",\"code\":\"expired\",\"username\":\"testuser\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500));
+                        .content("{\"email\":\"test@example.com\",\"code\":\"wrongcode\",\"username\":\"testuser\",\"password\":\"Test1234!\"}"))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.code").value(1012));
     }
 
     @Test
@@ -155,7 +139,7 @@ class AuthControllerTest {
         // When & Then
         mockMvc.perform(post("/auth/register/verify")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"\",\"code\":\"123456\",\"username\":\"testuser\"}"))
+                        .content("{\"email\":\"\",\"code\":\"123456\",\"username\":\"testuser\",\"password\":\"Test1234!\"}"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -165,7 +149,7 @@ class AuthControllerTest {
         // When & Then
         mockMvc.perform(post("/auth/register/verify")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"test@example.com\",\"code\":\"\",\"username\":\"testuser\"}"))
+                        .content("{\"email\":\"test@example.com\",\"code\":\"\",\"username\":\"testuser\",\"password\":\"Test1234!\"}"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -181,8 +165,8 @@ class AuthControllerTest {
         // When & Then
         mockMvc.perform(post("/auth/register/verify")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"test@example.com\",\"code\":\"123456\",\"username\":\"testuser\"}"))
-                .andExpect(status().isOk())
+                        .content("{\"email\":\"test@example.com\",\"code\":\"123456\",\"username\":\"testuser\",\"password\":\"Test1234!\"}"))
+                .andExpect(status().is(400))
                 .andExpect(jsonPath("$.code").value(400));
     }
 }

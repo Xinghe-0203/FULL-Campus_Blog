@@ -2,6 +2,7 @@ package com.example.edu_project.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -14,6 +15,7 @@ import java.nio.file.Paths;
  * 配置拦截器、静态资源映射和上传文件访问
  */
 @Configuration
+@EnableConfigurationProperties(RateLimitProperties.class)
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Value("${upload.base-path:uploads}")

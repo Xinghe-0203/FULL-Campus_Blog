@@ -15,6 +15,9 @@ java.sql.Timestamp dateAdd(java.sql.Timestamp d, int n, String u)
 }
 ';
 
+-- ============================================================================
+-- 表一：用户表 (sys_user)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS sys_user (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
@@ -35,13 +38,16 @@ CREATE TABLE IF NOT EXISTS sys_user (
     is_deleted INT DEFAULT 0
 );
 
+-- ============================================================================
+-- 表二：帖子/文章表 (blog_post)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS blog_post (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     title VARCHAR(255) NOT NULL,
     summary VARCHAR(500),
     content CLOB,
-    topic_id BIGINT,
+    topic_ids VARCHAR(500),
     category VARCHAR(50),
     cover_url VARCHAR(500),
     view_count BIGINT DEFAULT 0,
@@ -58,6 +64,43 @@ CREATE TABLE IF NOT EXISTS blog_post (
     is_deleted INT DEFAULT 0
 );
 
+-- ============================================================================
+-- 表三：评论表 (blog_comment)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_comment (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    post_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    parent_id BIGINT,
+    content TEXT NOT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表四：标签表 (blog_tag)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_tag (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    post_count INT DEFAULT 0,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表五：帖子-标签关联表 (blog_post_tag)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_post_tag (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    post_id BIGINT NOT NULL,
+    tag_id BIGINT NOT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表六：点赞记录表 (blog_like)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS blog_like (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
@@ -66,6 +109,60 @@ CREATE TABLE IF NOT EXISTS blog_like (
     is_deleted INT DEFAULT 0
 );
 
+-- ============================================================================
+-- 表七：收藏记录表 (blog_collect)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_collect (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    post_id BIGINT NOT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表七点五：文章分享记录表 (blog_share)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_share (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    post_id BIGINT NOT NULL,
+    platform VARCHAR(50) DEFAULT 'web',
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表八：关注关系表 (blog_follow)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_follow (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    follower_id BIGINT NOT NULL,
+    following_id BIGINT NOT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表九：通知表 (blog_notification)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_notification (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    content VARCHAR(500),
+    from_user_id BIGINT,
+    target_type VARCHAR(50),
+    target_id BIGINT,
+    is_read INT DEFAULT 0,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表十：文章热度表 (blog_trending)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS blog_trending (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     post_id BIGINT NOT NULL,
@@ -76,5 +173,184 @@ CREATE TABLE IF NOT EXISTS blog_trending (
     date DATE,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表十一：文章草稿表 (blog_draft)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_draft (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    title VARCHAR(200),
+    content CLOB,
+    cover_image VARCHAR(500),
+    summary VARCHAR(500),
+    category VARCHAR(50),
+    tag_ids VARCHAR(200),
+    topic_id BIGINT,
+    post_id BIGINT,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表十一点五：草稿-标签关联表 (blog_draft_tag)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_draft_tag (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    draft_id BIGINT NOT NULL,
+    tag_id BIGINT NOT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表十二：内容举报表 (blog_report)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_report (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    reporter_id BIGINT NOT NULL,
+    reported_user_id BIGINT,
+    target_type VARCHAR(50) NOT NULL,
+    target_id BIGINT NOT NULL,
+    reason VARCHAR(500) NOT NULL,
+    status INT DEFAULT 0,
+    handler_id BIGINT,
+    handler_result VARCHAR(500),
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    handle_time TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表十三：校友圈动态表 (blog_circle_post)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_circle_post (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    content VARCHAR(2000) NOT NULL,
+    content_type INT DEFAULT 1,
+    image_urls TEXT,
+    video_urls TEXT,
+    repost_id BIGINT,
+    repost_user_id BIGINT,
+    repost_content VARCHAR(500),
+    tags TEXT,
+    mentions TEXT,
+    topic_ids TEXT,
+    location VARCHAR(100),
+    like_count INT DEFAULT 0,
+    comment_count INT DEFAULT 0,
+    repost_count INT DEFAULT 0,
+    view_count BIGINT DEFAULT 0,
+    is_top INT DEFAULT 0,
+    visibility INT DEFAULT 0,
+    allow_comment INT DEFAULT 1,
+    allow_repost INT DEFAULT 1,
+    status INT DEFAULT 1,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表十四：校友圈点赞表 (blog_circle_like)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_circle_like (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    post_id BIGINT NOT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表十五：校友圈评论表 (blog_circle_comment)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_circle_comment (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    post_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    content VARCHAR(500) NOT NULL,
+    parent_id BIGINT,
+    reply_to_user_id BIGINT,
+    like_count INT DEFAULT 0,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表十六：校友圈转发表 (blog_circle_repost)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_circle_repost (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    original_post_id BIGINT NOT NULL,
+    new_post_id BIGINT NOT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表十七：媒体资源表 (blog_media)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_media (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_url VARCHAR(500) NOT NULL,
+    file_type VARCHAR(50) NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    file_size BIGINT NOT NULL,
+    width INT,
+    height INT,
+    thumb_url VARCHAR(500),
+    status INT DEFAULT 1,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表十八：文章媒体关联表 (blog_post_media)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_post_media (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    post_id BIGINT NOT NULL,
+    media_id BIGINT NOT NULL,
+    display_order INT DEFAULT 0,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表十九：话题表 (blog_topic)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_topic (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    description VARCHAR(500),
+    post_count INT DEFAULT 0,
+    trending_score INT DEFAULT 0,
+    status INT DEFAULT 1,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted INT DEFAULT 0
+);
+
+-- ============================================================================
+-- 表二十：私信表 (blog_message)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS blog_message (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    sender_id BIGINT NOT NULL,
+    receiver_id BIGINT NOT NULL,
+    content TEXT NOT NULL,
+    is_read INT DEFAULT 0,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_deleted INT DEFAULT 0
 );

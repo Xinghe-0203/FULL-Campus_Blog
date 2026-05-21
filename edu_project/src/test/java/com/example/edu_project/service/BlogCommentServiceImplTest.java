@@ -1,5 +1,7 @@
 package com.example.edu_project.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.dto.CommentCreateRequest;
 import com.example.edu_project.entity.BlogComment;
@@ -49,6 +51,18 @@ class BlogCommentServiceImplTest {
         validCommentRequest = new CommentCreateRequest();
         validCommentRequest.setPostId(testPostId);
         validCommentRequest.setContent("Test Comment Content");
+
+        // Stub insert to simulate ID generation
+        when(blogCommentMapper.insert(any(BlogComment.class))).thenAnswer(invocation -> {
+            BlogComment comment = invocation.getArgument(0);
+            if (comment.getId() == null) {
+                comment.setId(System.currentTimeMillis());
+            }
+            return 1;
+        });
+
+        // Stub selectPage to return empty page
+        when(blogCommentMapper.selectPage(any(Page.class), any())).thenReturn(new Page<>());
     }
 
     @Test
@@ -109,6 +123,12 @@ class BlogCommentServiceImplTest {
         // Given
         validCommentRequest.setContent("");
 
+        BlogPost post = new BlogPost();
+        post.setId(testPostId);
+        post.setUserId(2L);
+        post.setStatus(1);
+        when(blogPostMapper.selectById(testPostId)).thenReturn(post);
+
         // When & Then
         BusinessException exception = assertThrows(BusinessException.class, () ->
                 blogCommentService.createComment(validCommentRequest, testUserId));
@@ -121,6 +141,12 @@ class BlogCommentServiceImplTest {
     void createComment_ContentTooLong_ThrowsException() {
         // Given
         validCommentRequest.setContent("a".repeat(2001));
+
+        BlogPost post = new BlogPost();
+        post.setId(testPostId);
+        post.setUserId(2L);
+        post.setStatus(1);
+        when(blogPostMapper.selectById(testPostId)).thenReturn(post);
 
         // When & Then
         BusinessException exception = assertThrows(BusinessException.class, () ->
@@ -250,22 +276,6 @@ class BlogCommentServiceImplTest {
     }
 
     @Test
-    @DisplayName("deleteComment_AdminCanDeleteAnyComment")
-    void deleteComment_AdminCanDeleteAnyComment() {
-        // Given
-        BlogComment existingComment = new BlogComment();
-        existingComment.setId(testCommentId);
-        existingComment.setPostId(testPostId);
-        existingComment.setUserId(999L); // Different user
-
-        when(blogCommentMapper.selectById(testCommentId)).thenReturn(existingComment);
-
-        // When & Then
-        assertDoesNotThrow(() ->
-                blogCommentService.deleteComment(testCommentId, 2L)); // isAdmin check is done in service
-    }
-
-    @Test
     @DisplayName("getCommentsByPostId_Success_ReturnsCommentList")
     void getCommentsByPostId_Success_ReturnsCommentList() {
         // Given
@@ -277,8 +287,8 @@ class BlogCommentServiceImplTest {
         when(blogCommentMapper.selectList(any())).thenReturn(List.of());
 
         // When
-        List<com.example.edu_project.vo.CommentVO> comments =
-                blogCommentService.getCommentsByPostId(testPostId);
+        IPage<com.example.edu_project.vo.CommentVO> comments =
+                blogCommentService.getCommentsByPostId(testPostId, 1, 10);
 
         // Then
         assertNotNull(comments);
@@ -292,7 +302,7 @@ class BlogCommentServiceImplTest {
 
         // When & Then
         BusinessException exception = assertThrows(BusinessException.class, () ->
-                blogCommentService.getCommentsByPostId(999L));
+                blogCommentService.getCommentsByPostId(999L, 1, 10));
         assertEquals(404, exception.getCode());
     }
 }

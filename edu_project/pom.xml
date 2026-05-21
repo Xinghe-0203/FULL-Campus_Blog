@@ -203,6 +203,15 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+            <!-- Maven Surefire 插件：配置测试参数 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <argLine>-Dnet.bytebuddy.experimental=true</argLine>
+                </configuration>
+            </plugin>
             <!-- Spring Boot Maven 插件：用于打包和运行 Spring Boot 应用 -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>

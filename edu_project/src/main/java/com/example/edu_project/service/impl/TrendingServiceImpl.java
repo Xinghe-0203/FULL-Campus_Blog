@@ -91,7 +91,7 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
         List<HotPostVO> result = new ArrayList<>();
         for (BlogTrending trending : trendingPage.getRecords()) {
             BlogPost post = postMap.get(trending.getPostId());
-            if (post != null && post.getStatus() == PostStatus.PUBLISHED.getValue() && post.getIsDeleted() == IsDeleted.NORMAL.getValue()) { // 只返回已发布的文章且未被删除
+            if (post != null && post.getStatus() == PostStatus.PUBLISHED.getValue() && Objects.equals(post.getIsDeleted(), IsDeleted.NORMAL.getValue())) { // 只返回已发布的文章且未被删除
                 HotPostVO vo = new HotPostVO();
                 vo.setId(post.getId());
                 vo.setTitle(post.getTitle());
@@ -164,7 +164,7 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
                 .collect(Collectors.toList());
 
         Map<Long, BlogPost> postMap = blogPostMapper.selectBatchIds(postIds).stream()
-                .filter(p -> p.getStatus() == PostStatus.PUBLISHED.getValue() && p.getIsDeleted() == IsDeleted.NORMAL.getValue())
+                .filter(p -> p.getStatus() == PostStatus.PUBLISHED.getValue() && Objects.equals(p.getIsDeleted(), IsDeleted.NORMAL.getValue()))
                 .collect(Collectors.toMap(BlogPost::getId, p -> p, (a, b) -> a));
 
         if (postMap.isEmpty()) return Collections.emptyList();
@@ -375,7 +375,7 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
     @Transactional(rollbackFor = Exception.class)
     public void updatePostTrending(Long postId) {
         BlogPost post = blogPostMapper.selectById(postId);
-        if (post == null || post.getIsDeleted() == IsDeleted.DELETED.getValue()) {
+        if (post == null || Objects.equals(post.getIsDeleted(), IsDeleted.DELETED.getValue())) {
             return;
         }
         // 仅更新已发布的文章热度

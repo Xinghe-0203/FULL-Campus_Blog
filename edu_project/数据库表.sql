@@ -1054,11 +1054,8 @@ CALL create_index_if_not_exists('blog_post', 'idx_post_status_deleted_view', 'CR
 -- 文章精华排序优化（状态+删除+点赞量DESC）
 CALL create_index_if_not_exists('blog_post', 'idx_post_status_deleted_like', 'CREATE INDEX idx_post_status_deleted_like ON blog_post (status, is_deleted, like_count DESC)');
 
--- 全文搜索索引（用于文章标题和内容的全文检索）
-SET @exist:= (SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'blog_post' AND index_name = 'ft_post_title_content');
-IF @exist = 0 THEN
-    ALTER TABLE blog_post ADD FULLTEXT INDEX ft_post_title_content (title, content);
-END IF;
+-- 注意：全文搜索索引已移除，项目使用 LIKE 查询实现搜索功能
+-- 避免了 MySQL FULLTEXT 索引配置复杂、对中文支持不佳的问题
 
 -- ============================================================================
 -- blog_comment 表索引
@@ -1197,6 +1194,13 @@ CALL create_index_if_not_exists('blog_post_tag', 'idx_post_tag_tag_id', 'CREATE 
 -- ============================================================================
 -- 用户创建时间索引（统计增长趋势）
 CALL create_index_if_not_exists('sys_user', 'idx_user_create_time', 'CREATE INDEX idx_user_create_time ON sys_user (create_time DESC)');
+
+-- 邮箱唯一索引（一个邮箱只能注册一个账户）
+-- 【注意】如果数据库中已存在重复的 email 值，此索引创建会失败
+-- 请先执行以下 SQL 清理重复数据后再创建索引：
+--   UPDATE sys_user SET email = NULL WHERE email = '';
+--   DELETE FROM sys_user WHERE id NOT IN (SELECT * FROM (SELECT MIN(id) FROM sys_user WHERE email IS NOT NULL GROUP BY email) t);
+CALL create_index_if_not_exists('sys_user', 'idx_user_email_unique', 'CREATE UNIQUE INDEX idx_user_email_unique ON sys_user (email)');
 
 -- 删除辅助存储过程
 DROP PROCEDURE IF EXISTS create_index_if_not_exists;

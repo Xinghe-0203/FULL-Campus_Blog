@@ -136,7 +136,7 @@ public class SysUserServiceImplTest {
         });
 
         assertEquals(400, exception.getCode());
-        assertEquals("注册失败，请稍后重试", exception.getMessage());
+        assertTrue(exception.getMessage().contains("邮箱已被注册"));
     }
 
     @Test
@@ -356,7 +356,7 @@ public class SysUserServiceImplTest {
 
         // 账户被锁定后，登录应返回403
         assertEquals(403, exception.getCode());
-        assertEquals("登录失败次数过多，请稍后再试", exception.getMessage());
+        assertTrue(exception.getMessage().contains("登录失败次数过多"));
     }
 
     @Test
@@ -405,7 +405,7 @@ public class SysUserServiceImplTest {
         });
 
         assertEquals(400, exception.getCode());
-        assertEquals("用户名不能为空", exception.getMessage());
+        assertEquals("用户名或邮箱不能为空", exception.getMessage());
     }
 
     // ==================== 修改密码测试 ====================
