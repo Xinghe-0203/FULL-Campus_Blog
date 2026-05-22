@@ -24,7 +24,7 @@ public class ResetPasswordRequest {
     private String code;
 
     @NotBlank(message = "新密码不能为空")
-    @Size(min = 8, message = "密码长度至少为8位")
+    @Size(min = 8, max = 128, message = "密码长度必须在8-128个字符之间")
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$", message = "密码必须包含大小写字母和数字")
     @Schema(description = "新密码", requiredMode = RequiredMode.REQUIRED)
     private String newPassword;

@@ -15,7 +15,7 @@ import lombok.Data;
 public class SendRegisterCodeRequest {
 
     @NotBlank(message = "用户名不能为空")
-    @Size(min = 3, max = 20, message = "用户名长度必须在3-20个字符之间")
+    @Size(min = 6, max = 20, message = "用户名长度必须在6-20个字符之间")
     @Schema(description = "用户名", requiredMode = RequiredMode.REQUIRED)
     private String username;
 

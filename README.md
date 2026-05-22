@@ -1,7 +1,7 @@
 # 校园博客论坛系统 / Campus Blog Forum System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-v2.0.12-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
+[![Version](https://img.shields.io/badge/version-v2.0.14-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-green)](https://spring.io/projects/spring-boot)
 [![Vue](https://img.shields.io/badge/Vue-3.4.21-brightgreen)](https://vuejs.org/)
@@ -10,7 +10,18 @@
 
 一个基于 **Spring Boot 3 + Vue 3 + MyBatis Plus** 的全栈校园博客论坛系统，支持文章发布、校友圈动态、点赞收藏、关注互动、消息通知等功能。
 
-**v2.0.12 最新修复：**
+**v2.0.14 最新修复：**
+- 密码重置字段名修复（password → newPassword）
+- CirclePost 9个未声明响应式变量修复
+- PostEdit Markdown预览 + 自动草稿保存修复
+- PostDetail 浏览量递增修复
+- Circle.vue topicId → topicIds 修复
+- SecurityConfig 3个公开端点 + 2个死规则修复
+- UserLoginRequest DTO 校验增强
+- 密码 DTO 添加 maxSize 限制（防 bcrypt DoS）
+- 注册用户名最小长度统一为6
+
+**v2.0.13 最新修复：**
 - 文章话题功能移除（标签功能保留）
 - 校友圈话题功能修复并完善
 - 话题数据路径修复（data.data.records）
@@ -893,6 +904,21 @@ sudo certbot renew --dry-run
 
 ## 更新日志
 
+### v2.0.14 (2026-05-22)
+- **密码重置修复**: PasswordReset.vue 字段名 password → newPassword
+- **CirclePost 修复**: 9 个未声明响应式变量 + form.location 补全
+- **PostEdit 修复**: renderedContent computed 补全，autoSaveTimer 定时器实现
+- **PostDetail 修复**: 添加 incrementViewCount 调用
+- **Circle.vue 修复**: topicId → topicIds，logger 声明补全
+- **SecurityConfig 修复**: 3 个公开端点 + 2 个死规则修正
+- **安全增强**: UserLoginRequest @AssertTrue 校验，密码 maxSize=128，注册用户名最小长度统一
+
+### v2.0.13 (2026-05-21)
+- **邮箱登录**: 支持使用邮箱地址作为登录账号，前后端完整实现
+- **话题字段**: Topic 实体恢复 postCount 字段
+- **测试更新**: 8 个测试文件全面更新适配邮箱登录变更
+- **构建配置**: 添加 Maven Surefire 插件配置
+
 ### v2.0.11 (2026-05-19)
 - **白屏修复**: PostEdit 补全 4 个缺失的模板引用，选择标签/分类不再白屏
 - **话题多选**: 保存时发送 `topicIds` 数组替代单个 `topicId`
@@ -985,8 +1011,8 @@ SOFTWARE.
 
 | 项目 | 信息 |
 |------|------|
-| 版本 | v2.0.11 |
-| 最后更新 | 2026-05-19 |
+| 版本 | v2.0.14 |
+| 最后更新 | 2026-05-22 |
 | 开发者 | 刘畅 |
 | 许可证 | MIT |
 | 后端端口 | 8825 |

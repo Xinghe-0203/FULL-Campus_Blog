@@ -440,6 +440,7 @@ import { toast } from '../../utils/toast'
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const logger = useLogger('Circle')
 
 const loading = ref(false)
 const loadingMore = ref(false)
@@ -782,7 +783,7 @@ const publishPost = async () => {
       videos: newPost.videos,
       visibility: newPost.visibility,
       tags: newPost.tags,
-      topicId: selectedTopic.value?.id || null,
+      topicIds: selectedTopic.value ? [selectedTopic.value.id] : null,
       allowComment: 1,
       allowRepost: 1
     })

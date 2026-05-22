@@ -424,6 +424,12 @@ const fetchPost = async () => {
 
     post.value = response.data
 
+    try {
+      await postApi.incrementViewCount(route.params.id)
+    } catch {
+      // View count increment is non-critical, ignore errors
+    }
+
     if (userStore.isLoggedIn) {
       try {
         await Promise.all([

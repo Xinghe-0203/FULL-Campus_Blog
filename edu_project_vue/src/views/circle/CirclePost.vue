@@ -353,12 +353,23 @@ const autoResize = () => {
 
 const visibilityOptions = { 0: '公开', 1: '关注者可见', 2: '仅自己' }
 
+const showLocationInput = ref(false)
+const showMentionDropdown = ref(false)
+const mentionKeyword = ref('')
+const mentionSearchTimer = ref(null)
+const mentionLoading = ref(false)
+const mentionResults = ref([])
+const allowComment = ref(true)
+const allowRepost = ref(true)
+const tagInput = ref('')
+
 const form = reactive({
   content: '',
   images: [],
   videos: [],
   visibility: 0,
-  tags: []
+  tags: [],
+  location: ''
 })
 
 const handleUpload = async (e) => {

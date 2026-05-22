@@ -1,5 +1,63 @@
 # 变更日志
 
+## v2.0.14 - 2026-05-22
+
+### 🐛 关键 Bug 修复
+- **PasswordReset.vue** - 修复密码重置字段名错误（`password` → `newPassword`），密码重置功能现已正常工作
+- **CirclePost.vue** - 修复 9 个未声明的响应式变量（`allowComment`, `allowRepost`, `tagInput`, `mentionKeyword`, `showMentionDropdown`, `mentionSearchTimer`, `mentionLoading`, `mentionResults`, `showLocationInput`）+ `form.location`，发布动态页面所有功能现已正常
+- **PostEdit.vue** - 修复 `renderedContent` 计算属性缺失，Markdown 预览现已正常工作
+- **PostEdit.vue** - 修复 `autoSaveTimer` 未声明问题，添加 30 秒自动保存定时器，草稿自动保存现已正常
+- **Circle.vue** - 修复 `topicId` → `topicIds`（数组），校友圈发布动态时话题关联现已正常
+- **Circle.vue** - 修复 `logger` 未声明导致的运行时 ReferenceError
+- **PostDetail.vue** - 修复浏览量从未递增的问题，现已调用 `incrementViewCount`
+
+### 🔒 安全修复
+- **SecurityConfig.java** - 修复 3 个应为公开但被拦截的端点：
+  - `GET /circle/user/{userId}` - 查看其他用户动态现已支持匿名访问
+  - `GET /share/count/{postId}` - 分享计数现已支持匿名访问
+  - `GET /follow/{targetUserId}/status` - 关注状态现已支持匿名访问
+- **SecurityConfig.java** - 修复 2 个死规则（路径不匹配）：
+  - `/collect/check/**` → `/collect/*/status`（收藏状态）
+  - `/follow/check/**` → `/follow/*/status`（关注状态）
+- **UserLoginRequest.java** - 添加 `@AssertTrue(isAccountProvided)` 校验，确保用户名或邮箱至少提供一个
+- **ResetPasswordRequest.java** - 添加 `@Size(max=128)` 密码最大长度限制（防止 bcrypt DoS 攻击）
+- **ChangePasswordRequest.java** - 添加 `@Size(max=128)` 密码最大长度限制
+- **SendRegisterCodeRequest.java** - 统一用户名最小长度为 6（与 `RegisterVerifyRequest` 一致）
+
+### 📝 文档更新
+- CHANGELOG.md / README.md / campus_blog.md 同步更新至 v2.0.14
+
+## v2.0.13 - 2026-05-21
+
+### ✨ 邮箱登录支持
+- **前后端邮箱登录** - 支持使用邮箱地址作为登录账号
+  - `UserLoginRequest` - 添加 `email` 字段，与 `username` 二选一
+  - `UserLoginResponse` - 添加 `email` 字段返回
+  - `SysUserServiceImpl.login()` - 智能识别输入类型（用户名或邮箱），分别查询
+  - `Login.vue` - 输入框改为 "用户名/邮箱"，添加邮箱格式校验
+  - `user.js` (store) - 适配邮箱登录参数传递
+
+### 🔧 话题功能完善
+- **Topic.java** - 恢复 `postCount` 字段（解除注释），用于维护关联动态数
+- **数据库表** - 更新 schema.sql 和 数据库表.sql，同步表结构
+
+### 🔧 测试与构建
+- **pom.xml** - 添加 Maven Surefire 插件配置（`maven-surefire-plugin` 3.2.5），支持 `-Dnet.bytebuddy.experimental=true`
+- **测试文件** - 全面更新 8 个测试文件（AuthControllerTest、BlogCommentControllerTest、BlogLikeControllerTest、BlogPostControllerTest、BlogCommentServiceImplTest、BlogPostServiceImplTest、CircleServiceImplTest、SysUserServiceImplTest），适配邮箱登录变更
+
+### 🔧 其他改进
+- **SecurityConfig** - 安全配置更新
+- **WebMvcConfig** - WebMVC 配置更新
+- **GlobalExceptionHandler** - 异常处理更新
+- **PasswordController** - 密码控制器更新
+- **BlogPostServiceImpl** - 文章服务更新
+- **TrendingServiceImpl** - 热门内容服务更新
+- **SysUserMapper** - 用户 Mapper 更新
+- **CirclePost.vue** - 校友圈发布页面更新
+
+### 📝 文档更新
+- CHANGELOG.md / README.md / campus_blog.md 同步更新至 v2.0.13
+
 ## v2.0.12 - 2026-05-20
 
 ### 🎨 前端话题功能重构

@@ -296,6 +296,15 @@ const uploadProgress = ref(0)
 const isLoading = ref(false)
 const dirty = ref(false)
 
+const renderedContent = computed(() => {
+  if (!form.content) return ''
+  try {
+    return DOMPurify.sanitize(marked(form.content))
+  } catch {
+    return DOMPurify.sanitize(form.content)
+  }
+})
+
 const wordCount = computed(() => {
   const text = form.content || ''
   return text.replace(/\s/g, '').length
@@ -676,6 +685,8 @@ function handleBeforeUnload(e) {
   }
 }
 
+let autoSaveTimer = null
+
 onMounted(async () => {
   window.addEventListener('beforeunload', handleBeforeUnload)
   isLoading.value = true
@@ -691,6 +702,10 @@ onMounted(async () => {
   history.value = [form.content]
   historyIndex.value = 0
   dirty.value = false
+
+  autoSaveTimer = setInterval(() => {
+    if (dirty.value) autoSave()
+  }, 30000)
 })
 
 onUnmounted(() => {
