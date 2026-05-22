@@ -144,6 +144,7 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/error", "/error/**").permitAll()
                 .requestMatchers("/user/register", "/user/login", "/user/refresh", "/auth/register/send-code", "/auth/register/verify", "/auth/password/send-code", "/auth/password/reset-password").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/doc.html", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
@@ -154,7 +155,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/post/{id}/view").permitAll()
                 .requestMatchers(HttpMethod.GET, "/comment/post/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/comment/{id}").permitAll()
-                .requestMatchers(HttpMethod.GET, "/like/**/status").permitAll()
+                .requestMatchers(HttpMethod.GET, "/like/*/status").permitAll()
                 .requestMatchers(HttpMethod.GET, "/collect/*/status").permitAll()
                 .requestMatchers(HttpMethod.GET, "/tag/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/follow/*/status").permitAll()
