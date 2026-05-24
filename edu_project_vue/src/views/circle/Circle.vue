@@ -3,7 +3,7 @@
     <div class="circle-layout">
       <!-- 左侧边栏 - 热门话题 -->
       <aside class="sidebar-left hide-mobile">
-        <div class="sidebar-card glass">
+        <div class="sidebar-card glass sidebar-card-top">
           <h3 class="sidebar-card-title">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h16M4 15h16M10 3l-2 6M14 15l-2 6M14 3l2 6M10 15l-2 6"/></svg>
             热门话题
@@ -18,6 +18,30 @@
             </router-link>
           </div>
           <div v-else class="sidebar-empty">暂无热门话题</div>
+        </div>
+        <!-- 左侧边栏 - 热门动态 -->
+        <div class="sidebar-card glass">
+          <h3 class="sidebar-card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            热门动态
+          </h3>
+          <div v-if="hotPostsLoading" class="sidebar-loading">
+            <span class="spinner-small"></span> 加载中...
+          </div>
+          <div v-else-if="hotPosts.length" class="sidebar-post-list">
+            <router-link v-for="hp in hotPosts" :key="hp.id" :to="`/circle/${hp.id}`" class="sidebar-post-item">
+              <div class="sidebar-post-author">
+                <img :src="hp.userAvatar || '/default-avatar.png'" :alt="hp.userNickname" class="sidebar-avatar" />
+                <span class="sidebar-post-name">{{ hp.userNickname || hp.userUsername }}</span>
+              </div>
+              <p class="sidebar-post-text">{{ hp.content?.substring(0, 50) }}{{ hp.content?.length > 50 ? '...' : '' }}</p>
+              <div class="sidebar-post-stats">
+                <span>{{ formatNumber(hp.likeCount || 0) }} 赞</span>
+                <span>{{ formatNumber(hp.commentCount || 0) }} 评论</span>
+              </div>
+            </router-link>
+          </div>
+          <div v-else class="sidebar-empty">暂无热门动态</div>
         </div>
       </aside>
 
@@ -188,33 +212,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 右侧边栏 - 热门动态 -->
-      <aside class="sidebar-right hide-mobile">
-        <div class="sidebar-card glass">
-          <h3 class="sidebar-card-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            热门动态
-          </h3>
-          <div v-if="hotPostsLoading" class="sidebar-loading">
-            <span class="spinner-small"></span> 加载中...
-          </div>
-          <div v-else-if="hotPosts.length" class="sidebar-post-list">
-            <router-link v-for="hp in hotPosts" :key="hp.id" :to="`/circle/${hp.id}`" class="sidebar-post-item">
-              <div class="sidebar-post-author">
-                <img :src="hp.userAvatar || '/default-avatar.png'" :alt="hp.userNickname" class="sidebar-avatar" />
-                <span class="sidebar-post-name">{{ hp.userNickname || hp.userUsername }}</span>
-              </div>
-              <p class="sidebar-post-text">{{ hp.content?.substring(0, 50) }}{{ hp.content?.length > 50 ? '...' : '' }}</p>
-              <div class="sidebar-post-stats">
-                <span>{{ formatNumber(hp.likeCount || 0) }} 赞</span>
-                <span>{{ formatNumber(hp.commentCount || 0) }} 评论</span>
-              </div>
-            </router-link>
-          </div>
-          <div v-else class="sidebar-empty">暂无热门动态</div>
-        </div>
-      </aside>
     </div>
   </div>
 
@@ -656,6 +653,7 @@ const toggleLike = async (post) => {
     post.isLiked = prev
     post.likeCount += post.isLiked ? 1 : -1
     logger.error('toggleLike error', { error: err.message })
+    toast.error(err.response?.data?.message || '点赞失败，请稍后重试')
   } finally {
     post._likeLoading = false
   }
@@ -837,7 +835,7 @@ onMounted(() => {
   }
 })
 
-const fetchSidebarData = async () => {
+const refreshSidebarData = async () => {
   hotTopicsLoading.value = true
   hotPostsLoading.value = true
   try {
@@ -852,13 +850,21 @@ const fetchSidebarData = async () => {
   } catch {} finally { hotPostsLoading.value = false }
 }
 
+let sidebarTimer = null
+const fetchSidebarData = async () => {
+  await refreshSidebarData()
+  sidebarTimer = setInterval(refreshSidebarData, 60000)
+}
+
 onBeforeUnmount(() => {
   if (observer) observer.disconnect()
+  if (sidebarTimer) clearInterval(sidebarTimer)
 })
 </script>
 
 <style scoped>
 .circle-page {
+  position: relative;
   max-width: 1100px;
   margin: 0 auto;
   padding: var(--spacing-md);
@@ -2253,6 +2259,10 @@ onBeforeUnmount(() => {
   padding: var(--spacing-md);
   position: sticky;
   top: calc(var(--navbar-height) + var(--spacing-md));
+}
+
+.sidebar-left .sidebar-card-top {
+  margin-bottom: var(--spacing-md);
 }
 
 .sidebar-card-title {

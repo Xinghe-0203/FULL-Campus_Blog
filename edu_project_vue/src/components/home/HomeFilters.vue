@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 
-defineProps({
+const props = defineProps({
   filters: {
     type: Array,
     required: true
@@ -15,7 +15,7 @@ defineProps({
 defineEmits(['update'])
 
 const indicatorStyle = computed(() => {
-  const idx = filters.findIndex(f => f.value === currentFilter.value)
+  const idx = props.filters.findIndex(f => f.value === props.currentFilter)
   return { transform: `translateX(${idx * 100}%)` }
 })
 </script>

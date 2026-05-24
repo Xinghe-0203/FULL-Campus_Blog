@@ -475,7 +475,7 @@ const fetchComments = async () => {
   commentsError.value = false
   try {
     const response = await commentApi.getCommentsByPostId(route.params.id)
-    comments.value = response.data || []
+    comments.value = response.data?.records || response.data || []
   } catch (err) {
     logger.error('Failed to fetch comments', { error: err.message })
     commentsError.value = true

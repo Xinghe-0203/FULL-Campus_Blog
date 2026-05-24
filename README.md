@@ -10,16 +10,16 @@
 
 一个基于 **Spring Boot 3 + Vue 3 + MyBatis Plus** 的全栈校园博客论坛系统，支持文章发布、校友圈动态、点赞收藏、关注互动、消息通知等功能。
 
+**v2.0.15 最新修复：**
+- HomeFilters.vue `filters is not defined` 运行时错误修复
+- PostDetail.vue 文章评论幽灵数据问题（records 解析修复）
+- Circle.vue 点赞失败无错误提示问题修复
+- Circle.vue 热门动态移至左侧边栏，优化数据源
+- Circle.vue 侧边栏数据每 60 秒自动刷新
+- logger.js CORS 错误静默处理（/api/log 端点不存在）
+
 **v2.0.14 最新修复：**
 - 密码重置字段名修复（password → newPassword）
-- CirclePost 9个未声明响应式变量修复
-- PostEdit Markdown预览 + 自动草稿保存修复
-- PostDetail 浏览量递增修复
-- Circle.vue topicId → topicIds 修复
-- SecurityConfig 3个公开端点 + 2个死规则修复
-- UserLoginRequest DTO 校验增强
-- 密码 DTO 添加 maxSize 限制（防 bcrypt DoS）
-- 注册用户名最小长度统一为6
 
 **v2.0.13 最新修复：**
 - 文章话题功能移除（标签功能保留）
