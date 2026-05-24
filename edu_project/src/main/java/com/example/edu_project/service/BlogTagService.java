@@ -33,4 +33,11 @@ public interface BlogTagService extends IService<BlogTag> {
      * @return 标签ID，如果名称为空则返回 null
      */
     Long getOrCreateTag(String name);
+
+    /**
+     * 搜索标签
+     * @param keyword 关键词
+     * @return 匹配的标签列表
+     */
+    java.util.List<BlogTag> searchTags(String keyword);
 }

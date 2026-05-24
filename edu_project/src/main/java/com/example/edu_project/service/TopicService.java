@@ -54,4 +54,11 @@ public interface TopicService extends IService<Topic> {
      * @return 话题名称列表
      */
     List<String> getTopicNamesByIds(List<Long> ids);
+
+    /**
+     * 搜索话题
+     * @param keyword 关键词
+     * @return 匹配的话题列表
+     */
+    List<Topic> searchTopics(String keyword);
 }

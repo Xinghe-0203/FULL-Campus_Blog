@@ -230,17 +230,18 @@ const selectConversation = async (conv) => {
   messagesError.value = ''
   messages.value = []
 
-  if (conv.conversationId == null) return
+  const partnerId = conv.user?.id
+  if (!partnerId) return
 
   loadingMessages.value = true
   try {
-    const response = await messageApi.getConversationMessages(conv.conversationId)
+    const response = await messageApi.getConversationMessages(partnerId, { pageNum: 1, pageSize: 20 })
     messages.value = response.data?.records || []
 
     if (conv.unreadCount > 0) {
       conv.unreadCount = 0
       try {
-        await messageApi.markConversationAsRead(conv.conversationId)
+        await messageApi.markConversationAsRead(partnerId)
       } catch (e) {
         logger.warn('Failed to mark conversation as read', { error: e.message })
       }
@@ -302,9 +303,9 @@ const scrollToBottom = async () => {
 const startPolling = () => {
   pollingInterval = setInterval(async () => {
     await fetchConversations(true)
-    if (activeConversation.value && activeConversation.value.conversationId != null) {
+    if (activeConversation.value && activeConversation.value.user?.id) {
       try {
-        const response = await messageApi.getConversationMessages(activeConversation.value.conversationId)
+        const response = await messageApi.getConversationMessages(activeConversation.value.user.id, { pageNum: 1, pageSize: 20 })
         const records = response.data?.records || []
         const wasAtBottom = messageList.value && (messageList.value.scrollTop + messageList.value.clientHeight >= messageList.value.scrollHeight - 50)
         messages.value = records
@@ -315,7 +316,7 @@ const startPolling = () => {
         logger.warn('Failed to refresh messages', { error: e.message })
       }
     }
-  }, 30000)
+  }, 10000)
 }
 
 const stopPolling = () => {

@@ -91,4 +91,25 @@ public class BlogTagController {
         blogTagService.deleteTag(tagId);
         return Result.success(null);
     }
+
+    /**
+     * 搜索标签
+     */
+    @Operation(summary = "搜索标签")
+    @GetMapping("/search")
+    public Result<List<Map<String, Object>>> searchTags(@RequestParam(required = false) String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return Result.success(java.util.Collections.emptyList());
+        }
+        List<BlogTag> tags = blogTagService.searchTags(keyword);
+        List<Map<String, Object>> result = tags.stream()
+            .map(tag -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", tag.getId());
+                map.put("name", tag.getName());
+                return map;
+            })
+            .collect(Collectors.toList());
+        return Result.success(result);
+    }
 }

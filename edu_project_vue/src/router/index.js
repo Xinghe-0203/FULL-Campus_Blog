@@ -152,6 +152,18 @@ const routes = [
     meta: { title: '热搜' }
   },
   {
+    path: '/topic/:id',
+    name: 'TopicDetail',
+    component: () => import('../views/topic/TopicDetail.vue'),
+    meta: { title: '话题详情' }
+  },
+  {
+    path: '/tag/:id',
+    name: 'TagDetail',
+    component: () => import('../views/tag/TagDetail.vue'),
+    meta: { title: '标签详情' }
+  },
+  {
     path: '/report/:type/:id',
     name: 'Report',
     component: () => import('../views/common/Report.vue'),

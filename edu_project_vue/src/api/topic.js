@@ -47,5 +47,14 @@ export const topicApi = {
    */
   createTopic(data) {
     return api.post('/topic', data)
+  },
+
+  /**
+   * 搜索话题
+   * @param {string} keyword - 关键词
+   * @returns {Promise<{code: number, message: string, data: Object}>}
+   */
+  searchTopics(keyword) {
+    return api.get('/topic/search', { params: { keyword } })
   }
 }

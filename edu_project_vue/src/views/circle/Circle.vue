@@ -12,7 +12,7 @@
             <span class="spinner-small"></span> 加载中...
           </div>
           <div v-else-if="hotTopics.length" class="sidebar-topic-list">
-            <router-link v-for="topic in hotTopics" :key="topic.id" :to="`/search?keyword=${'#' + topic.name}`" class="sidebar-topic-item">
+            <router-link v-for="topic in hotTopics" :key="topic.id" :to="`/topic/${topic.id}`" class="sidebar-topic-item">
               <span class="sidebar-topic-name">#{{ topic.name }}</span>
               <span class="sidebar-topic-count">{{ topic.postCount || 0 }} 篇</span>
             </router-link>
@@ -130,7 +130,7 @@
               <p class="feed-text">{{ post.content }}</p>
 
               <div v-if="post.topicNames && post.topicNames.length" class="topic-tags">
-                <router-link v-for="tn in post.topicNames" :key="tn" :to="`/search?keyword=${'#' + tn}`" class="topic-tag-link glass-chip">#{{ tn }}</router-link>
+                <router-link v-for="(tn, idx) in post.topicNames" :key="tn" :to="`/topic/${post.topicIds?.[idx] || ''}`" class="topic-tag-link glass-chip">#{{ tn }}</router-link>
               </div>
 
               <div v-if="post.tags && post.tags.length" class="free-tags">

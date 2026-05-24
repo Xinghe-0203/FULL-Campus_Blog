@@ -13,13 +13,11 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * 标签服务实现类
- *
- * NOTE: 当前方法返回 BlogTag 实体而非 VO，由 Controller 层 (toTagMap) 负责转换。
- *       未来如需复用，可抽取独立 TagVO(id, name)。
  */
 @Service
 public class BlogTagServiceImpl extends ServiceImpl<BlogTagMapper, BlogTag> implements BlogTagService {
@@ -93,7 +91,6 @@ public class BlogTagServiceImpl extends ServiceImpl<BlogTagMapper, BlogTag> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteTag(Long tagId) {
-        // 仅管理员可删除标签
         if (!SecurityUtils.isCurrentUserAdmin()) {
             throw new BusinessException(403, "仅管理员可删除标签");
         }
@@ -101,7 +98,18 @@ public class BlogTagServiceImpl extends ServiceImpl<BlogTagMapper, BlogTag> impl
         if (tag == null) {
             throw new BusinessException(404, "标签不存在");
         }
-        // 删除标签（软删除）
         this.removeById(tagId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BlogTag> searchTags(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        LambdaQueryWrapper<BlogTag> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(BlogTag::getName, keyword.trim())
+               .orderByAsc(BlogTag::getName);
+        return this.list(wrapper);
     }
 }

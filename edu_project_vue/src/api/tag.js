@@ -37,5 +37,14 @@ export const tagApi = {
    */
   deleteTag(tagId) {
     return api.delete(`/tag/${tagId}`)
+  },
+
+  /**
+   * 搜索标签
+   * @param {string} keyword - 关键词
+   * @returns {Promise<{code: number, message: string, data: Object}>}
+   */
+  searchTags(keyword) {
+    return api.get('/tag/search', { params: { keyword } })
   }
 }

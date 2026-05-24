@@ -56,6 +56,9 @@ public class CirclePostVO {
     @Schema(description = "话题名称列表")
     private List<String> topicNames;
 
+    @Schema(description = "话题ID列表")
+    private List<Long> topicIds;
+
     @Schema(description = "点赞数", example = "50")
     private Integer likeCount;
 

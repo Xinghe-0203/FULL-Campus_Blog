@@ -49,7 +49,7 @@
             <p class="feed-text">{{ post.content }}</p>
 
             <div v-if="post.topicNames && post.topicNames.length" class="topic-tags">
-              <router-link v-for="tn in post.topicNames" :key="tn" :to="`/search?keyword=${'#' + tn}`" class="topic-tag-link glass-chip">#{{ tn }}</router-link>
+              <router-link v-for="(tn, idx) in post.topicNames" :key="tn" :to="`/topic/${post.topicIds?.[idx] || ''}`" class="topic-tag-link glass-chip">#{{ tn }}</router-link>
             </div>
 
             <div v-if="post.tags && post.tags.length" class="free-tags">

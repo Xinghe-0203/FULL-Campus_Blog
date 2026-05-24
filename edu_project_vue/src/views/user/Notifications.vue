@@ -215,7 +215,7 @@ const handleNotification = async (notification) => {
   } else if (notification.type === 'FOLLOW' && notification.fromUser?.id) {
     router.push(`/user/${notification.fromUser.id}`)
   } else if (notification.type === 'MESSAGE') {
-    router.push('/messages')
+    router.push('/messages?userId=' + notification.fromUser?.id)
   } else if (notification.type === 'REPLY' || notification.type === 'MENTION') {
     if (notification.targetType === 'COMMENT' && notification.targetId) {
       try {

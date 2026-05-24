@@ -71,8 +71,11 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (Objects.equals(senderId, receiverId)) {
             throw new BusinessException(400, "不能给自己发私信");
         }
-        if (content != null && content.length() > 2000) {
-            throw new BusinessException(400, "消息内容不能超过2000字符");
+        if (content == null || content.trim().isEmpty()) {
+            throw new BusinessException(400, "私信内容不能为空");
+        }
+        if (content.length() > 2000) {
+            throw new BusinessException(400, "私信内容不能超过2000字符");
         }
 
         // 校验接收者是否存在且未被封禁
@@ -395,7 +398,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             }
 
             return vo;
-        }).toList();
+        }).collect(Collectors.toList());
     }
 
     /**
@@ -441,7 +444,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             }
 
             return vo;
-        }).toList();
+        }).collect(Collectors.toList());
     }
 
     /**

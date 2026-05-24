@@ -36,7 +36,7 @@ public interface CirclePostMapper extends BaseMapper<CirclePost> {
     @Update("UPDATE blog_circle_post SET repost_count = repost_count - 1 WHERE id = #{id} AND is_deleted = 0 AND repost_count > 0")
     void decrementRepostCount(@Param("id") Long id);
 
-    @Select("SELECT COUNT(*) FROM blog_circle_post WHERE JSON_SEARCH(topic_ids, 'one', #{topicId}) IS NOT NULL AND status = 1 AND is_deleted = 0")
+    @Select("SELECT COUNT(*) FROM blog_circle_post WHERE JSON_CONTAINS(topic_ids, CAST(#{topicId} AS JSON)) AND status = 1 AND is_deleted = 0")
     Long countByTopicId(@Param("topicId") Long topicId);
 
     @Select("<script>" +

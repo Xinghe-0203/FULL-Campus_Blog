@@ -158,4 +158,17 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
         }
         return topic;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Topic> searchTopics(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        LambdaQueryWrapper<Topic> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(Topic::getName, keyword.trim())
+               .eq(Topic::getStatus, 1)
+               .orderByDesc(Topic::getTrendingScore);
+        return this.list(wrapper);
+    }
 }

@@ -624,15 +624,18 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                 }
             }
 
-            // 话题名称列表
+            // 话题名称列表和话题ID列表
             if (StrUtil.isNotBlank(post.getTopicIds())) {
                 List<Long> ids = cn.hutool.json.JSONUtil.toList(post.getTopicIds(), Long.class);
-                List<String> names = ids.stream()
-                        .map(topicNameMap::get)
-                        .filter(Objects::nonNull)
+                List<Long> validIds = ids.stream()
+                        .filter(topicNameMap::containsKey)
                         .collect(Collectors.toList());
-                vo.setTopicNames(names);
+                vo.setTopicIds(validIds);
+                vo.setTopicNames(validIds.stream()
+                        .map(topicNameMap::get)
+                        .collect(Collectors.toList()));
             } else {
+                vo.setTopicIds(new ArrayList<>());
                 vo.setTopicNames(new ArrayList<>());
             }
 
@@ -1145,7 +1148,8 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                         .or(currentUserId != null, w2 -> w2
                                 .eq(CirclePost::getUserId, currentUserId)))
                 // 关联话题查询（通过 topicIds JSON 字段，精确匹配）
-                .apply("JSON_CONTAINS(topicIds, '{0}')", "\"" + topicId + "\"")
+                // JSON_CONTAINS works correctly for numeric JSON array values
+                .apply("JSON_CONTAINS(topic_ids, CAST({0} AS JSON))", topicId)
                 .orderByDesc(CirclePost::getIsTop)
                 .orderByDesc(CirclePost::getCreateTime);
 

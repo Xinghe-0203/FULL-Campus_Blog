@@ -138,4 +138,18 @@ public class TopicController {
         List<CirclePostVO> posts = circleService.getPostsByTopic(topicId, page, pageSize, userId);
         return Result.success(posts);
     }
+
+    /**
+     * 搜索话题
+     */
+    @Operation(summary = "搜索话题")
+    @GetMapping("/search")
+    public Result<List<Map<String, Object>>> searchTopics(@RequestParam(required = false) String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return Result.success(java.util.Collections.emptyList());
+        }
+        List<Topic> topics = topicService.searchTopics(keyword);
+        List<Map<String, Object>> result = toTopicMapList(topics);
+        return Result.success(result);
+    }
 }
