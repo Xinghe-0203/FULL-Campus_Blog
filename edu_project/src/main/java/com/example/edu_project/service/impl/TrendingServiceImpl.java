@@ -267,9 +267,8 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
             vo.setTags(tags);
 
             List<String> topicNames = new ArrayList<>();
-            if (StrUtil.isNotBlank(circle.getTopicIds())) {
-                List<Long> topicIds = cn.hutool.json.JSONUtil.toList(circle.getTopicIds(), Long.class);
-                for (Long topicId : topicIds) {
+            if (circle.getTopicIds() != null) {
+                for (Long topicId : circle.getTopicIds()) {
                     String name = topicNameMap.get(topicId);
                     if (name != null) topicNames.add(name);
                 }
@@ -309,9 +308,8 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
     private Map<Long, String> getTopicNames(List<CirclePost> circles) {
         Set<Long> allTopicIds = new HashSet<>();
         for (CirclePost circle : circles) {
-            if (StrUtil.isNotBlank(circle.getTopicIds())) {
-                List<Long> ids = cn.hutool.json.JSONUtil.toList(circle.getTopicIds(), Long.class);
-                allTopicIds.addAll(ids);
+            if (circle.getTopicIds() != null) {
+                allTopicIds.addAll(circle.getTopicIds());
             }
         }
         if (allTopicIds.isEmpty()) return Collections.emptyMap();
@@ -455,9 +453,10 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
             pageNum++;
         }
 
-        // 更新话题热度分数（基于关联的已发布文章数）
+        // 更新话题热度分数与动态数（基于关联的已发布文章和校友圈动态）
         topicMapper.recalculateAllTrendingScore();
-        log.debug("定时任务: 更新所有话题的热度分数完成");
+        topicMapper.recalculateAllPostCount();
+        log.debug("定时任务: 更新所有话题的热度分数与动态数完成");
     }
 
     private void updatePostTrendingBatch(BlogPost post, LocalDateTime todayStart, BlogTrending existingTrending) {

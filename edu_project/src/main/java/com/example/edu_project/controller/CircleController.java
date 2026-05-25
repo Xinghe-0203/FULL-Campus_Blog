@@ -5,6 +5,7 @@ import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.common.result.Result;
 import com.example.edu_project.dto.CircleCommentRequest;
 import com.example.edu_project.dto.CirclePostCreateRequest;
+import com.example.edu_project.dto.CirclePostUpdateRequest;
 import com.example.edu_project.service.CircleService;
 import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.CircleCommentVO;
@@ -53,7 +54,6 @@ public class CircleController {
                 request.getVideos(),
                 request.getLocation(),
                 request.getRepostId(),
-                request.getTags(),
                 userId,
                 request.getVisibility(),
                 request.getAllowComment(),
@@ -62,6 +62,33 @@ public class CircleController {
         );
 
         return Result.success(postId);
+    }
+
+    /**
+     * 更新动态
+     */
+    @Operation(summary = "更新动态")
+    @PutMapping("/post/{postId}")
+    public Result<Void> updatePost(@PathVariable Long postId,
+                                   @Valid @RequestBody CirclePostUpdateRequest request) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+
+        circleService.updatePost(
+                postId,
+                request.getContent(),
+                request.getImages(),
+                request.getVideos(),
+                request.getLocation(),
+                request.getTopicIds(),
+                request.getVisibility(),
+                request.getAllowComment(),
+                request.getAllowRepost(),
+                userId
+        );
+        return Result.success(null);
     }
 
     /**

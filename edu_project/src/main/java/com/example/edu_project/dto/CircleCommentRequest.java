@@ -19,7 +19,7 @@ public class CircleCommentRequest {
 
     @Schema(description = "评论内容")
     @NotBlank(message = "评论内容不能为空")
-    @Size(max = 1000, message = "评论内容不能超过1000字符")
+    @Size(max = 500, message = "评论内容不能超过500字符")
     private String content;
 
     @Schema(description = "父评论ID（用于回复功能）")

@@ -2,48 +2,31 @@
   <div class="admin-reports">
     <div class="admin-container">
       <div class="page-header">
-        <h1>举报管理</h1>
-        <p class="page-subtitle">处理用户举报，维护社区秩序</p>
+        <h2>举报管理</h2>
       </div>
-      
+
       <div class="tabs glass">
-        <button 
-          class="tab-btn"
-          :class="{ active: activeTab === 'pending' }"
-          @click="activeTab = 'pending'"
-        >
+        <button class="tab-btn" :class="{ active: activeTab === 'pending' }" @click="activeTab = 'pending'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
           </svg>
           待处理
           <span v-if="pendingCount > 0" class="tab-badge warning">{{ pendingCount }}</span>
         </button>
-        <button 
-          class="tab-btn"
-          :class="{ active: activeTab === 'verified' }"
-          @click="activeTab = 'verified'"
-        >
+        <button class="tab-btn" :class="{ active: activeTab === 'verified' }" @click="activeTab = 'verified'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
           </svg>
           已核实
         </button>
-        <button 
-          class="tab-btn"
-          :class="{ active: activeTab === 'rejected' }"
-          @click="activeTab = 'rejected'"
-        >
+        <button class="tab-btn" :class="{ active: activeTab === 'rejected' }" @click="activeTab = 'rejected'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="15" y1="9" x2="9" y2="15"/>
-            <line x1="9" y1="9" x2="15" y2="15"/>
+            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
           </svg>
           已驳回
         </button>
       </div>
-      
+
       <div v-if="loading" class="loading-skeleton">
         <div class="reports-grid">
           <div v-for="i in 4" :key="i" class="report-card glass">
@@ -53,41 +36,38 @@
           </div>
         </div>
       </div>
-      
+
       <div v-else-if="error" class="error-state glass">
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
         <h3>{{ error }}</h3>
         <button class="btn btn-primary" @click="fetchReports">重试</button>
       </div>
-      
+
       <div v-else>
         <div v-if="reports.length === 0" class="empty-state glass">
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/>
-            <line x1="12" y1="17" x2="12.01" y2="17"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
           <h3 class="empty-title">暂无举报数据</h3>
           <p class="empty-text">当前分类下没有举报记录</p>
         </div>
-        
+
         <div v-else class="reports-grid">
           <div v-for="report in reports" :key="report.id" class="report-card glass">
             <div class="report-header">
               <div class="report-id">
                 <span class="id-label">#{{ report.id }}</span>
-                <span class="priority-badge" :class="getPriorityClass(report)">
-                  {{ getPriorityText(report) }}
-                </span>
+                <span class="priority-badge" :class="getPriorityClass(report)">{{ getPriorityText(report) }}</span>
               </div>
               <span class="status-badge" :class="getStatusClass(report.status)">
                 <span class="status-dot" :class="getStatusDotClass(report.status)"></span>
                 {{ getStatusText(report.status) }}
               </span>
             </div>
-            
+
             <div class="report-body">
               <div class="report-row">
                 <span class="report-label">举报类型</span>
@@ -110,92 +90,61 @@
                 <span class="report-value time">{{ formatDate(report.createTime) }}</span>
               </div>
             </div>
-            
+
             <div class="report-actions" v-if="report.status === 0">
-              <button 
-                class="btn btn-sm btn-success-outline"
-                @click="handleReport(report, 2)"
-              >
+              <button class="btn btn-sm btn-success-outline" @click="handleReport(report, 2)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                  <polyline points="22 4 12 14.01 9 11.01"/>
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
                 </svg>
                 核实
               </button>
-              <button 
-                class="btn btn-sm btn-danger-outline"
-                @click="handleReport(report, 1)"
-              >
+              <button class="btn btn-sm btn-danger-outline" @click="handleReport(report, 1)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="15" y1="9" x2="9" y2="15"/>
-                  <line x1="9" y1="9" x2="15" y2="15"/>
+                  <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
                 </svg>
                 驳回
               </button>
-              <button 
-                class="btn btn-sm btn-ghost"
-                @click="viewDetail(report)"
-              >
+              <button class="btn btn-sm btn-ghost" @click="viewDetail(report)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                 </svg>
                 详情
               </button>
             </div>
             <div class="report-actions" v-else>
-              <button 
-                class="btn btn-sm btn-ghost"
-                @click="viewDetail(report)"
-              >
+              <button class="btn btn-sm btn-ghost" @click="viewDetail(report)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                 </svg>
                 查看详情
               </button>
             </div>
           </div>
         </div>
-        
+
         <div v-if="totalPages > 1" class="pagination-wrapper">
           <div class="pagination glass">
-            <button 
-              class="pagination-btn"
-              :disabled="currentPage <= 1"
-              @click="changePage(currentPage - 1)"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="15 18 9 12 15 6"/>
-              </svg>
+            <button class="pagination-btn" :disabled="currentPage <= 1" @click="changePage(currentPage - 1)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
               上一页
             </button>
             <span class="page-info">第 {{ currentPage }} / {{ totalPages }} 页</span>
-            <button 
-              class="pagination-btn"
-              :disabled="currentPage >= totalPages"
-              @click="changePage(currentPage + 1)"
-            >
+            <button class="pagination-btn" :disabled="currentPage >= totalPages" @click="changePage(currentPage + 1)">
               下一页
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 举报详情弹窗 -->
     <div v-if="detailDialog" class="dialog-overlay" @click.self="detailDialog = false">
       <div class="dialog glass">
         <div class="dialog-header">
           <h3>举报详情 #{{ detailData?.id }}</h3>
           <button class="dialog-close" @click="detailDialog = false">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </button>
         </div>
@@ -230,7 +179,7 @@
               <span class="detail-value">
                 <span class="status-badge" :class="getStatusClass(detailData.status)">
                   <span class="status-dot" :class="getStatusDotClass(detailData.status)"></span>
-                  {{ detailData.status === 0 ? '待处理' : detailData.status === 2 ? '已核实' : '已驳回' }}
+                  {{ getStatusText(detailData.status) }}
                 </span>
               </span>
             </div>
@@ -279,21 +228,16 @@ const fetchReports = async () => {
       pageNum: currentPage.value,
       pageSize: 20
     })
-    let filteredReports = response.data?.records || []
-    
-    if (activeTab.value !== 'pending') {
-      filteredReports = filteredReports.filter(r => {
-        if (activeTab.value === 'verified') return r.status === 2
-        if (activeTab.value === 'rejected') return r.status === 1
-        return true
-      })
+    let records = response.data?.records || []
+    if (activeTab.value === 'verified') {
+      records = records.filter(r => r.status === 2)
+    } else if (activeTab.value === 'rejected') {
+      records = records.filter(r => r.status === 1)
     }
-    
-    reports.value = filteredReports
+    reports.value = records
     totalPages.value = response.data?.pages || 1
-    
     if (activeTab.value === 'pending') {
-      pendingCount.value = filteredReports.length
+      pendingCount.value = reports.value.length
     }
   } catch (err) {
     logger.error('Failed to fetch reports', { error: err.message })
@@ -306,52 +250,32 @@ const fetchReports = async () => {
 
 const getPriorityClass = (report) => {
   const reason = (report.reason || '').toLowerCase()
-  if (reason.includes('违法') || reason.includes('暴力') || reason.includes('色情')) {
-    return 'priority-high'
-  }
+  if (reason.includes('违法') || reason.includes('暴力') || reason.includes('色情')) return 'priority-high'
   return 'priority-normal'
 }
 
 const getPriorityText = (report) => {
   const reason = (report.reason || '').toLowerCase()
-  if (reason.includes('违法') || reason.includes('暴力') || reason.includes('色情')) {
-    return '高优先级'
-  }
+  if (reason.includes('违法') || reason.includes('暴力') || reason.includes('色情')) return '高优先级'
   return '普通'
 }
 
 const getStatusClass = (status) => {
-  const classes = {
-    0: 'status-pending',
-    1: 'status-rejected',
-    2: 'status-verified'
-  }
-  return classes[status] || ''
+  return { 0: 'status-pending', 1: 'status-rejected', 2: 'status-verified' }[status] || ''
 }
 
 const getStatusDotClass = (status) => {
-  const classes = {
-    0: 'pending',
-    1: 'rejected',
-    2: 'verified'
-  }
-  return classes[status] || ''
+  return { 0: 'pending', 1: 'rejected', 2: 'verified' }[status] || ''
 }
 
 const getStatusText = (status) => {
-  const texts = {
-    0: '待处理',
-    1: '已驳回',
-    2: '已核实'
-  }
-  return texts[status] || '未知'
+  return { 0: '待处理', 1: '已驳回', 2: '已核实' }[status] || '未知'
 }
 
 const handleReport = async (report, status) => {
   const action = status === 2 ? '核实' : '驳回'
   const ok = await confirm(`确定${action}该举报吗？`, `${action}举报`)
   if (!ok) return
-  
   try {
     await adminApi.handleReport(report.id, { status })
     report.status = status
@@ -408,19 +332,13 @@ onMounted(() => {
   margin-bottom: var(--spacing-lg);
 }
 
-.page-header h1 {
-  font-size: 1.75rem;
+.page-header h2 {
+  font-size: 1.5rem;
   font-weight: 700;
   background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-
-.page-subtitle {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  margin-top: 0.25rem;
 }
 
 .tabs {
@@ -799,10 +717,6 @@ onMounted(() => {
   padding: var(--spacing-lg) 0;
 }
 
-.reports-grid .report-card.skeleton-card {
-  pointer-events: none;
-}
-
 .sk-line {
   height: 14px;
   border-radius: 4px;
@@ -824,7 +738,7 @@ onMounted(() => {
   .reports-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .tabs {
     flex-wrap: wrap;
   }

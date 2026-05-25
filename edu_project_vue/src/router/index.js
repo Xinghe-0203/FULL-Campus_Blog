@@ -140,6 +140,12 @@ const routes = [
     meta: { title: '发布动态', requiresAuth: true }
   },
   {
+    path: '/circle/post/edit/:id',
+    name: 'CirclePostEdit',
+    component: () => import('../views/circle/CirclePost.vue'),
+    meta: { title: '编辑动态', requiresAuth: true }
+  },
+  {
     path: '/circle/:id',
     name: 'CircleDetail',
     component: () => import('../views/circle/CircleDetail.vue'),
@@ -172,33 +178,18 @@ const routes = [
   // 管理员路由
   {
     path: '/admin',
-    name: 'AdminDashboard',
-    component: () => import('../views/admin/Dashboard.vue'),
-    meta: { title: '管理后台', requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/users',
-    name: 'AdminUsers',
-    component: () => import('../views/admin/Users.vue'),
-    meta: { title: '用户管理', requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/posts',
-    name: 'AdminPosts',
-    component: () => import('../views/admin/Posts.vue'),
-    meta: { title: '文章管理', requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/reports',
-    name: 'AdminReports',
-    component: () => import('../views/admin/Reports.vue'),
-    meta: { title: '举报管理', requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/statistics',
-    name: 'AdminStatistics',
-    component: () => import('../views/admin/Statistics.vue'),
-    meta: { title: '数据统计', requiresAuth: true, requiresAdmin: true }
+    component: () => import('../views/admin/AdminLayout.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      { path: '', name: 'AdminDashboard', component: () => import('../views/admin/Dashboard.vue'), meta: { title: '仪表盘' } },
+      { path: 'users', name: 'AdminUsers', component: () => import('../views/admin/Users.vue'), meta: { title: '用户管理' } },
+      { path: 'posts', name: 'AdminPosts', component: () => import('../views/admin/Posts.vue'), meta: { title: '文章管理' } },
+      { path: 'circle', name: 'AdminCircle', component: () => import('../views/admin/CircleManagement.vue'), meta: { title: '校友圈管理' } },
+      { path: 'tags', name: 'AdminTags', component: () => import('../views/admin/TagsManagement.vue'), meta: { title: '标签管理' } },
+      { path: 'topics', name: 'AdminTopics', component: () => import('../views/admin/TopicsManagement.vue'), meta: { title: '话题管理' } },
+      { path: 'reports', name: 'AdminReports', component: () => import('../views/admin/Reports.vue'), meta: { title: '举报管理' } },
+      { path: 'statistics', name: 'AdminStatistics', component: () => import('../views/admin/Statistics.vue'), meta: { title: '数据统计' } },
+    ]
   },
   // 404页面
   {

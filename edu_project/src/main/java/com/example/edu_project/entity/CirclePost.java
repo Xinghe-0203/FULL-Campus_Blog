@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 校友圈动态实体类 (circle_post)
@@ -75,7 +76,7 @@ public class CirclePost implements Serializable {
      * 关联话题ID数组（JSON）
      */
     @TableField(typeHandler = JacksonTypeHandler.class)
-    private String topicIds;
+    private List<Long> topicIds;
 
     /**
      * 位置信息

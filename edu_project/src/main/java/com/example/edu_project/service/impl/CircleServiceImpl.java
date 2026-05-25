@@ -75,7 +75,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createPost(String content, List<String> images, List<String> videos, String location, Long repostId,
-                           List<String> tags, Long userId,
+                           Long userId,
                            Integer visibility, Integer allowComment, Integer allowRepost,
                            List<Long> explicitTopicIds) {
         // 参数校验
@@ -129,18 +129,6 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         if (sanitizedContent != null) {
             topicIds = parseAndGetTopicIds(sanitizedContent);
         }
-        // 如果tags参数中也有话题，一并处理
-        if (tags != null && !tags.isEmpty()) {
-            for (String tag : tags) {
-                if (tag != null && tag.startsWith("#")) {
-                    Long tid = topicService.getOrCreateTopic(tag);
-                    if (tid != null && !topicIds.contains(tid)) {
-                        topicIds.add(tid);
-                    }
-                }
-            }
-        }
-
         // 显式指定的话题ID列表
         if (explicitTopicIds != null && !explicitTopicIds.isEmpty()) {
             for (Long tid : explicitTopicIds) {
@@ -181,11 +169,6 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             post.setVideoUrls(cn.hutool.json.JSONUtil.toJsonStr(videos));
         }
 
-        // 标签列表转为 JSON
-        if (tags != null && !tags.isEmpty()) {
-            post.setTags(cn.hutool.json.JSONUtil.toJsonStr(tags));
-        }
-
         // @提及用户列表
         if (!mentionedUsers.isEmpty()) {
             List<Long> mentionedUserIds = mentionedUsers.stream().map(SysUser::getId).collect(Collectors.toList());
@@ -194,7 +177,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
 
         // 关联话题列表
         if (!topicIds.isEmpty()) {
-            post.setTopicIds(cn.hutool.json.JSONUtil.toJsonStr(topicIds));
+            post.setTopicIds(topicIds);
         }
 
         this.save(post);
@@ -208,13 +191,13 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                     @Override
                     public void afterCommit() {
                         for (Long tid : topicsToUpdate) {
-                            topicMapper.incrementTrendingScore(tid, 1);
+                            topicMapper.incrementPostCount(tid);
                         }
                     }
                 });
             } else {
                 for (Long tid : topicIds) {
-                    topicMapper.incrementTrendingScore(tid, 1);
+                    topicMapper.incrementPostCount(tid);
                 }
             }
         }
@@ -328,6 +311,67 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public void updatePost(Long postId, String content, List<String> images, List<String> videos,
+                           String location, List<Long> topicIds,
+                           Integer visibility, Integer allowComment, Integer allowRepost,
+                           Long userId) {
+        CirclePost post = this.getById(postId);
+        if (post == null || post.getStatus() != 1) {
+            throw new BusinessException(404, "动态不存在");
+        }
+        if (!Objects.equals(userId, post.getUserId())) {
+            throw new BusinessException(403, "无权编辑此动态");
+        }
+
+        if (content != null) {
+            String sanitizedContent = htmlSanitizer.sanitizePlainText(content);
+            if (sanitizedContent.length() > 2000) {
+                throw new BusinessException(400, "动态内容不能超过2000字符");
+            }
+            post.setContent(sanitizedContent);
+        }
+
+        if (images != null) {
+            post.setImageUrls(images.isEmpty() ? null : cn.hutool.json.JSONUtil.toJsonStr(images));
+        }
+        if (videos != null) {
+            post.setVideoUrls(videos.isEmpty() ? null : cn.hutool.json.JSONUtil.toJsonStr(videos));
+        }
+        if (location != null) {
+            post.setLocation(htmlSanitizer.sanitizePlainText(location));
+        }
+
+        if (topicIds != null) {
+            List<Long> oldTopicIds = post.getTopicIds();
+            post.setTopicIds(topicIds.isEmpty() ? null : topicIds);
+            List<Long> oldValid = oldTopicIds != null ? oldTopicIds : Collections.emptyList();
+            for (Long tid : oldValid) {
+                if (!topicIds.contains(tid)) {
+                    topicMapper.decrementPostCount(tid);
+                }
+            }
+            for (Long tid : topicIds) {
+                if (!oldValid.contains(tid)) {
+                    topicMapper.incrementPostCount(tid);
+                }
+            }
+        }
+
+        if (visibility != null) {
+            post.setVisibility(visibility);
+        }
+        if (allowComment != null) {
+            post.setAllowComment(allowComment);
+        }
+        if (allowRepost != null) {
+            post.setAllowRepost(allowRepost);
+        }
+
+        this.updateById(post);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deletePost(Long postId, Long userId) {
         CirclePost post = this.getById(postId);
         if (post == null) {
@@ -341,6 +385,13 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         // 如果是转发，减少原动态的转发数
         if (post.getRepostId() != null) {
             baseMapper.decrementRepostCount(post.getRepostId());
+        }
+
+        // 减少关联话题的计数
+        if (post.getTopicIds() != null && !post.getTopicIds().isEmpty()) {
+            for (Long tid : post.getTopicIds()) {
+                topicMapper.decrementPostCount(tid);
+            }
         }
 
         // 级联删除关联数据（逻辑删除）
@@ -527,7 +578,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         Set<Long> allTopicIds = posts.stream()
                 .map(CirclePost::getTopicIds)
                 .filter(Objects::nonNull)
-                .flatMap(s -> cn.hutool.json.JSONUtil.toList(s, Long.class).stream())
+                .flatMap(List::stream)
                 .collect(Collectors.toSet());
         if (!allTopicIds.isEmpty()) {
             topicService.listByIds(allTopicIds).stream()
@@ -566,13 +617,6 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                 vo.setVideos(cn.hutool.json.JSONUtil.toList(post.getVideoUrls(), String.class));
             } else {
                 vo.setVideos(new ArrayList<>());
-            }
-
-            // 标签列表
-            if (StrUtil.isNotBlank(post.getTags())) {
-                vo.setTags(cn.hutool.json.JSONUtil.toList(post.getTags(), String.class));
-            } else {
-                vo.setTags(new ArrayList<>());
             }
 
             // 获取作者信息（使用Map批量匹配，避免N+1）
@@ -625,9 +669,9 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             }
 
             // 话题名称列表和话题ID列表
-            if (StrUtil.isNotBlank(post.getTopicIds())) {
-                List<Long> ids = cn.hutool.json.JSONUtil.toList(post.getTopicIds(), Long.class);
-                List<Long> validIds = ids.stream()
+            List<Long> rawTopicIds = post.getTopicIds();
+            if (rawTopicIds != null && !rawTopicIds.isEmpty()) {
+                List<Long> validIds = rawTopicIds.stream()
                         .filter(topicNameMap::containsKey)
                         .collect(Collectors.toList());
                 vo.setTopicIds(validIds);
@@ -1148,8 +1192,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                         .or(currentUserId != null, w2 -> w2
                                 .eq(CirclePost::getUserId, currentUserId)))
                 // 关联话题查询（通过 topicIds JSON 字段，精确匹配）
-                // JSON_CONTAINS works correctly for numeric JSON array values
-                .apply("JSON_CONTAINS(topic_ids, CAST({0} AS JSON))", topicId)
+                .apply("JSON_CONTAINS(JSON_UNQUOTE(topic_ids), CAST({0} AS JSON))", topicId)
                 .orderByDesc(CirclePost::getIsTop)
                 .orderByDesc(CirclePost::getCreateTime);
 

@@ -35,9 +35,6 @@ public class CirclePostCreateRequest {
     @Schema(description = "转发来源动态ID")
     private Long repostId;
 
-    @Schema(description = "标签列表")
-    private List<String> tags;
-
     @Schema(description = "关联话题ID数组")
     private List<Long> topicIds;
 

@@ -43,6 +43,14 @@
               <svg v-else-if="post.visibility === 1" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
               <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </span>
+            <div v-if="userStore.isLoggedIn && post.userId === userStore.userId" class="post-owner-actions">
+              <button class="action-icon-btn" title="编辑" @click="router.push(`/circle/post/edit/${post.id}`)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+              </button>
+              <button class="action-icon-btn" title="删除" @click="confirmDeletePost">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
           </div>
 
           <div class="feed-content">
@@ -50,10 +58,6 @@
 
             <div v-if="post.topicNames && post.topicNames.length" class="topic-tags">
               <router-link v-for="(tn, idx) in post.topicNames" :key="tn" :to="`/topic/${post.topicIds?.[idx] || ''}`" class="topic-tag-link glass-chip">#{{ tn }}</router-link>
-            </div>
-
-            <div v-if="post.tags && post.tags.length" class="free-tags">
-              <span v-for="(tag, idx) in post.tags" :key="idx" class="free-tag glass-chip">{{ tag }}</span>
             </div>
 
             <div v-if="post.location" class="location-display">
@@ -246,14 +250,17 @@
     </teleport>
 
     <ImagePreview :images="previewImages" :initial-index="previewIndex" :show="showPreview" @close="showPreview = false" />
+    <ConfirmDialog />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import ImagePreview from '../../components/common/ImagePreview.vue'
+
 import { circleApi } from '../../api/circle'
+import { useConfirm } from '../../composables/useConfirm'
+import ImagePreview from '../../components/common/ImagePreview.vue'
 import { useUserStore } from '../../stores/user'
 import { formatRelativeTime, formatDate, formatNumber } from '../../utils'
 import { useLogger } from '../../utils/logger'
@@ -263,6 +270,7 @@ const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const logger = useLogger('CircleDetail')
+const { confirm, ConfirmDialog } = useConfirm()
 
 const post = ref(null)
 const comments = ref([])
@@ -322,6 +330,19 @@ const fetchPost = async () => {
     } catch (err) {
       logger.warn('checkLikeStatus failed', { error: err.message })
     }
+  }
+}
+
+const confirmDeletePost = async () => {
+  const ok = await confirm('确定要删除这条动态吗？删除后不可恢复。')
+  if (!ok) return
+  try {
+    await circleApi.deletePost(route.params.id)
+    toast.success('删除成功')
+    router.push('/circle')
+  } catch (err) {
+    logger.error('deletePost error', { error: err.message })
+    toast.error(err.response?.data?.message || '删除失败')
   }
 }
 
@@ -765,33 +786,7 @@ watch(() => route.params.id, () => {
   color: var(--primary);
 }
 
-.free-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-  margin-top: var(--spacing-sm);
-}
 
-.free-tag {
-  display: inline-block;
-  padding: 2px 8px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  box-shadow: var(--glass-shadow);
-}
-
-.free-tag.glass-chip {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-}
 
 .repost-user-content {
   font-size: 0.875rem;
@@ -1401,6 +1396,32 @@ watch(() => route.params.id, () => {
 .slide-leave-to {
   opacity: 0;
   transform: translateY(-8px);
+}
+
+.post-owner-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  align-items: center;
+}
+
+.action-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.action-icon-btn:hover {
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 @media (max-width: 640px) {

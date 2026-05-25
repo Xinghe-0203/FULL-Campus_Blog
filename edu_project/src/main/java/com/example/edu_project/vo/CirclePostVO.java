@@ -50,9 +50,6 @@ public class CirclePostVO {
     @Schema(description = "位置信息", example = "北京大学")
     private String location;
 
-    @Schema(description = "标签列表")
-    private List<String> tags;
-
     @Schema(description = "话题名称列表")
     private List<String> topicNames;
 

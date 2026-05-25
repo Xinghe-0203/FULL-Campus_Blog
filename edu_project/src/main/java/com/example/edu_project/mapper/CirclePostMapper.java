@@ -2,6 +2,7 @@ package com.example.edu_project.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.edu_project.entity.CirclePost;
+import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -36,12 +37,13 @@ public interface CirclePostMapper extends BaseMapper<CirclePost> {
     @Update("UPDATE blog_circle_post SET repost_count = repost_count - 1 WHERE id = #{id} AND is_deleted = 0 AND repost_count > 0")
     void decrementRepostCount(@Param("id") Long id);
 
-    @Select("SELECT COUNT(*) FROM blog_circle_post WHERE JSON_CONTAINS(topic_ids, CAST(#{topicId} AS JSON)) AND status = 1 AND is_deleted = 0")
+    @Select("SELECT COUNT(*) FROM blog_circle_post WHERE JSON_CONTAINS(JSON_UNQUOTE(topic_ids), CAST(#{topicId} AS JSON)) AND status = 1 AND is_deleted = 0")
     Long countByTopicId(@Param("topicId") Long topicId);
 
+    @MapKey("topicId")
     @Select("<script>" +
             "SELECT jt.topicId, COUNT(*) as cnt FROM blog_circle_post " +
-            "CROSS JOIN JSON_TABLE(topic_ids, '$[*]' COLUMNS(topicId BIGINT PATH '$')) AS jt " +
+            "CROSS JOIN JSON_TABLE(JSON_UNQUOTE(topic_ids), '$[*]' COLUMNS(topicId BIGINT PATH '$')) AS jt " +
             "WHERE jt.topicId IN (<foreach collection='topicIds' item='id' separator=','>#{id}</foreach>) " +
             "AND status = 1 AND is_deleted = 0 GROUP BY jt.topicId" +
             "</script>")

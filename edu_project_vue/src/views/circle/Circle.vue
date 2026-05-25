@@ -124,6 +124,14 @@
                 <svg v-else-if="post.visibility === 1" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
                 <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               </span>
+              <div v-if="userStore.isLoggedIn && post.userId === userStore.userId" class="post-owner-actions">
+                <button class="action-icon-btn" title="编辑" @click.stop="router.push(`/circle/post/edit/${post.id}`)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                </button>
+                <button class="action-icon-btn" title="删除" @click.stop="deletePost(post)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
             </div>
 
             <div class="feed-content" @click="router.push(`/circle/${post.id}`)">
@@ -131,10 +139,6 @@
 
               <div v-if="post.topicNames && post.topicNames.length" class="topic-tags">
                 <router-link v-for="(tn, idx) in post.topicNames" :key="tn" :to="`/topic/${post.topicIds?.[idx] || ''}`" class="topic-tag-link glass-chip">#{{ tn }}</router-link>
-              </div>
-
-              <div v-if="post.tags && post.tags.length" class="free-tags">
-                <span v-for="(tag, idx) in post.tags" :key="idx" class="free-tag glass-chip">{{ tag }}</span>
               </div>
 
               <div v-if="post.location" class="location-display">
@@ -420,6 +424,7 @@
         </div>
       </transition>
     </teleport>
+    <ConfirmDialog />
   </div>
 </template>
 
@@ -427,6 +432,7 @@
 import { ref, reactive, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { circleApi } from '../../api/circle'
+import { useConfirm } from '../../composables/useConfirm'
 import { topicApi } from '../../api/topic'
 import { mediaApi } from '../../api/media'
 import { useUserStore } from '../../stores/user'
@@ -475,8 +481,7 @@ const newPost = reactive({
   content: '',
   images: [],
   videos: [],
-  visibility: 0,
-  tags: []
+  visibility: 0
 })
 
 const topicSearch = ref('')
@@ -638,6 +643,21 @@ watch(() => posts.value.length, () => {
   })
 })
 
+const { confirm, ConfirmDialog } = useConfirm()
+
+const deletePost = async (post) => {
+  const ok = await confirm('确定要删除这条动态吗？删除后不可恢复。')
+  if (!ok) return
+  try {
+    await circleApi.deletePost(post.id)
+    posts.value = posts.value.filter(p => p.id !== post.id)
+    toast.success('删除成功')
+  } catch (err) {
+    logger.error('deletePost error', { error: err.message })
+    toast.error(err.response?.data?.message || '删除失败')
+  }
+}
+
 const toggleLike = async (post) => {
   if (!userStore.isLoggedIn) { toast.warning('请先登录'); return }
   if (post._likeLoading) return
@@ -780,7 +800,6 @@ const publishPost = async () => {
       images: newPost.images,
       videos: newPost.videos,
       visibility: newPost.visibility,
-      tags: newPost.tags,
       topicIds: selectedTopic.value ? [selectedTopic.value.id] : null,
       allowComment: 1,
       allowRepost: 1
@@ -790,7 +809,6 @@ const publishPost = async () => {
     newPost.images = []
     newPost.videos = []
     newPost.visibility = 0
-    newPost.tags = []
     selectedTopic.value = null
     toast.success('发布成功')
     await fetchPosts(true)
@@ -2062,15 +2080,6 @@ onBeforeUnmount(() => {
   font-size: 0.8125rem;
 }
 
-.spinner-small {
-  width: 14px;
-  height: 14px;
-  border: 2px solid var(--border);
-  border-top-color: var(--primary);
-  border-radius: var(--radius-full);
-  animation: spin 0.6s linear infinite;
-}
-
 .topic-dropdown {
   position: absolute;
   top: calc(100% + var(--spacing-xs));
@@ -2151,26 +2160,6 @@ onBeforeUnmount(() => {
 
 .location-display svg {
   color: var(--primary);
-}
-
-.free-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-  margin-top: var(--spacing-sm);
-}
-
-.free-tag {
-  display: inline-block;
-  padding: 2px 8px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  box-shadow: var(--glass-shadow);
 }
 
 .view-count {
@@ -2391,5 +2380,31 @@ onBeforeUnmount(() => {
   animation: spin 0.6s linear infinite;
   vertical-align: middle;
   margin-right: 4px;
+}
+
+.post-owner-actions {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  align-items: center;
+}
+
+.action-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.action-icon-btn:hover {
+  background: var(--primary-light);
+  color: var(--primary);
 }
 </style>

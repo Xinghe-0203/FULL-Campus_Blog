@@ -146,4 +146,58 @@ export const adminApi = {
     return api.get('/admin/statistics')
   },
 
+  // Circle management
+  getCircleList(params) {
+    return api.get('/admin/circle/list', { params })
+  },
+
+  getCircleDetail(id) {
+    return api.get(`/admin/circle/${id}`)
+  },
+
+  deleteCirclePost(id) {
+    return api.delete(`/admin/circle/${id}`)
+  },
+
+  updateCircleStatus(id, data) {
+    return api.put(`/admin/circle/${id}/status`, data)
+  },
+
+  // Tag management
+  getTagList(params) {
+    return api.get('/admin/tag/list', { params })
+  },
+
+  createTag(data) {
+    return api.post('/admin/tag', data)
+  },
+
+  updateTag(id, data) {
+    return api.put(`/admin/tag/${id}`, data)
+  },
+
+  deleteTag(id) {
+    return api.delete(`/admin/tag/${id}`)
+  },
+
+  // Topic management
+  getTopicList(params) {
+    return api.get('/admin/topic/list', { params })
+  },
+
+  createTopic(data) {
+    return api.post('/admin/topic', data)
+  },
+
+  updateTopic(id, data) {
+    return api.put(`/admin/topic/${id}`, data)
+  },
+
+  deleteTopic(id) {
+    return api.delete(`/admin/topic/${id}`)
+  },
+
+  updateTopicStatus(id, data) {
+    return api.put(`/admin/topic/${id}/status`, data)
+  },
 }

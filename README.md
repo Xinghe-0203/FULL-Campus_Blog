@@ -1,7 +1,7 @@
 # 校园博客论坛系统 / Campus Blog Forum System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-v2.0.14-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
+[![Version](https://img.shields.io/badge/version-v2.0.15-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-green)](https://spring.io/projects/spring-boot)
 [![Vue](https://img.shields.io/badge/Vue-3.4.21-brightgreen)](https://vuejs.org/)
@@ -17,6 +17,7 @@
 - Circle.vue 热门动态移至左侧边栏，优化数据源
 - Circle.vue 侧边栏数据每 60 秒自动刷新
 - logger.js CORS 错误静默处理（/api/log 端点不存在）
+- 校友圈移除标签功能（仅保留话题）
 
 **v2.0.14 最新修复：**
 - 密码重置字段名修复（password → newPassword）
@@ -1011,8 +1012,8 @@ SOFTWARE.
 
 | 项目 | 信息 |
 |------|------|
-| 版本 | v2.0.14 |
-| 最后更新 | 2026-05-22 |
+| 版本 | v2.0.15 |
+| 最后更新 | 2026-05-25 |
 | 开发者 | 刘畅 |
 | 许可证 | MIT |
 | 后端端口 | 8825 |

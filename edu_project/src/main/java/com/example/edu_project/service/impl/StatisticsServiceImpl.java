@@ -62,6 +62,9 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Autowired
     private BlogTagMapper blogTagMapper;
 
+    @Autowired
+    private TopicMapper topicMapper;
+
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Override
@@ -72,12 +75,15 @@ public class StatisticsServiceImpl implements StatisticsService {
         StatisticsVO.UserStats userStats = getUserStats();
         StatisticsVO.PostStats postStats = getPostStats();
         StatisticsVO.ReportStats reportStats = getReportStats();
+        StatisticsVO.CircleStats circleStats = getCircleStats();
+        StatisticsVO.TopicStats topicStats = getTopicStats();
 
         vo.setUserStats(userStats);
         vo.setPostStats(postStats);
         vo.setEngagementStats(getEngagementStats());
-        vo.setCircleStats(getCircleStats());
+        vo.setCircleStats(circleStats);
         vo.setReportStats(reportStats);
+        vo.setTopicStats(topicStats);
         vo.setUserGrowthTrend(getUserGrowthTrend());
         vo.setPostGrowthTrend(getPostGrowthTrend());
         vo.setStatsTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
@@ -88,6 +94,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         vo.setCommentCount(postStats.getTotalComments());
         vo.setPendingReportCount(reportStats.getPendingReports());
         vo.setTagCount(blogTagMapper.countTags());
+        vo.setTopicCount(topicStats.getTotalTopics());
+        vo.setCirclePostCount(circleStats.getTotalPosts());
 
         return vo;
     }
@@ -97,11 +105,15 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Transactional(readOnly = true)
     public StatisticsVO getCommunityStats() {
         StatisticsVO vo = new StatisticsVO();
+        StatisticsVO.CircleStats circleStats = getCircleStats();
+        StatisticsVO.TopicStats topicStats = getTopicStats();
+
         vo.setUserStats(getUserStats());
         vo.setPostStats(getPostStats());
         vo.setEngagementStats(getEngagementStats());
-        vo.setCircleStats(getCircleStats());
+        vo.setCircleStats(circleStats);
         vo.setReportStats(getReportStats());
+        vo.setTopicStats(topicStats);
         vo.setStatsTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         vo.setTagCount(blogTagMapper.countTags());
 
@@ -110,6 +122,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         vo.setPostCount(vo.getPostStats().getTotalPosts());
         vo.setCommentCount(vo.getPostStats().getTotalComments());
         vo.setPendingReportCount(vo.getReportStats().getPendingReports());
+        vo.setTopicCount(topicStats.getTotalTopics());
+        vo.setCirclePostCount(circleStats.getTotalPosts());
 
         return vo;
     }
@@ -220,9 +234,15 @@ public class StatisticsServiceImpl implements StatisticsService {
         LambdaQueryWrapper<CircleComment> commentWrapper = new LambdaQueryWrapper<>();
         commentWrapper.eq(CircleComment::getIsDeleted, 0);
         stats.setTotalComments((long) circleCommentMapper.selectCount(commentWrapper));
+        LambdaQueryWrapper<CircleComment> todayCommentWrapper = new LambdaQueryWrapper<>();
+        todayCommentWrapper.eq(CircleComment::getIsDeleted, 0).ge(CircleComment::getCreateTime, todayStart);
+        stats.setTodayNewComments((long) circleCommentMapper.selectCount(todayCommentWrapper));
         LambdaQueryWrapper<CircleLike> likeWrapper = new LambdaQueryWrapper<>();
         likeWrapper.eq(CircleLike::getIsDeleted, 0);
         stats.setTotalLikes((long) circleLikeMapper.selectCount(likeWrapper));
+        LambdaQueryWrapper<CircleLike> todayLikeWrapper = new LambdaQueryWrapper<>();
+        todayLikeWrapper.eq(CircleLike::getIsDeleted, 0).ge(CircleLike::getCreateTime, todayStart);
+        stats.setTodayNewLikes((long) circleLikeMapper.selectCount(todayLikeWrapper));
         LambdaQueryWrapper<CircleRepost> repostWrapper = new LambdaQueryWrapper<>();
         repostWrapper.eq(CircleRepost::getIsDeleted, 0);
         stats.setTotalReposts((long) circleRepostMapper.selectCount(repostWrapper));
@@ -239,6 +259,19 @@ public class StatisticsServiceImpl implements StatisticsService {
         monthWrapper.ge(BlogReport::getHandleTime, monthStart).ne(BlogReport::getStatus, 0);
         stats.setMonthHandledReports(reportMapper.selectCount(monthWrapper));
         stats.setTotalReports(reportMapper.selectCount(null));
+        return stats;
+    }
+
+    private StatisticsVO.TopicStats getTopicStats() {
+        StatisticsVO.TopicStats stats = new StatisticsVO.TopicStats();
+        LocalDateTime todayStart = LocalDateTime.now().toLocalDate().atStartOfDay();
+        stats.setTotalTopics(topicMapper.selectCount(null));
+        LambdaQueryWrapper<Topic> todayWrapper = new LambdaQueryWrapper<>();
+        todayWrapper.ge(Topic::getCreateTime, todayStart);
+        stats.setTodayNewTopics(topicMapper.selectCount(todayWrapper));
+        LambdaQueryWrapper<Topic> activeWrapper = new LambdaQueryWrapper<>();
+        activeWrapper.gt(Topic::getPostCount, 0);
+        stats.setActiveTopics(topicMapper.selectCount(activeWrapper));
         return stats;
     }
 

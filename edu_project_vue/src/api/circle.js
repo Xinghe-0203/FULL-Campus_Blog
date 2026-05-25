@@ -14,6 +14,16 @@ export const circleApi = {
   },
 
   /**
+   * 更新动态
+   * @param {number|string} postId - 动态ID
+   * @param {Object} data - 动态数据
+   * @returns {Promise<{code: number, message: string, data: Object}>}
+   */
+  updatePost(postId, data) {
+    return api.put(`/circle/post/${postId}`, data)
+  },
+
+  /**
    * 删除动态
    * @param {number|string} postId - 动态ID
    * @returns {Promise<{code: number, message: string, data: Object}>}

@@ -2,207 +2,226 @@
   <div class="admin-dashboard">
     <div class="admin-container">
       <div class="admin-header">
-        <div class="header-content">
-          <div>
-            <h1>管理后台</h1>
-            <p class="header-subtitle">校园博客论坛管理系统</p>
-          </div>
-          <div class="refresh-indicator" :class="{ refreshing: loading }">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="23 4 23 10 17 10"/>
-              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-            </svg>
-            <span>{{ loading ? '刷新中...' : '自动刷新 60s' }}</span>
-          </div>
+        <div>
+          <h1>仪表盘</h1>
+          <p class="header-subtitle">校园博客论坛管理系统</p>
+        </div>
+        <div class="refresh-indicator" :class="{ refreshing: loading }">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+          <span>{{ loading ? '刷新中...' : '自动刷新 60s' }}</span>
         </div>
       </div>
-      
-      <div class="admin-nav">
-        <router-link to="/admin" class="nav-item active">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7"/>
-            <rect x="14" y="3" width="7" height="7"/>
-            <rect x="14" y="14" width="7" height="7"/>
-            <rect x="3" y="14" width="7" height="7"/>
-          </svg>
-          仪表盘
-        </router-link>
-        <router-link to="/admin/users" class="nav-item">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
-          用户管理
-        </router-link>
-        <router-link to="/admin/posts" class="nav-item">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-          </svg>
-          文章管理
-        </router-link>
-        <router-link to="/admin/reports" class="nav-item">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/>
-            <line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
-          举报管理
-        </router-link>
-        <router-link to="/admin/statistics" class="nav-item">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="20" x2="18" y2="10"/>
-            <line x1="12" y1="20" x2="12" y2="4"/>
-            <line x1="6" y1="20" x2="6" y2="14"/>
-          </svg>
-          数据统计
-        </router-link>
-      </div>
-      
-      <div class="admin-content">
-        <div v-if="loading" class="loading-skeleton">
-          <div class="stats-grid">
-            <div v-for="i in 4" :key="i" class="stat-card glass">
-              <div class="stat-icon-skeleton"></div>
-              <div class="stat-info">
-                <div class="skeleton-value"></div>
-                <div class="skeleton-label"></div>
-              </div>
+
+      <div v-if="loading" class="loading-skeleton">
+        <div class="stats-grid">
+          <div v-for="i in 8" :key="i" class="stat-card glass">
+            <div class="stat-icon-skeleton"></div>
+            <div class="stat-info">
+              <div class="skeleton-value"></div>
+              <div class="skeleton-label"></div>
             </div>
           </div>
         </div>
-        
-        <div v-else-if="error" class="error-state glass">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          <h3>{{ error }}</h3>
-          <button class="btn btn-primary" @click="fetchStats">重试</button>
+      </div>
+
+      <div v-else-if="error" class="error-state glass">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <h3>{{ error }}</h3>
+        <button class="btn btn-primary" @click="fetchStats">重试</button>
+      </div>
+
+      <div v-else>
+        <div class="stats-grid">
+          <div class="stat-card glass stat-users gradient-border-blue">
+            <div class="stat-icon gradient-info">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats.userCount || 0 }}</span>
+              <span class="stat-label">用户总数</span>
+            </div>
+          </div>
+
+          <div class="stat-card glass stat-posts gradient-border-green">
+            <div class="stat-icon gradient-success">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats.postCount || 0 }}</span>
+              <span class="stat-label">文章总数</span>
+            </div>
+          </div>
+
+          <div class="stat-card glass gradient-border-purple">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--purple), #7C3AED);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats.circlePostCount || 0 }}</span>
+              <span class="stat-label">校友圈动态</span>
+            </div>
+          </div>
+
+          <div class="stat-card glass gradient-border-purple">
+            <div class="stat-icon gradient-warning">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                <line x1="12" y1="7" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats.commentCount || 0 }}</span>
+              <span class="stat-label">评论总数</span>
+            </div>
+          </div>
+
+          <div class="stat-card glass gradient-border-blue">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--info), #2563EB);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                <line x1="7" y1="7" x2="7.01" y2="7"/>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats.tagCount || 0 }}</span>
+              <span class="stat-label">标签总数</span>
+            </div>
+          </div>
+
+          <div class="stat-card glass gradient-border-orange">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--orange), #EA580C);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M2 12h20"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats.topicCount || 0 }}</span>
+              <span class="stat-label">话题总数</span>
+            </div>
+          </div>
+
+          <div class="stat-card glass gradient-border-red">
+            <div class="stat-icon gradient-error">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats.pendingReportCount || 0 }}</span>
+              <span class="stat-label">待处理举报</span>
+            </div>
+          </div>
+
+          <div class="stat-card glass gradient-border-green">
+            <div class="stat-icon gradient-success">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats.userStats?.activeUsers || 0 }}</span>
+              <span class="stat-label">活跃用户</span>
+            </div>
+          </div>
         </div>
-        
-        <div v-else>
-          <div class="stats-grid">
-            <div class="stat-card glass stat-users">
-              <div class="stat-icon gradient-info">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+
+        <div class="dashboard-grid">
+          <div class="glass quick-actions">
+            <h3 class="section-title">快捷操作</h3>
+            <div class="action-grid">
+              <router-link to="/admin/users" class="action-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                   <circle cx="9" cy="7" r="4"/>
                 </svg>
-              </div>
-              <div class="stat-info">
-                <span class="stat-value">{{ stats.userCount || 0 }}</span>
-                <span class="stat-label">用户总数</span>
-              </div>
-            </div>
-            
-            <div class="stat-card glass stat-posts">
-              <div class="stat-icon gradient-success">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <span>用户管理</span>
+              </router-link>
+              <router-link to="/admin/posts" class="action-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                   <polyline points="14 2 14 8 20 8"/>
                 </svg>
-              </div>
-              <div class="stat-info">
-                <span class="stat-value">{{ stats.postCount || 0 }}</span>
-                <span class="stat-label">文章总数</span>
-              </div>
-            </div>
-            
-            <div class="stat-card glass stat-comments">
-              <div class="stat-icon" style="background: linear-gradient(135deg, var(--purple), #7C3AED);">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <span>文章管理</span>
+              </router-link>
+              <router-link to="/admin/circle" class="action-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
-              </div>
-              <div class="stat-info">
-                <span class="stat-value">{{ stats.commentCount || 0 }}</span>
-                <span class="stat-label">评论总数</span>
-              </div>
-            </div>
-            
-            <div class="stat-card glass stat-reports">
-              <div class="stat-icon gradient-error">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <span>校友圈</span>
+              </router-link>
+              <router-link to="/admin/tags" class="action-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                  <line x1="7" y1="7" x2="7.01" y2="7"/>
                 </svg>
-              </div>
-              <div class="stat-info">
-                <span class="stat-value">{{ stats.pendingReportCount || 0 }}</span>
-                <span class="stat-label">待处理举报</span>
-              </div>
+                <span>标签管理</span>
+              </router-link>
+              <router-link to="/admin/topics" class="action-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M2 12h20"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+                <span>话题管理</span>
+              </router-link>
+              <router-link to="/admin/reports" class="action-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                </svg>
+                <span>举报管理</span>
+              </router-link>
             </div>
           </div>
 
-          <div class="dashboard-grid">
-            <div class="glass quick-actions">
-              <h3 class="section-title">快捷操作</h3>
-              <div class="action-grid">
-                <router-link to="/admin/users" class="action-btn">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                  </svg>
-                  <span>用户管理</span>
-                </router-link>
-                <router-link to="/admin/posts" class="action-btn">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                  </svg>
-                  <span>文章审核</span>
-                </router-link>
-                <router-link to="/admin/reports" class="action-btn">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                    <line x1="12" y1="9" x2="12" y2="13"/>
-                  </svg>
-                  <span>举报处理</span>
-                </router-link>
-                <router-link to="/admin/statistics" class="action-btn">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="20" x2="18" y2="10"/>
-                    <line x1="12" y1="20" x2="12" y2="4"/>
-                    <line x1="6" y1="20" x2="6" y2="14"/>
-                  </svg>
-                  <span>数据统计</span>
-                </router-link>
+          <div class="glass today-overview">
+            <h3 class="section-title">今日概览</h3>
+            <div class="today-list">
+              <div class="today-item">
+                <div class="today-dot info"></div>
+                <div class="today-content">
+                  <span class="today-text">今日新增用户</span>
+                  <span class="today-value text-info">+{{ stats.userStats?.todayNewUsers || 0 }}</span>
+                </div>
               </div>
-            </div>
-
-            <div class="glass recent-activity">
-              <h3 class="section-title">系统概览</h3>
-              <div class="activity-list">
-                <div class="activity-item">
-                  <div class="activity-dot info"></div>
-                  <div class="activity-content">
-                    <span class="activity-text">总用户数</span>
-                    <span class="activity-value">{{ stats.userCount || 0 }}</span>
-                  </div>
+              <div class="today-item">
+                <div class="today-dot success"></div>
+                <div class="today-content">
+                  <span class="today-text">今日新增文章</span>
+                  <span class="today-value text-success">+{{ stats.postStats?.todayNewPosts || 0 }}</span>
                 </div>
-                <div class="activity-item">
-                  <div class="activity-dot success"></div>
-                  <div class="activity-content">
-                    <span class="activity-text">总文章数</span>
-                    <span class="activity-value">{{ stats.postCount || 0 }}</span>
-                  </div>
+              </div>
+              <div class="today-item">
+                <div class="today-dot" style="background: var(--purple);"></div>
+                <div class="today-content">
+                  <span class="today-text">今日新增动态</span>
+                  <span class="today-value" style="color: var(--purple);">+{{ stats.circleStats?.todayNewPosts || 0 }}</span>
                 </div>
-                <div class="activity-item">
-                  <div class="activity-dot" style="background: var(--purple);"></div>
-                  <div class="activity-content">
-                    <span class="activity-text">总评论数</span>
-                    <span class="activity-value">{{ stats.commentCount || 0 }}</span>
-                  </div>
-                </div>
-                <div class="activity-item">
-                  <div class="activity-dot error"></div>
-                  <div class="activity-content">
-                    <span class="activity-text">待处理举报</span>
-                    <span class="activity-value">{{ stats.pendingReportCount || 0 }}</span>
-                  </div>
+              </div>
+              <div class="today-item">
+                <div class="today-dot error"></div>
+                <div class="today-content">
+                  <span class="today-text">待处理举报</span>
+                  <span class="today-value text-error">{{ stats.pendingReportCount || 0 }}</span>
                 </div>
               </div>
             </div>
@@ -250,26 +269,18 @@ onUnmounted(() => {
 
 <style scoped>
 .admin-dashboard {
-  padding: var(--spacing-lg);
-  min-height: 100vh;
-}
-
-.admin-container {
   max-width: 1400px;
   margin: 0 auto;
 }
 
 .admin-header {
-  margin-bottom: var(--spacing-lg);
-}
-
-.header-content {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  margin-bottom: var(--spacing-lg);
 }
 
-.header-content h1 {
+.admin-header h1 {
   font-size: 1.75rem;
   font-weight: 700;
   background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
@@ -302,42 +313,6 @@ onUnmounted(() => {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
-}
-
-.admin-nav {
-  display: flex;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-xl);
-  padding: var(--spacing-sm);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--glass-shadow);
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  text-decoration: none;
-  border-radius: var(--radius);
-  transition: all var(--transition);
-}
-
-.nav-item:hover {
-  background: var(--primary-light);
-  color: var(--primary);
-}
-
-.nav-item.active {
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-  color: var(--text-inverse);
-  box-shadow: var(--shadow-sm);
 }
 
 .stats-grid {
@@ -448,7 +423,7 @@ onUnmounted(() => {
 
 .action-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-sm);
 }
 
@@ -475,31 +450,31 @@ onUnmounted(() => {
   box-shadow: var(--shadow-md);
 }
 
-.activity-list {
+.today-list {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
 }
 
-.activity-item {
+.today-item {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-sm) 0;
 }
 
-.activity-dot {
+.today-dot {
   width: 10px;
   height: 10px;
   border-radius: var(--radius-full);
   flex-shrink: 0;
 }
 
-.activity-dot.info { background: var(--info); }
-.activity-dot.success { background: var(--success); }
-.activity-dot.error { background: var(--error); }
+.today-dot.info { background: var(--info); }
+.today-dot.success { background: var(--success); }
+.today-dot.error { background: var(--error); }
 
-.activity-content {
+.today-content {
   display: flex;
   justify-content: space-between;
   flex: 1;
@@ -507,31 +482,35 @@ onUnmounted(() => {
   border-radius: var(--radius-sm);
 }
 
-.activity-text {
+.today-text {
   font-size: 0.875rem;
   color: var(--text-secondary);
 }
 
-.activity-value {
+.today-value {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
+.text-info { color: var(--info); }
+.text-success { color: var(--success); }
+.text-error { color: var(--error); }
+
 @media (max-width: 768px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
-  
-  .admin-nav {
-    flex-wrap: wrap;
+
+  .action-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
-  
-  .header-content {
+
+  .admin-header {
     flex-direction: column;
     gap: var(--spacing-sm);
   }

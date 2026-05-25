@@ -27,6 +27,9 @@ public class StatisticsVO {
     @Schema(description = "举报统计数据")
     private ReportStats reportStats;
 
+    @Schema(description = "话题统计数据")
+    private TopicStats topicStats;
+
     // Flat fields for frontend compatibility
     @Schema(description = "总用户数（兼容前端）")
     private Long userCount;
@@ -42,6 +45,12 @@ public class StatisticsVO {
 
     @Schema(description = "标签总数（兼容前端）")
     private Long tagCount;
+
+    @Schema(description = "话题总数（兼容前端）")
+    private Long topicCount;
+
+    @Schema(description = "校友圈动态总数（兼容前端）")
+    private Long circlePostCount;
 
     @Schema(description = "每日用户增长趋势")
     private List<DailyCount> userGrowthTrend;
@@ -129,6 +138,12 @@ public class StatisticsVO {
 
         @Schema(description = "总转发数")
         private Long totalReposts;
+
+        @Schema(description = "今日新增评论数")
+        private Long todayNewComments;
+
+        @Schema(description = "今日新增点赞数")
+        private Long todayNewLikes;
     }
 
     @Data
@@ -142,6 +157,19 @@ public class StatisticsVO {
 
         @Schema(description = "总举报数")
         private Long totalReports;
+    }
+
+    @Data
+    @Schema(description = "话题统计数据")
+    public static class TopicStats {
+        @Schema(description = "总话题数")
+        private Long totalTopics;
+
+        @Schema(description = "今日新增话题数")
+        private Long todayNewTopics;
+
+        @Schema(description = "使用中的话题数（帖子数>0）")
+        private Long activeTopics;
     }
 
     @Data

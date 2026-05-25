@@ -2,32 +2,19 @@
   <div class="admin-users">
     <div class="admin-container">
       <div class="page-header">
-        <h1>用户管理</h1>
-        <p class="page-subtitle">管理系统用户，包含封禁、权限控制等功能</p>
-      </div>
-      
-      <div class="search-bar glass">
-        <div class="search-input-wrapper">
-          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            placeholder="搜索用户名、邮箱..."
-            @keyup.enter="fetchUsers"
-          />
+        <h2>用户管理</h2>
+        <div class="search-bar glass">
+          <div class="search-input-wrapper">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input v-model="searchQuery" type="text" placeholder="搜索用户名、邮箱..." @keyup.enter="fetchUsers" />
+          </div>
+          <button class="btn btn-primary btn-sm" @click="fetchUsers">搜索</button>
         </div>
-        <button class="btn btn-primary btn-sm" @click="fetchUsers">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="23 4 23 10 17 10"/>
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-          </svg>
-          搜索
-        </button>
       </div>
-      
+
       <div v-if="loading" class="loading-skeleton">
         <div class="table-container glass">
           <table class="data-table">
@@ -58,15 +45,15 @@
           </table>
         </div>
       </div>
-      
+
       <div v-else-if="error" class="error-state glass">
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
         <h3>{{ error }}</h3>
         <button class="btn btn-primary" @click="fetchUsers">重试</button>
       </div>
-      
+
       <div v-else class="table-container glass">
         <table class="data-table">
           <thead>
@@ -123,55 +110,30 @@
               <td class="time-cell">{{ formatDate(user.createTime) }}</td>
               <td>
                 <div class="actions">
-                  <button 
-                    class="btn btn-xs btn-ghost"
-                    @click="toggleUserStatus(user)"
-                    :title="user.status === 1 ? '禁用' : '启用'"
-                  >
+                  <button class="btn btn-xs btn-ghost" @click="toggleUserStatus(user)" :title="user.status === 1 ? '禁用' : '启用'">
                     {{ user.status === 1 ? '禁用' : '启用' }}
                   </button>
-                  <button 
-                    class="btn btn-xs btn-ghost"
-                    :class="user.banned ? 'btn-success-outline' : 'btn-danger-outline'"
-                    @click="toggleBan(user)"
-                  >
+                  <button class="btn btn-xs btn-ghost" :class="user.banned ? 'btn-success-outline' : 'btn-danger-outline'" @click="toggleBan(user)">
                     {{ user.banned ? '解封' : '封禁' }}
                   </button>
-                  <button 
-                    class="btn btn-xs btn-ghost"
-                    @click="resetPassword(user)"
-                  >
-                    重置密码
-                  </button>
+                  <button class="btn btn-xs btn-ghost" @click="resetPassword(user)">重置密码</button>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      
+
       <div v-if="totalPages > 1" class="pagination-wrapper">
         <div class="pagination glass">
-          <button 
-            class="pagination-btn"
-            :disabled="currentPage <= 1"
-            @click="changePage(currentPage - 1)"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="15 18 9 12 15 6"/>
-            </svg>
+          <button class="pagination-btn" :disabled="currentPage <= 1" @click="changePage(currentPage - 1)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
             上一页
           </button>
           <span class="page-info">第 {{ currentPage }} / {{ totalPages }} 页</span>
-          <button 
-            class="pagination-btn"
-            :disabled="currentPage >= totalPages"
-            @click="changePage(currentPage + 1)"
-          >
+          <button class="pagination-btn" :disabled="currentPage >= totalPages" @click="changePage(currentPage + 1)">
             下一页
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
       </div>
@@ -224,7 +186,6 @@ const toggleUserStatus = async (user) => {
   const action = newStatus === 1 ? '启用' : '禁用'
   const ok = await confirm(`确定${action}该用户吗？`, `${action}用户`)
   if (!ok) return
-  
   try {
     await adminApi.handleUserStatus(user.id, { status: newStatus })
     user.status = newStatus
@@ -238,7 +199,6 @@ const toggleUserStatus = async (user) => {
 const resetPassword = async (user) => {
   const ok = await confirm('确定重置该用户密码吗？重置后的密码将显示一次，请注意保管。', '重置密码')
   if (!ok) return
-  
   try {
     const res = await adminApi.resetUserPassword(user.id)
     const newPassword = res.data
@@ -254,7 +214,6 @@ const toggleBan = async (user) => {
   const action = user.banned ? '解封' : '封禁'
   const ok = await confirm(`确定${action}该用户吗？`, `${action}用户`)
   if (!ok) return
-
   try {
     await adminApi.banUser(user.id, !user.banned)
     user.banned = !user.banned
@@ -287,11 +246,16 @@ onMounted(() => {
 }
 
 .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
 }
 
-.page-header h1 {
-  font-size: 1.75rem;
+.page-header h2 {
+  font-size: 1.5rem;
   font-weight: 700;
   background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
   -webkit-background-clip: text;
@@ -299,16 +263,9 @@ onMounted(() => {
   -webkit-text-fill-color: transparent;
 }
 
-.page-subtitle {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  margin-top: 0.25rem;
-}
-
 .search-bar {
   display: flex;
   gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
   padding: var(--spacing-sm);
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
@@ -609,10 +566,15 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .search-bar {
     flex-direction: column;
   }
-  
+
   .actions {
     flex-direction: column;
   }

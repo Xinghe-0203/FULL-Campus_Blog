@@ -10,7 +10,7 @@
         <div class="card-header">
           <h2>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:8px"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            发布动态
+            {{ isEdit ? '编辑动态' : '发布动态' }}
           </h2>
         </div>
 
@@ -76,18 +76,6 @@
                 </button>
               </div>
             </transition>
-          </div>
-
-          <div class="tags-input-wrapper">
-            <div class="tags-container glass">
-              <span v-for="(tag, idx) in form.tags" :key="idx" class="tag-chip glass-chip">
-                {{ tag }}
-                <button class="remove-tag" @click="form.tags.splice(idx, 1)">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-              </span>
-              <input v-model="tagInput" @keydown.enter.prevent="addTag" @keydown.,.prevent="addTag" @keydown.backspace="handleTagBackspace" placeholder="添加标签..." class="tag-input" />
-            </div>
           </div>
 
           <div class="toggle-options">
@@ -182,7 +170,7 @@
         <div class="card-footer">
           <button class="btn btn-ghost" @click="goBack">取消</button>
           <button class="btn btn-primary" @click="publishPost" :disabled="!form.content.trim() || publishing">
-            {{ publishing ? '发布中...' : '发布' }}
+            {{ publishing ? (isEdit ? '保存中...' : '发布中...') : (isEdit ? '保存' : '发布') }}
           </button>
         </div>
       </div>
@@ -192,7 +180,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { circleApi } from '../../api/circle'
 import { topicApi } from '../../api/topic'
 import { userApi } from '../../api/user'
@@ -201,9 +189,12 @@ import { useUserStore } from '../../stores/user'
 import { useLogger } from '../../utils/logger'
 import { toast } from '../../utils/toast'
 
+const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const logger = useLogger('CirclePost')
+const isEdit = computed(() => !!route.params.id)
+const editingPostId = computed(() => route.params.id)
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024
@@ -329,20 +320,6 @@ const selectMention = (user) => {
   })
 }
 
-const addTag = () => {
-  const tag = tagInput.value.trim()
-  if (tag && !form.tags.includes(tag) && form.tags.length < 10) {
-    form.tags.push(tag)
-    tagInput.value = ''
-  }
-}
-
-const handleTagBackspace = () => {
-  if (tagInput.value === '' && form.tags.length > 0) {
-    form.tags.pop()
-  }
-}
-
 const autoResize = () => {
   const el = textareaRef.value
   if (el) {
@@ -361,14 +338,12 @@ const mentionLoading = ref(false)
 const mentionResults = ref([])
 const allowComment = ref(true)
 const allowRepost = ref(true)
-const tagInput = ref('')
 
 const form = reactive({
   content: '',
   images: [],
   videos: [],
   visibility: 0,
-  tags: [],
   location: ''
 })
 
@@ -441,26 +416,62 @@ const handleVideoUpload = async (e) => {
 const publishPost = async () => {
   if (!form.content.trim()) return
   publishing.value = true
+  const payload = {
+    content: form.content,
+    images: form.images,
+    videos: form.videos,
+    location: form.location || null,
+    topicIds: selectedTopics.value.map(t => t.id),
+    visibility: form.visibility,
+    allowComment: allowComment.value ? 1 : 0,
+    allowRepost: allowRepost.value ? 1 : 0
+  }
   try {
-    await circleApi.createPost({
-      content: form.content,
-      images: form.images,
-      videos: form.videos,
-      location: form.location || null,
-      tags: form.tags,
-      mentions: [],
-      topicIds: selectedTopics.value.map(t => t.id),
-      visibility: form.visibility,
-      allowComment: allowComment.value ? 1 : 0,
-      allowRepost: allowRepost.value ? 1 : 0
-    })
-    toast.success('发布成功')
+    if (isEdit.value) {
+      await circleApi.updatePost(editingPostId.value, payload)
+      toast.success('保存成功')
+    } else {
+      await circleApi.createPost(payload)
+      toast.success('发布成功')
+    }
     router.push('/circle')
   } catch (err) {
     logger.error('publish error', { error: err.message })
-    toast.error(err.response?.data?.message || '发布失败')
+    toast.error(err.response?.data?.message || (isEdit.value ? '保存失败' : '发布失败'))
   } finally {
     publishing.value = false
+  }
+}
+
+const loading = ref(false)
+
+const loadEditPost = async () => {
+  if (!isEdit.value) return
+  loading.value = true
+  try {
+    const res = await circleApi.getPostById(editingPostId.value)
+    const post = res.data
+    form.content = post.content || ''
+    form.images = post.images || []
+    form.videos = post.videos || []
+    form.location = post.location || ''
+    form.visibility = post.visibility ?? 0
+    allowComment.value = post.allowComment !== 0
+    allowRepost.value = post.allowRepost !== 0
+    if (post.topicIds && post.topicNames) {
+      selectedTopics.value = post.topicIds.map((id, idx) => ({
+        id,
+        name: post.topicNames[idx] || ''
+      }))
+    } else if (post.topicIds) {
+      selectedTopics.value = post.topicIds.map(id => ({ id, name: '' }))
+    }
+  } catch (err) {
+    logger.error('load edit post error', { error: err.message })
+    toast.error('加载动态失败')
+    router.push('/circle')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -474,7 +485,10 @@ onMounted(() => {
     router.push('/login')
     return
   }
-  document.title = '发布动态 - 校友圈'
+  document.title = (isEdit.value ? '编辑动态' : '发布动态') + ' - 校友圈'
+  if (isEdit.value) {
+    loadEditPost()
+  }
   topicApi.getTopicList({ pageNum: 1, pageSize: 100 }).then(res => {
     const data = res.data
     allTopics.value = Array.isArray(data) ? data : (data?.records || [])
@@ -1114,82 +1128,6 @@ onMounted(() => {
 .clear-location:hover {
   color: var(--error);
   background: var(--error-light);
-}
-
-.tags-input-wrapper {
-  margin-bottom: var(--spacing-md);
-}
-
-.tags-container {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  min-height: 40px;
-  transition: all var(--transition);
-  box-shadow: var(--glass-shadow);
-}
-
-.tags-container:focus-within {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
-}
-
-.tag-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: 2px 8px;
-  background: var(--primary-light);
-  color: var(--primary);
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.tag-chip.glass-chip {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-}
-
-.remove-tag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 0;
-  transition: all var(--transition);
-}
-
-.remove-tag:hover {
-  color: var(--error);
-}
-
-.tag-input {
-  flex: 1;
-  min-width: 80px;
-  border: none;
-  background: transparent;
-  font-size: 0.8125rem;
-  outline: none;
-  color: var(--text-primary);
-  padding: 0;
-}
-
-.tag-input::placeholder {
-  color: var(--text-muted);
 }
 
 /* 话题选择 */

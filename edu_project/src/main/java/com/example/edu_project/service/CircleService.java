@@ -22,7 +22,6 @@ public interface CircleService extends IService<CirclePost> {
      * @param videos 视频列表
      * @param location 位置
      * @param repostId 转发来源ID
-     * @param tags 标签列表
      * @param userId 发布用户ID
      * @param visibility 可见性：0=公开，1=仅关注者，2=仅自己
      * @param allowComment 是否允许评论：1=允许，0=不允许
@@ -30,7 +29,7 @@ public interface CircleService extends IService<CirclePost> {
      * @return 创建的动态ID
      */
     Long createPost(String content, List<String> images, List<String> videos, String location, Long repostId,
-                    List<String> tags, Long userId, Integer visibility, Integer allowComment, Integer allowRepost,
+                    Long userId, Integer visibility, Integer allowComment, Integer allowRepost,
                     List<Long> topicIds);
 
     /**
@@ -121,6 +120,24 @@ public interface CircleService extends IService<CirclePost> {
      * @param userId 操作用户ID
      * @return 新动态ID
      */
+    /**
+     * 更新动态
+     * @param postId 动态ID
+     * @param content 内容
+     * @param images 图片列表
+     * @param videos 视频列表
+     * @param location 位置
+     * @param topicIds 话题ID列表
+     * @param visibility 可见性
+     * @param allowComment 允许评论
+     * @param allowRepost 允许转发
+     * @param userId 操作用户ID
+     */
+    void updatePost(Long postId, String content, List<String> images, List<String> videos,
+                    String location, List<Long> topicIds,
+                    Integer visibility, Integer allowComment, Integer allowRepost,
+                    Long userId);
+
     Long repostPost(Long originalPostId, String content, Long userId);
 
     /**

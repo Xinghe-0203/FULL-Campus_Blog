@@ -1210,3 +1210,11 @@ DROP PROCEDURE IF EXISTS create_index_if_not_exists;
 -- ============================================================================
 INSERT INTO `sys_user` (`username`, `password`, `nickname`, `avatar`, `role`, `status`, `email`, `bio`)
 VALUES ('admin', '$2a$12$ShVWnPHU2PI/YQQM4ZqAoOSSJRPl7M5yyJe5SLRLu7PHnd3SQcQWq', '管理员', NULL, 'admin', 1, 'admin@campusblog.com', '系统管理员');
+
+-- ============================================================================
+-- 数据迁移：topic_ids 格式修复（v2.0.16）
+-- JacksonTypeHandler 将 String 字段双重编码为 JSON 字符串而非 JSON 数组，
+-- 导致 JSON_CONTAINS 查询失效。此迁移将 JSON 字符串转为 JSON 数组。
+-- ============================================================================
+-- UPDATE blog_circle_post SET topic_ids = JSON_UNQUOTE(topic_ids) WHERE JSON_TYPE(topic_ids) = 'STRING';
+-- UPDATE blog_post SET topic_ids = JSON_UNQUOTE(topic_ids) WHERE JSON_TYPE(topic_ids) = 'STRING';

@@ -2,30 +2,28 @@
   <div class="admin-statistics">
     <div class="admin-container">
       <div class="page-header">
-        <div class="header-content">
-          <div>
-            <h1>数据统计</h1>
-            <p class="page-subtitle">平台运营数据概览与分析</p>
-          </div>
-          <div class="header-actions">
-            <select v-model="timePeriod" class="period-select glass" @change="fetchStats">
-              <option value="week">本周</option>
-              <option value="month">本月</option>
-              <option value="quarter">本季度</option>
-              <option value="year">本年度</option>
-            </select>
-            <button class="btn btn-secondary btn-sm" @click="exportData">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              导出数据
-            </button>
-          </div>
+        <div>
+          <h1>数据统计</h1>
+          <p class="page-subtitle">平台运营数据概览与分析</p>
+        </div>
+        <div class="header-actions">
+          <select v-model="timePeriod" class="period-select glass" @change="fetchStats">
+            <option value="week">本周</option>
+            <option value="month">本月</option>
+            <option value="quarter">本季度</option>
+            <option value="year">本年度</option>
+          </select>
+          <button class="btn btn-secondary btn-sm" @click="exportData">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            导出数据
+          </button>
         </div>
       </div>
-      
+
       <div v-if="loading" class="loading-skeleton">
         <div class="stats-grid">
           <div v-for="i in 6" :key="i" class="stat-card glass">
@@ -39,7 +37,7 @@
           </div>
         </div>
       </div>
-      
+
       <div v-else-if="error" class="error-state glass">
         <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -47,7 +45,7 @@
         <h3>{{ error }}</h3>
         <button class="btn btn-primary" @click="fetchStats">重试</button>
       </div>
-      
+
       <div v-else>
         <div class="stats-overview">
           <div class="stat-card glass stat-card-blue">
@@ -69,7 +67,7 @@
               <span>+{{ stats.userStats?.todayNewUsers || 0 }} 今日</span>
             </div>
           </div>
-          
+
           <div class="stat-card glass stat-card-green">
             <div class="stat-icon gradient-success">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -89,7 +87,7 @@
               <span>+{{ stats.postStats?.todayNewPosts || 0 }} 今日</span>
             </div>
           </div>
-          
+
           <div class="stat-card glass stat-card-purple">
             <div class="stat-icon" style="background: linear-gradient(135deg, var(--purple), #7C3AED);">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -104,7 +102,7 @@
               <span>互动数据</span>
             </div>
           </div>
-          
+
           <div class="stat-card glass stat-card-orange">
             <div class="stat-icon gradient-warning">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -123,7 +121,116 @@
 
         <div class="charts-grid">
           <div class="glass chart-card">
-            <h3 class="chart-title">互动统计</h3>
+            <h3 class="chart-title">用户数据</h3>
+            <div class="stat-details">
+              <div class="detail-row">
+                <span class="detail-label">总用户数</span>
+                <span class="detail-value">{{ stats.userStats?.totalUsers || 0 }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">今日新增</span>
+                <span class="detail-value text-success">+{{ stats.userStats?.todayNewUsers || 0 }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">本周新增</span>
+                <span class="detail-value">+{{ stats.userStats?.weekNewUsers || 0 }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">本月新增</span>
+                <span class="detail-value">+{{ stats.userStats?.monthNewUsers || 0 }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">活跃用户</span>
+                <span class="detail-value">{{ stats.userStats?.activeUsers || 0 }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass chart-card">
+            <h3 class="chart-title">文章数据</h3>
+            <div class="stat-details">
+              <div class="detail-row">
+                <span class="detail-label">总文章数</span>
+                <span class="detail-value">{{ stats.postStats?.totalPosts || 0 }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">今日新增</span>
+                <span class="detail-value text-success">+{{ stats.postStats?.todayNewPosts || 0 }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">本周新增</span>
+                <span class="detail-value">+{{ stats.postStats?.weekNewPosts || 0 }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">本月新增</span>
+                <span class="detail-value">+{{ stats.postStats?.monthNewPosts || 0 }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">总评论数</span>
+                <span class="detail-value">{{ stats.postStats?.totalComments || 0 }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">总点赞数</span>
+                <span class="detail-value">{{ stats.postStats?.totalLikes || 0 }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">总收藏数</span>
+                <span class="detail-value">{{ stats.postStats?.totalCollects || 0 }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass chart-card">
+            <h3 class="chart-title">校友圈数据</h3>
+            <div class="circle-stats">
+              <div class="circle-stat-item">
+                <div class="circle-stat-value">{{ stats.circleStats?.totalPosts || 0 }}</div>
+                <div class="circle-stat-label">总动态</div>
+                <div class="circle-stat-growth text-success">+{{ stats.circleStats?.todayNewPosts || 0 }} 今日</div>
+              </div>
+              <div class="circle-stat-divider"></div>
+              <div class="circle-stat-item">
+                <div class="circle-stat-value">{{ stats.circleStats?.totalComments || 0 }}</div>
+                <div class="circle-stat-label">总评论</div>
+                <div class="circle-stat-growth text-success">+{{ stats.circleStats?.todayNewComments || 0 }} 今日</div>
+              </div>
+              <div class="circle-stat-divider"></div>
+              <div class="circle-stat-item">
+                <div class="circle-stat-value">{{ stats.circleStats?.totalLikes || 0 }}</div>
+                <div class="circle-stat-label">总点赞</div>
+              </div>
+              <div class="circle-stat-divider"></div>
+              <div class="circle-stat-item">
+                <div class="circle-stat-value">{{ stats.circleStats?.totalReposts || 0 }}</div>
+                <div class="circle-stat-label">总转发</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass chart-card">
+            <h3 class="chart-title">话题与标签</h3>
+            <div class="stat-details">
+              <div class="detail-row">
+                <span class="detail-label">总话题数</span>
+                <span class="detail-value">{{ stats.topicStats?.totalTopics || stats.topicCount || 0 }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">今日新增话题</span>
+                <span class="detail-value text-success">+{{ stats.topicStats?.todayNewTopics || 0 }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">活跃话题</span>
+                <span class="detail-value">{{ stats.topicStats?.activeTopics || 0 }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">总标签数</span>
+                <span class="detail-value" style="color: var(--purple);">{{ stats.tagCount || 0 }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass chart-card">
+            <h3 class="chart-title">互动数据</h3>
             <div class="bar-chart">
               <div class="bar-item">
                 <div class="bar-label">点赞</div>
@@ -191,7 +298,6 @@
                 </div>
               </div>
             </div>
-            
             <div class="chart-summary">
               <div class="summary-item">
                 <span class="summary-label">处理率</span>
@@ -203,45 +309,35 @@
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="glass chart-card">
-            <h3 class="chart-title">校友圈统计</h3>
-            <div class="circle-stats">
-              <div class="circle-stat-item">
-                <div class="circle-stat-value">{{ stats.circleStats?.totalPosts || 0 }}</div>
-                <div class="circle-stat-label">总动态</div>
-                <div class="circle-stat-growth text-success">+{{ stats.circleStats?.todayNewPosts || 0 }} 今日</div>
+        <div class="growth-section">
+          <div class="glass growth-card">
+            <h3 class="chart-title">用户增长趋势 (近30天)</h3>
+            <div class="growth-chart">
+              <div class="growth-bars">
+                <div v-for="(day, idx) in userGrowthData" :key="idx" class="growth-bar-item" :title="`${day.date}: +${day.count}`">
+                  <div class="growth-bar-fill gradient-info" :style="{ height: getGrowthBarHeight(day.count, maxUserGrowth) + '%' }"></div>
+                </div>
               </div>
-              <div class="circle-stat-divider"></div>
-              <div class="circle-stat-item">
-                <div class="circle-stat-value">{{ stats.circleStats?.totalComments || 0 }}</div>
-                <div class="circle-stat-label">总评论</div>
-              </div>
-              <div class="circle-stat-divider"></div>
-              <div class="circle-stat-item">
-                <div class="circle-stat-value">{{ stats.circleStats?.totalLikes || 0 }}</div>
-                <div class="circle-stat-label">总点赞</div>
-              </div>
-              <div class="circle-stat-divider"></div>
-              <div class="circle-stat-item">
-                <div class="circle-stat-value">{{ stats.circleStats?.totalReposts || 0 }}</div>
-                <div class="circle-stat-label">总转发</div>
+              <div class="growth-axis">
+                <span>{{ userGrowthData[0]?.date || '' }}</span>
+                <span>{{ userGrowthData[userGrowthData.length - 1]?.date || '' }}</span>
               </div>
             </div>
           </div>
 
-          <div class="glass chart-card">
-            <h3 class="chart-title">标签统计</h3>
-            <div class="tag-stats">
-              <div class="tag-stat-main">
-                <div class="tag-count">{{ stats.tagCount || 0 }}</div>
-                <div class="tag-label">总标签数</div>
-              </div>
-              <div class="tag-bar-wrapper">
-                <div class="tag-bar">
-                  <div class="tag-bar-fill gradient-primary" :style="{ width: getTagUsagePercent() + '%' }"></div>
+          <div class="glass growth-card">
+            <h3 class="chart-title">文章增长趋势 (近30天)</h3>
+            <div class="growth-chart">
+              <div class="growth-bars">
+                <div v-for="(day, idx) in postGrowthData" :key="idx" class="growth-bar-item" :title="`${day.date}: +${day.count}`">
+                  <div class="growth-bar-fill gradient-success" :style="{ height: getGrowthBarHeight(day.count, maxPostGrowth) + '%' }"></div>
                 </div>
-                <span class="tag-bar-text">标签使用率</span>
+              </div>
+              <div class="growth-axis">
+                <span>{{ postGrowthData[0]?.date || '' }}</span>
+                <span>{{ postGrowthData[postGrowthData.length - 1]?.date || '' }}</span>
               </div>
             </div>
           </div>
@@ -262,6 +358,11 @@ const stats = ref({})
 const loading = ref(true)
 const error = ref('')
 const timePeriod = ref('month')
+
+const userGrowthData = ref([])
+const postGrowthData = ref([])
+const maxUserGrowth = ref(1)
+const maxPostGrowth = ref(1)
 
 const maxEngagement = computed(() => {
   const values = [
@@ -299,11 +400,9 @@ const getProgressPercent = (value, total) => {
   return Math.min((value / total) * 100, 100)
 }
 
-const getTagUsagePercent = () => {
-  const totalPosts = stats.value.postCount || stats.value.postStats?.totalPosts || 0
-  const tagCount = stats.value.tagCount || 0
-  if (totalPosts === 0) return 0
-  return Math.min((tagCount / totalPosts) * 100, 100)
+const getGrowthBarHeight = (value, max) => {
+  if (!max || max === 0) return 0
+  return Math.max((value / max) * 100, 2)
 }
 
 const fetchStats = async () => {
@@ -312,6 +411,16 @@ const fetchStats = async () => {
   try {
     const response = await adminApi.getStatistics()
     stats.value = response.data || {}
+
+    if (response.data?.userGrowthTrend?.length) {
+      userGrowthData.value = response.data.userGrowthTrend
+      maxUserGrowth.value = Math.max(...response.data.userGrowthTrend.map(d => d.count || 0), 1)
+    }
+
+    if (response.data?.postGrowthTrend?.length) {
+      postGrowthData.value = response.data.postGrowthTrend
+      maxPostGrowth.value = Math.max(...response.data.postGrowthTrend.map(d => d.count || 0), 1)
+    }
   } catch (err) {
     logger.error('Failed to fetch stats', { error: err.message })
     error.value = '加载失败，请重试'
@@ -340,28 +449,20 @@ onMounted(() => {
 
 <style scoped>
 .admin-statistics {
-  padding: var(--spacing-lg);
-  min-height: 100vh;
-}
-
-.admin-container {
   max-width: 1400px;
   margin: 0 auto;
 }
 
 .page-header {
-  margin-bottom: var(--spacing-lg);
-}
-
-.header-content {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
   gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 
-.header-content h1 {
+.page-header h1 {
   font-size: 1.75rem;
   font-weight: 700;
   background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
@@ -504,6 +605,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 
 .glass {
@@ -537,6 +639,37 @@ onMounted(() => {
   padding-bottom: var(--spacing-sm);
   border-bottom: 1px solid var(--glass-border);
 }
+
+.stat-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px solid rgba(0,0,0,0.03);
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.detail-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.text-success { color: var(--success); }
 
 .bar-chart {
   display: flex;
@@ -688,77 +821,75 @@ onMounted(() => {
   background: var(--glass-border);
 }
 
-.tag-stats {
+.growth-section {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-md);
+}
+
+.growth-chart {
+  margin-top: var(--spacing-md);
+}
+
+.growth-bars {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
+  align-items: flex-end;
+  gap: 2px;
+  height: 160px;
+  padding: 0 var(--spacing-xs);
 }
 
-.tag-stat-main {
+.growth-bar-item {
+  flex: 1;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.tag-count {
-  font-size: 2.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.tag-label {
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-}
-
-.tag-bar-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.tag-bar {
-  width: 100%;
-  height: 12px;
-  background: var(--surface);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-}
-
-.tag-bar-fill {
+  align-items: flex-end;
   height: 100%;
-  border-radius: var(--radius-full);
-  transition: width 0.6s ease;
+  cursor: pointer;
 }
 
-.tag-bar-text {
-  font-size: 0.75rem;
+.growth-bar-fill {
+  width: 100%;
+  border-radius: 3px 3px 0 0;
+  transition: height 0.4s ease;
+  min-height: 2px;
+}
+
+.growth-bar-fill:hover {
+  opacity: 0.8;
+}
+
+.growth-axis {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-xs) var(--spacing-xs) 0;
+  font-size: 0.6875rem;
   color: var(--text-muted);
+  border-top: 1px solid var(--glass-border);
+  margin-top: var(--spacing-xs);
 }
 
 @media (max-width: 768px) {
   .stats-overview {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .charts-grid {
     grid-template-columns: 1fr;
   }
-  
-  .header-content {
+
+  .growth-section {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
     flex-direction: column;
   }
-  
+
   .circle-stats {
     flex-wrap: wrap;
     gap: var(--spacing-md);
   }
-  
+
   .circle-stat-divider {
     display: none;
   }

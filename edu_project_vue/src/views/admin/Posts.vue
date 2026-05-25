@@ -2,68 +2,43 @@
   <div class="admin-posts">
     <div class="admin-container">
       <div class="page-header">
-        <h1>文章管理</h1>
-        <p class="page-subtitle">审核和管理平台文章，包含发布、驳回、删除等操作</p>
+        <h2>文章管理</h2>
       </div>
-      
+
       <div class="filter-bar">
         <div class="tabs glass">
-          <button 
-            class="tab-btn"
-            :class="{ active: activeTab === 'all' }"
-            @click="activeTab = 'all'"
-          >
+          <button class="tab-btn" :class="{ active: activeTab === 'all' }" @click="activeTab = 'all'">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
             </svg>
             全部文章
           </button>
-          <button 
-            class="tab-btn"
-            :class="{ active: activeTab === 'pending' }"
-            @click="activeTab = 'pending'"
-          >
+          <button class="tab-btn" :class="{ active: activeTab === 'pending' }" @click="activeTab = 'pending'">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12 6 12 12 16 14"/>
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
             </svg>
             待审核
             <span v-if="pendingCount > 0" class="tab-badge">{{ pendingCount }}</span>
           </button>
         </div>
-        
+
         <div class="search-filter glass">
           <div class="search-input-wrapper">
             <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
-            <input 
-              v-model="searchQuery" 
-              type="text" 
-              placeholder="搜索文章标题、作者..."
-              @keyup.enter="fetchPosts"
-            />
+            <input v-model="searchQuery" type="text" placeholder="搜索文章标题..." @keyup.enter="fetchPosts" />
           </div>
-          <select v-model="categoryFilter" class="filter-select" @change="fetchPosts">
-            <option value="">全部分类</option>
-            <option value="技术分享">技术分享</option>
-            <option value="校园生活">校园生活</option>
-            <option value="学术讨论">学术讨论</option>
-            <option value="求职招聘">求职招聘</option>
-            <option value="其他">其他</option>
+          <select v-model="statusFilter" class="filter-select" @change="fetchPosts">
+            <option value="">全部状态</option>
+            <option value="0">待审核</option>
+            <option value="1">已发布</option>
+            <option value="2">已驳回</option>
           </select>
-          <button class="btn btn-primary btn-sm" @click="fetchPosts">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="23 4 23 10 17 10"/>
-              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-            </svg>
-            搜索
-          </button>
+          <button class="btn btn-primary btn-sm" @click="fetchPosts">搜索</button>
         </div>
       </div>
-      
+
       <div v-if="loading" class="loading-skeleton">
         <div class="table-container glass">
           <table class="data-table">
@@ -92,15 +67,15 @@
           </table>
         </div>
       </div>
-      
+
       <div v-else-if="error" class="error-state glass">
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
         <h3>{{ error }}</h3>
         <button class="btn btn-primary" @click="fetchPosts">重试</button>
       </div>
-      
+
       <div v-else class="table-container glass">
         <table class="data-table">
           <thead>
@@ -119,8 +94,7 @@
               <td colspan="7" class="empty-cell">
                 <div class="empty-content">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
                   </svg>
                   <span>暂无文章数据</span>
                 </div>
@@ -147,34 +121,17 @@
               <td class="time-cell">{{ formatDate(post.createTime) }}</td>
               <td>
                 <div class="actions">
-                  <button 
-                    v-if="post.status === 0"
-                    class="btn btn-xs btn-success-outline"
-                    @click="approvePost(post)"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
+                  <button v-if="post.status === 0" class="btn btn-xs btn-success-outline" @click="approvePost(post)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                     通过
                   </button>
-                  <button 
-                    v-if="post.status === 0"
-                    class="btn btn-xs btn-danger-outline"
-                    @click="rejectPost(post)"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <line x1="18" y1="6" x2="6" y2="18"/>
-                      <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
+                  <button v-if="post.status === 0" class="btn btn-xs btn-danger-outline" @click="rejectPost(post)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                     拒绝
                   </button>
-                  <button 
-                    class="btn btn-xs btn-ghost danger"
-                    @click="deletePost(post)"
-                  >
+                  <button class="btn btn-xs btn-ghost danger" @click="deletePost(post)">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3 6 5 6 21 6"/>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                     </svg>
                     删除
                   </button>
@@ -184,29 +141,17 @@
           </tbody>
         </table>
       </div>
-      
+
       <div v-if="totalPages > 1" class="pagination-wrapper">
         <div class="pagination glass">
-          <button 
-            class="pagination-btn"
-            :disabled="currentPage <= 1"
-            @click="changePage(currentPage - 1)"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="15 18 9 12 15 6"/>
-            </svg>
+          <button class="pagination-btn" :disabled="currentPage <= 1" @click="changePage(currentPage - 1)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
             上一页
           </button>
           <span class="page-info">第 {{ currentPage }} / {{ totalPages }} 页</span>
-          <button 
-            class="pagination-btn"
-            :disabled="currentPage >= totalPages"
-            @click="changePage(currentPage + 1)"
-          >
+          <button class="pagination-btn" :disabled="currentPage >= totalPages" @click="changePage(currentPage + 1)">
             下一页
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
       </div>
@@ -229,7 +174,7 @@ const { confirm, ConfirmDialog } = useConfirm()
 const posts = ref([])
 const activeTab = ref('all')
 const searchQuery = ref('')
-const categoryFilter = ref('')
+const statusFilter = ref('')
 const currentPage = ref(1)
 const totalPages = ref(1)
 const pendingCount = ref(0)
@@ -240,14 +185,20 @@ const fetchPosts = async () => {
   loading.value = true
   error.value = ''
   try {
-    const response = activeTab.value === 'pending'
-      ? await adminApi.getReviewList({ pageNum: currentPage.value, pageSize: 20 })
-      : await adminApi.getPostList({ pageNum: currentPage.value, pageSize: 20 })
-    posts.value = response.data?.records || []
-    totalPages.value = response.data?.pages || 1
-    
+    const params = { pageNum: currentPage.value, pageSize: 20 }
     if (activeTab.value === 'pending') {
-      pendingCount.value = posts.value.length
+      const response = await adminApi.getReviewList(params)
+      const data = response.data || {}
+      posts.value = data.records || []
+      totalPages.value = data.pages || 1
+      pendingCount.value = data.total || 0
+    } else {
+      if (searchQuery.value) params.keyword = searchQuery.value
+      if (statusFilter.value !== '') params.status = statusFilter.value
+      const response = await adminApi.getPostList(params)
+      const data = response.data || {}
+      posts.value = data.records || []
+      totalPages.value = data.pages || 1
     }
   } catch (err) {
     logger.error('Failed to fetch posts', { error: err.message })
@@ -259,40 +210,30 @@ const fetchPosts = async () => {
 }
 
 const getStatusClass = (status) => {
-  const classes = {
-    0: 'status-pending',
-    1: 'status-active',
-    2: 'status-rejected'
-  }
+  const classes = { 0: 'status-pending', 1: 'status-active', 2: 'status-rejected' }
   return classes[status] || ''
 }
 
 const getStatusDotClass = (status) => {
-  const classes = {
-    0: 'pending',
-    1: 'active',
-    2: 'rejected'
-  }
+  const classes = { 0: 'pending', 1: 'active', 2: 'rejected' }
   return classes[status] || ''
 }
 
 const getStatusText = (status) => {
-  const texts = {
-    0: '待审核',
-    1: '已发布',
-    2: '已驳回'
-  }
+  const texts = { 0: '待审核', 1: '已发布', 2: '已驳回' }
   return texts[status] || '未知'
 }
 
 const approvePost = async (post) => {
   const ok = await confirm('确定通过该文章审核吗？', '通过审核')
   if (!ok) return
-  
   try {
     await adminApi.approvePost(post.id)
     post.status = 1
     toast.success('审核通过')
+    if (activeTab.value === 'pending') {
+      posts.value = posts.value.filter(p => p.id !== post.id)
+    }
   } catch (err) {
     logger.error('Failed to approve post', { error: err.message })
     toast.error('操作失败')
@@ -302,11 +243,13 @@ const approvePost = async (post) => {
 const rejectPost = async (post) => {
   const reason = prompt('请输入驳回原因:')
   if (!reason || !reason.trim()) return
-  
   try {
     await adminApi.rejectPost(post.id, reason.trim())
     post.status = 2
     toast.success('已拒绝')
+    if (activeTab.value === 'pending') {
+      posts.value = posts.value.filter(p => p.id !== post.id)
+    }
   } catch (err) {
     logger.error('Failed to reject post', { error: err.message })
     toast.error('操作失败')
@@ -316,7 +259,6 @@ const rejectPost = async (post) => {
 const deletePost = async (post) => {
   const ok = await confirm('确定删除该文章吗？此操作不可恢复。', '删除文章')
   if (!ok) return
-  
   try {
     await adminApi.deletePost(post.id)
     posts.value = posts.value.filter(p => p.id !== post.id)
@@ -335,7 +277,7 @@ const changePage = (page) => {
 watch(activeTab, () => {
   currentPage.value = 1
   searchQuery.value = ''
-  categoryFilter.value = ''
+  statusFilter.value = ''
   fetchPosts()
 })
 
@@ -359,19 +301,13 @@ onMounted(() => {
   margin-bottom: var(--spacing-lg);
 }
 
-.page-header h1 {
-  font-size: 1.75rem;
+.page-header h2 {
+  font-size: 1.5rem;
   font-weight: 700;
   background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-
-.page-subtitle {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  margin-top: 0.25rem;
 }
 
 .filter-bar {
@@ -731,11 +667,11 @@ onMounted(() => {
   .filter-bar {
     flex-direction: column;
   }
-  
+
   .search-filter {
     flex-direction: column;
   }
-  
+
   .actions {
     flex-direction: column;
   }

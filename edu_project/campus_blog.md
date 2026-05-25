@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v2.0.14 |
+| **当前版本** | v2.0.15 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/FULL-Campus_Blog |
 
 ---
@@ -134,7 +134,7 @@
 #### ✅ v2.0 校友圈增强（2026-05-17）
 - @提及功能（@mention 解析 + 通知）
 - 位置信息（location 字段）
-- 动态标签（tags JSON 数组）
+- 动态标签（tags JSON 数组，已废弃不再使用）
 - 可见性控制（visibility 字段：public/followers/private）
 - 允许评论/转发开关（allow_comment/allow_repost 开关）
 
@@ -795,7 +795,7 @@ src/main/java/com/example/edu_project/
 
 ### 7.13 校友圈模块
 
-> **v2.0 增强**: 发布动态时支持 @提及、位置信息、动态标签、话题关联、可见性控制（public/followers/private）、允许评论/转发开关。
+> **v2.0 增强**: 发布动态时支持 @提及、位置信息、话题关联、可见性控制（public/followers/private）、允许评论/转发开关。
 
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
@@ -948,7 +948,6 @@ src/main/java/com/example/edu_project/
 7. **校友圈增强社交**
    - @提及自动解析并发送通知
    - 位置信息展示
-   - 动态标签系统
    - 可见性控制（公开/仅粉丝/私密）
    - 评论/转发独立开关
 
@@ -1278,6 +1277,7 @@ edu_project/
 
 | 日期 | 版本 | 更新内容 |
 | :--- | :--- | :--- |
+| 2026-05-25 | v2.0.15 | 🗑️ **校友圈移除标签功能**：校友圈不再使用自由标签（tags），仅保留话题（topic）功能。移除后端 `CircleServiceImpl` 标签处理逻辑、前端标签输入UI和标签显示 |
 | 2026-05-19 | v2.0.11 | 🐛 **白屏修复**：PostEdit 补全 categoryLabel/saveStatusText/wordCount/readingTime 四个缺失定义<br>🐛 **话题多选**：保存时发送 topicIds 数组替代单个 topicId<br>🐛 **后端修复**：禁用直接注册端点、举报通知作者、话题热度更新、Token 失效、枚举校验<br>🐛 **SQL 列名**：CirclePostMapper topicIds → topic_ids 对齐数据库<br>📦 **数据库表**：添加默认管理员账户 INSERT（admin / Admin123） |
 | 2026-05-16 | v1.52 | ✨ **热搜榜改版**：新增 `GET /trending/content` 接口（文章+动态混排，按热度评分排序）<br>✨ **校友圈话题**：发布/详情页新增话题选择器，feed 卡片显示话题标签 |
 | 2026-04-27 | v1.35 | ✨ **速率限制**：新增 `RateLimitInterceptor` 基于 Caffeine 的接口频率限制<br>✨ **缓存策略修复**：SimpleCacheManager 具名缓存差异化配置<br>✨ **CirclePost 逻辑删除统一**：添加 is_deleted + @TableLogic 支持<br>✨ **JSON 列 TypeHandler**：JacksonTypeHandler 配置处理 CirclePost JSON 字段<br>✨ **BlogDraft 1NF 规范化**：新建 `blog_draft_tag` 关联表分离草稿标签多值依赖<br>✨ **BlogPostMedia 逻辑删除统一**：统一软删除机制<br>✨ **外键约束参考 SQL**：新增 29 条 ALTER TABLE 外键语句<br>✨ **view_count 类型升级**：INT → BIGINT<br>✨ **线程池参数可配置化**：@Value 注入 AsyncConfig 核心参数<br>✨ **新增工具类**：TimeUtils、StringMaskUtils、UserConverter<br>📦 **新增表**：`blog_draft_tag`（第21张表）<br>📦 **新增 Mapper/Entity**：`BlogDraftTagMapper`、`BlogDraftTag` |
