@@ -1,7 +1,7 @@
 # 校园博客论坛系统 / Campus Blog Forum System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-v2.0.15-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
+[![Version](https://img.shields.io/badge/version-v2.0.16-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-green)](https://spring.io/projects/spring-boot)
 [![Vue](https://img.shields.io/badge/Vue-3.4.21-brightgreen)](https://vuejs.org/)
@@ -9,6 +9,17 @@
 > **MIT License** — 允许自由使用、复制、修改、合并、发布、分发、再授权和销售本软件的副本。
 
 一个基于 **Spring Boot 3 + Vue 3 + MyBatis Plus** 的全栈校园博客论坛系统，支持文章发布、校友圈动态、点赞收藏、关注互动、消息通知等功能。
+
+**v2.0.16 最新修复：**
+- 修复 MySQL `Public Key Retrieval is not allowed` 错误（JDBC URL 添加 `allowPublicKeyRetrieval=true`）
+- 修复 `@TableLogic` 导致点赞/收藏"恢复已删除记录"路径为死代码的问题
+- 修复 `checkLikeStatusBatch`/`checkCollectStatusBatch` 遗漏 `is_deleted IS NULL` 历史记录
+- 修复 `BlogCollect` 实体 `isDeleted` 缺少默认值导致新建记录可能为 NULL
+- 修复 `CirclePostMapper.countByTopicIds` 的 `@MapKey` 结果映射错误（`topicId` getter 异常）
+- 修复前端 `PostCardList.vue` emit 事件名大小写不匹配（camelCase → kebab-case）
+- 修复前端 `PostCardList.vue` 直接修改 props Set 导致 Vue 3 响应性问题
+- 后端 MyBatis 配置添加 `use-actual-param-name: false` 确保 `@Param` 注解优先
+- 统一点赞/收藏 Service 层逻辑：使用自定义 SQL 绕过 `@TableLogic` 查询所有状态记录
 
 **v2.0.15 最新修复：**
 - HomeFilters.vue `filters is not defined` 运行时错误修复

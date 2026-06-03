@@ -49,6 +49,7 @@ cors:
 # ==================== MyBatis Plus 测试配置 ====================
 mybatis-plus:
   configuration:
+    use-actual-param-name: false
     log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
   global-config:
     db-config:

@@ -1,7 +1,6 @@
 package com.example.edu_project.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import org.springframework.dao.DuplicateKeyException;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -80,12 +79,8 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
         // 使用细粒度锁：同一用户对同一文章的收藏操作串行执行
         String lockKey = userId + "-" + postId;
         synchronized (lockManager.getLock(lockKey)) {
-            // 检查是否存在非删除的收藏记录
-            LambdaQueryWrapper<BlogCollect> activeWrapper = new LambdaQueryWrapper<>();
-            activeWrapper.eq(BlogCollect::getUserId, userId)
-                  .eq(BlogCollect::getPostId, postId)
-                  .ne(BlogCollect::getIsDeleted, 1);
-            BlogCollect activeCollect = this.getOne(activeWrapper);
+            // 检查是否存在非删除的收藏记录（绕过 @TableLogic，兼容 is_deleted IS NULL 的历史数据）
+            BlogCollect activeCollect = blogCollectMapper.selectActiveByUserAndPost(userId, postId);
 
             if (activeCollect != null) {
                 // 取消收藏：逻辑删除记录（解决软删除+唯一约束冲突）
@@ -93,31 +88,14 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
                 blogPostService.decrementCollectCount(postId);
                 result.setAction("uncollect");
             } else {
-                // 检查是否存在已软删除的记录（重新收藏时恢复）
-                LambdaQueryWrapper<BlogCollect> deletedWrapper = new LambdaQueryWrapper<>();
-                deletedWrapper.eq(BlogCollect::getUserId, userId)
-                      .eq(BlogCollect::getPostId, postId)
-                      .eq(BlogCollect::getIsDeleted, 1);
-                BlogCollect deletedCollect = this.getOne(deletedWrapper);
+                // 绕过 @TableLogic 查找任意状态的记录（兼容 is_deleted = 1 和 NULL）
+                BlogCollect existingCollect = blogCollectMapper.selectRawByUserAndPost(userId, postId);
 
-                if (deletedCollect != null) {
-                    deletedCollect.setIsDeleted(0);
-                    this.updateById(deletedCollect);
-                    blogPostService.incrementCollectCount(postId);
-                    result.setAction("collect");
-                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                        @Override
-                        public void afterCommit() {
-                            eventPublisher.publishEvent(new CollectCreatedEvent(userId, post.getUserId(), postId, post.getTitle()));
-                        }
-                    });
-                } else {
-                    // 首次收藏
-                    BlogCollect newCollect = new BlogCollect();
-                    newCollect.setUserId(userId);
-                    newCollect.setPostId(postId);
-                    try {
-                        this.save(newCollect);
+                if (existingCollect != null) {
+                    if (existingCollect.getIsDeleted() != null && existingCollect.getIsDeleted() == 1) {
+                        // 已软删除 → 恢复收藏
+                        existingCollect.setIsDeleted(0);
+                        this.updateById(existingCollect);
                         blogPostService.incrementCollectCount(postId);
                         result.setAction("collect");
                         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -126,21 +104,32 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
                                 eventPublisher.publishEvent(new CollectCreatedEvent(userId, post.getUserId(), postId, post.getTitle()));
                             }
                         });
-                    } catch (DuplicateKeyException e) {
-                        LambdaQueryWrapper<BlogCollect> concurrentWrapper = new LambdaQueryWrapper<>();
-                        concurrentWrapper.eq(BlogCollect::getUserId, userId)
-                              .eq(BlogCollect::getPostId, postId)
-                              .ne(BlogCollect::getIsDeleted, 1);
-                        BlogCollect concurrentCollect = this.getOne(concurrentWrapper);
-                        if (concurrentCollect != null) {
-                            blogCollectMapper.logicalDeleteById(concurrentCollect.getId());
-                            blogPostService.decrementCollectCount(postId);
-                            result.setAction("uncollect");
-                        } else {
-                            blogPostService.incrementCollectCount(postId);
-                            result.setAction("collect");
-                        }
+                    } else if (existingCollect.getIsDeleted() == null) {
+                        // 历史遗留 NULL → 修复为 0，不修改收藏数（已计入）
+                        existingCollect.setIsDeleted(0);
+                        this.updateById(existingCollect);
+                        result.setAction("collect");
+                    } else {
+                        // 正常活跃状态 → 取消收藏
+                        blogCollectMapper.logicalDeleteById(existingCollect.getId());
+                        blogPostService.decrementCollectCount(postId);
+                        result.setAction("uncollect");
                     }
+                } else {
+                    // 首次收藏
+                    BlogCollect newCollect = new BlogCollect();
+                    newCollect.setUserId(userId);
+                    newCollect.setPostId(postId);
+                    newCollect.setIsDeleted(0);
+                    this.save(newCollect);
+                    blogPostService.incrementCollectCount(postId);
+                    result.setAction("collect");
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            eventPublisher.publishEvent(new CollectCreatedEvent(userId, post.getUserId(), postId, post.getTitle()));
+                        }
+                    });
                 }
             }
 
@@ -163,11 +152,9 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
             return status;
         }
 
-        LambdaQueryWrapper<BlogCollect> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BlogCollect::getUserId, userId)
-              .eq(BlogCollect::getPostId, postId)
-              .ne(BlogCollect::getIsDeleted, 1);
-        status.setCollected(this.count(wrapper) > 0);
+        // 使用自定义 SQL 绕过 @TableLogic，兼容 is_deleted = 0 和 NULL
+        BlogCollect collect = blogCollectMapper.selectActiveByUserAndPost(userId, postId);
+        status.setCollected(collect != null);
 
         BlogPost post = blogPostMapper.selectById(postId);
         status.setCollectCount(post != null && post.getCollectCount() != null ? post.getCollectCount() : 0);
@@ -181,7 +168,6 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
         Page<BlogCollect> collectPage = new Page<>(page, pageSize);
         LambdaQueryWrapper<BlogCollect> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogCollect::getUserId, userId)
-              .ne(BlogCollect::getIsDeleted, 1)
               .orderByDesc(BlogCollect::getCreateTime);
         IPage<BlogCollect> collectResult = this.page(collectPage, wrapper);
 
@@ -283,17 +269,12 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
         if (postIds == null || postIds.isEmpty()) {
             return List.of();
         }
-        LambdaQueryWrapper<BlogCollect> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BlogCollect::getUserId, userId)
-               .in(BlogCollect::getPostId, postIds)
-               .ne(BlogCollect::getIsDeleted, 1);
-        List<BlogCollect> collectedList = this.list(wrapper);
-        List<Long> collectedPostIds = collectedList.stream()
-                .map(BlogCollect::getPostId)
-                .collect(Collectors.toList());
+        // 使用自定义 SQL 绕过 @TableLogic，兼容 is_deleted = 0 和 NULL 的历史数据
+        List<Long> collectedPostIds = blogCollectMapper.selectActivePostIdsByUserAndPosts(userId, postIds);
+        java.util.Set<Long> collectedSet = new java.util.HashSet<>(collectedPostIds);
 
         return postIds.stream()
-                .map(postId -> collectedPostIds.contains(postId))
+                .map(collectedSet::contains)
                 .collect(Collectors.toList());
     }
 }

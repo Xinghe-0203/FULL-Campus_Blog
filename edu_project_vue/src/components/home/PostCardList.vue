@@ -35,7 +35,7 @@ defineProps({
   }
 })
 
-defineEmits(['retry'])
+const emit = defineEmits(['retry', 'update:liked-posts', 'update:collected-posts'])
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -52,13 +52,15 @@ const toggleLike = async (post) => {
   }
   try {
     await likeApi.toggleLike(post.id)
-    if (likedPosts.has(post.id)) {
-      likedPosts.delete(post.id)
+    const newLiked = new Set(likedPosts)
+    if (newLiked.has(post.id)) {
+      newLiked.delete(post.id)
       post.likeCount = Math.max(0, (post.likeCount || 0) - 1)
     } else {
-      likedPosts.add(post.id)
+      newLiked.add(post.id)
       post.likeCount = (post.likeCount || 0) + 1
     }
+    emit('update:liked-posts', newLiked)
   } catch (err) {
     logger.error('Failed to toggle like', { error: err.message })
     toast.error(err.response?.data?.message || '操作失败')
@@ -72,13 +74,15 @@ const toggleCollect = async (post) => {
   }
   try {
     await collectApi.toggleCollect(post.id)
-    if (collectedPosts.has(post.id)) {
-      collectedPosts.delete(post.id)
+    const newCollected = new Set(collectedPosts)
+    if (newCollected.has(post.id)) {
+      newCollected.delete(post.id)
       post.collectCount = Math.max(0, (post.collectCount || 0) - 1)
     } else {
-      collectedPosts.add(post.id)
+      newCollected.add(post.id)
       post.collectCount = (post.collectCount || 0) + 1
     }
+    emit('update:collected-posts', newCollected)
   } catch (err) {
     logger.error('Failed to toggle collect', { error: err.message })
     toast.error(err.response?.data?.message || '操作失败')

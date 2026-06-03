@@ -207,6 +207,8 @@ onMounted(() => {
           :error="error"
           :error-message="errorMessage"
           @retry="retryFetch"
+          @update:liked-posts="(val) => likedPosts = val"
+          @update:collected-posts="(val) => collectedPosts = val"
         />
 
         <div v-if="totalPages > 1" class="pagination">

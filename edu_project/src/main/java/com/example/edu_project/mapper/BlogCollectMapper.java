@@ -4,7 +4,10 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.edu_project.entity.BlogCollect;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+
+import java.util.List;
 
 @Mapper
 public interface BlogCollectMapper extends BaseMapper<BlogCollect> {
@@ -13,4 +16,28 @@ public interface BlogCollectMapper extends BaseMapper<BlogCollect> {
      */
     @Update("UPDATE blog_collect SET is_deleted = 1 WHERE id = #{id}")
     int logicalDeleteById(@Param("id") Long id);
+
+    /**
+     * 查询活跃收藏记录（绕过 @TableLogic，兼容 is_deleted = 0 和 NULL）
+     */
+    @Select("SELECT * FROM blog_collect WHERE user_id = #{userId} AND post_id = #{postId} AND (is_deleted = 0 OR is_deleted IS NULL) LIMIT 1")
+    BlogCollect selectActiveByUserAndPost(@Param("userId") Long userId, @Param("postId") Long postId);
+
+    /**
+     * 绕过 @TableLogic 查询收藏记录（用于处理 is_deleted IS NULL 的历史数据）
+     */
+    @Select("SELECT * FROM blog_collect WHERE user_id = #{userId} AND post_id = #{postId} LIMIT 1")
+    BlogCollect selectRawByUserAndPost(@Param("userId") Long userId, @Param("postId") Long postId);
+
+    /**
+     * 批量查询用户已收藏的文章ID（绕过 @TableLogic，兼容 is_deleted = 0 和 NULL）
+     */
+    @Select("<script>" +
+            "SELECT DISTINCT post_id FROM blog_collect " +
+            "WHERE user_id = #{userId} AND post_id IN " +
+            "<foreach collection='postIds' item='id' open='(' separator=',' close=')'>" +
+            "#{id}</foreach> " +
+            "AND (is_deleted = 0 OR is_deleted IS NULL)" +
+            "</script>")
+    List<Long> selectActivePostIdsByUserAndPosts(@Param("userId") Long userId, @Param("postIds") List<Long> postIds);
 }

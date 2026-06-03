@@ -27,7 +27,6 @@ import com.example.edu_project.utils.FineGrainedLockManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -86,12 +85,8 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
         // 使用细粒度锁：同一用户对同一文章的点赞操作串行执行
         String lockKey = userId + "-" + postId;
         synchronized (lockManager.getLock(lockKey)) {
-            // 检查是否存在非删除的点赞记录
-            LambdaQueryWrapper<BlogLike> activeWrapper = new LambdaQueryWrapper<>();
-            activeWrapper.eq(BlogLike::getUserId, userId)
-                  .eq(BlogLike::getPostId, postId)
-                  .ne(BlogLike::getIsDeleted, 1);
-            BlogLike activeLike = this.getOne(activeWrapper);
+            // 检查是否存在非删除的点赞记录（绕过 @TableLogic，兼容 is_deleted IS NULL 的历史数据）
+            BlogLike activeLike = blogLikeMapper.selectActiveByUserAndPost(userId, postId);
 
             if (activeLike != null) {
                 // 取消点赞：逻辑删除记录（解决软删除+唯一约束冲突）
@@ -100,33 +95,14 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
                 trendingService.updatePostTrending(postId);
                 result.setAction("unlike");
             } else {
-                // 检查是否存在已软删除的记录（重新点赞时恢复）
-                LambdaQueryWrapper<BlogLike> deletedWrapper = new LambdaQueryWrapper<>();
-                deletedWrapper.eq(BlogLike::getUserId, userId)
-                      .eq(BlogLike::getPostId, postId)
-                      .eq(BlogLike::getIsDeleted, 1);
-                BlogLike deletedLike = this.getOne(deletedWrapper);
+                // 绕过 @TableLogic 查找任意状态的记录（兼容 is_deleted = 1 和 NULL）
+                BlogLike existingLike = blogLikeMapper.selectRawByUserAndPost(userId, postId);
 
-                if (deletedLike != null) {
-                    deletedLike.setIsDeleted(0);
-                    this.updateById(deletedLike);
-                    blogPostService.incrementLikeCount(postId);
-                    trendingService.updatePostTrending(postId);
-                    result.setAction("like");
-                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                        @Override
-                        public void afterCommit() {
-                            eventPublisher.publishEvent(new LikeCreatedEvent(userId, post.getUserId(), postId, post.getTitle()));
-                        }
-                    });
-                } else {
-                    // 首次点赞
-                    BlogLike newLike = new BlogLike();
-                    newLike.setUserId(userId);
-                    newLike.setPostId(postId);
-                    newLike.setIsDeleted(0);
-                    try {
-                        this.save(newLike);
+                if (existingLike != null) {
+                    if (existingLike.getIsDeleted() != null && existingLike.getIsDeleted() == 1) {
+                        // 已软删除 → 恢复点赞
+                        existingLike.setIsDeleted(0);
+                        this.updateById(existingLike);
                         blogPostService.incrementLikeCount(postId);
                         trendingService.updatePostTrending(postId);
                         result.setAction("like");
@@ -136,36 +112,35 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
                                 eventPublisher.publishEvent(new LikeCreatedEvent(userId, post.getUserId(), postId, post.getTitle()));
                             }
                         });
-                    } catch (DuplicateKeyException e) {
-                        // 绕过 @TableLogic 查找已有记录（兼容 is_deleted IS NULL 的历史数据）
-                        BlogLike existingLike = blogLikeMapper.selectRawByUserAndPost(userId, postId);
-                        if (existingLike != null) {
-                            if (existingLike.getIsDeleted() != null && existingLike.getIsDeleted() == 1) {
-                                // 已软删除 → 恢复点赞
-                                existingLike.setIsDeleted(0);
-                                this.updateById(existingLike);
-                                blogPostService.incrementLikeCount(postId);
-                                trendingService.updatePostTrending(postId);
-                                result.setAction("like");
-                            } else if (existingLike.getIsDeleted() == null) {
-                                // 历史遗留 NULL → 修复为 0，不修改点赞数（已计入）
-                                existingLike.setIsDeleted(0);
-                                this.updateById(existingLike);
-                                trendingService.updatePostTrending(postId);
-                                result.setAction("like");
-                            } else {
-                                // 正常活跃状态 → 取消点赞
-                                blogLikeMapper.logicalDeleteById(existingLike.getId());
-                                blogPostService.decrementLikeCount(postId);
-                                trendingService.updatePostTrending(postId);
-                                result.setAction("unlike");
-                            }
-                        } else {
-                            blogPostService.incrementLikeCount(postId);
-                            trendingService.updatePostTrending(postId);
-                            result.setAction("like");
-                        }
+                    } else if (existingLike.getIsDeleted() == null) {
+                        // 历史遗留 NULL → 修复为 0，不修改点赞数（已计入）
+                        existingLike.setIsDeleted(0);
+                        this.updateById(existingLike);
+                        trendingService.updatePostTrending(postId);
+                        result.setAction("like");
+                    } else {
+                        // 正常活跃状态 → 取消点赞
+                        blogLikeMapper.logicalDeleteById(existingLike.getId());
+                        blogPostService.decrementLikeCount(postId);
+                        trendingService.updatePostTrending(postId);
+                        result.setAction("unlike");
                     }
+                } else {
+                    // 首次点赞
+                    BlogLike newLike = new BlogLike();
+                    newLike.setUserId(userId);
+                    newLike.setPostId(postId);
+                    newLike.setIsDeleted(0);
+                    this.save(newLike);
+                    blogPostService.incrementLikeCount(postId);
+                    trendingService.updatePostTrending(postId);
+                    result.setAction("like");
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            eventPublisher.publishEvent(new LikeCreatedEvent(userId, post.getUserId(), postId, post.getTitle()));
+                        }
+                    });
                 }
             }
 
@@ -203,10 +178,9 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
         if (userId == null) {
             return false;
         }
-        LambdaQueryWrapper<BlogLike> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BlogLike::getUserId, userId)
-              .eq(BlogLike::getPostId, postId);
-        return this.count(wrapper) > 0;
+        // 使用自定义 SQL 绕过 @TableLogic，兼容 is_deleted = 0 和 NULL
+        BlogLike like = blogLikeMapper.selectActiveByUserAndPost(userId, postId);
+        return like != null;
     }
 
     @Override
@@ -216,7 +190,6 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
 
         LambdaQueryWrapper<BlogLike> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogLike::getUserId, userId)
-                .ne(BlogLike::getIsDeleted, 1)
                 .orderByDesc(BlogLike::getCreateTime);
 
         IPage<BlogLike> likeResult = this.page(likePage, wrapper);
@@ -317,17 +290,12 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
         if (postIds == null || postIds.isEmpty()) {
             return List.of();
         }
-        LambdaQueryWrapper<BlogLike> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BlogLike::getUserId, userId)
-               .in(BlogLike::getPostId, postIds)
-               .ne(BlogLike::getIsDeleted, 1);
-        List<BlogLike> likedList = this.list(wrapper);
-        List<Long> likedPostIds = likedList.stream()
-                .map(BlogLike::getPostId)
-                .collect(Collectors.toList());
+        // 使用自定义 SQL 绕过 @TableLogic，兼容 is_deleted = 0 和 NULL 的历史数据
+        List<Long> likedPostIds = blogLikeMapper.selectActivePostIdsByUserAndPosts(userId, postIds);
+        java.util.Set<Long> likedSet = new java.util.HashSet<>(likedPostIds);
 
         return postIds.stream()
-                .map(postId -> likedPostIds.contains(postId))
+                .map(likedSet::contains)
                 .collect(Collectors.toList());
     }
 }

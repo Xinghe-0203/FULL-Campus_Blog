@@ -2,7 +2,6 @@ package com.example.edu_project.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.edu_project.entity.CirclePost;
-import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -40,12 +39,21 @@ public interface CirclePostMapper extends BaseMapper<CirclePost> {
     @Select("SELECT COUNT(*) FROM blog_circle_post WHERE JSON_CONTAINS(JSON_UNQUOTE(topic_ids), CAST(#{topicId} AS JSON)) AND status = 1 AND is_deleted = 0")
     Long countByTopicId(@Param("topicId") Long topicId);
 
-    @MapKey("topicId")
     @Select("<script>" +
             "SELECT jt.topicId, COUNT(*) as cnt FROM blog_circle_post " +
             "CROSS JOIN JSON_TABLE(JSON_UNQUOTE(topic_ids), '$[*]' COLUMNS(topicId BIGINT PATH '$')) AS jt " +
             "WHERE jt.topicId IN (<foreach collection='topicIds' item='id' separator=','>#{id}</foreach>) " +
             "AND status = 1 AND is_deleted = 0 GROUP BY jt.topicId" +
             "</script>")
-    java.util.Map<Long, Long> countByTopicIds(@Param("topicIds") java.util.List<Long> topicIds);
+    java.util.List<java.util.Map<String, Object>> countByTopicIdsRaw(@Param("topicIds") java.util.List<Long> topicIds);
+
+    default java.util.Map<Long, Long> countByTopicIds(java.util.List<Long> topicIds) {
+        if (topicIds == null || topicIds.isEmpty()) return new java.util.HashMap<>();
+        return countByTopicIdsRaw(topicIds).stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        m -> ((Number) m.get("topicId")).longValue(),
+                        m -> ((Number) m.get("cnt")).longValue(),
+                        (a, b) -> a
+                ));
+    }
 }

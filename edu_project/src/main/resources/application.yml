@@ -33,7 +33,7 @@ spring:
 
     # 数据库连接 URL
     # 【重要】请在 .env 文件中配置 DB_HOST, DB_PORT, DB_NAME
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
 
     # 数据库用户名
     username: ${DB_USERNAME}
@@ -94,6 +94,7 @@ mybatis-plus:
   
   configuration:
     map-underscore-to-camel-case: true  # 数据库下划线自动转驼峰命名
+    use-actual-param-name: false         # 确保 @Param 注解优先于参数实际名称
     # SQL日志配置：通过 MYBATIS_SQL_LOG 环境变量控制（0=关闭，1=开启）
     log-impl: ${MYBATIS_SQL_LOG:org.apache.ibatis.logging.nologging.NoLoggingImpl}
     
