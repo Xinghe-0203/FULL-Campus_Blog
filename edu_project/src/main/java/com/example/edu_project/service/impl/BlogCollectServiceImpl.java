@@ -164,12 +164,13 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
     @Override
     @Transactional(readOnly = true)
     public IPage<CollectItemVO> getMyCollections(Long userId, Integer page, Integer pageSize) {
-        // 分页查询收藏记录
-        Page<BlogCollect> collectPage = new Page<>(page, pageSize);
-        LambdaQueryWrapper<BlogCollect> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BlogCollect::getUserId, userId)
-              .orderByDesc(BlogCollect::getCreateTime);
-        IPage<BlogCollect> collectResult = this.page(collectPage, wrapper);
+        // 使用自定义 SQL 绕过 @TableLogic，兼容 is_deleted = 0 和 NULL 的历史数据
+        int offset = (page - 1) * pageSize;
+        List<BlogCollect> records = pageSize > 0 ? blogCollectMapper.selectPageByUserId(userId, offset, pageSize) : List.of();
+        Long total = blogCollectMapper.countByUserId(userId);
+
+        Page<BlogCollect> collectResult = new Page<>(page, pageSize, total != null ? total : 0);
+        collectResult.setRecords(records);
 
         // 如果没有收藏记录
         if (collectResult.getRecords().isEmpty()) {

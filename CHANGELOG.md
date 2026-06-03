@@ -4,6 +4,40 @@
 
 ---
 
+## v2.0.17 (2026-06-03)
+
+### 后端修复
+
+- **UserProfile.vue 关注/取消关注 API 路径错误**: `toggleFollow` 始终调用 `POST /follow`，从未调用 `DELETE /follow/{id}`。改为根据 `isFollowing` 状态分别调用 `followApi.toggleFollow`（关注）或 `followApi.unfollow`（取消关注）
+- **@mentions 查询字段不匹配**: 前端插入 `@昵称`，后端 `parseMentions` 仅按 `username` 查询。改为同时查询 `nickname` 和 `username`
+- **转发内容重复显示**: `repostContent` 被设为原动态内容，前端同时显示 `repostContent` 和 `repostPost.content`。改为不设置 `repostContent`
+- **getMyLikes/getMyCollections 遗漏 NULL 记录**: `this.page()` 受 `@TableLogic` 影响只查 `is_deleted = 0`，遗漏历史 `is_deleted IS NULL` 记录。新增 Mapper 方法 `selectPageByUserId`/`countByUserId` 绕过 `@TableLogic`
+- **新增 Mapper 方法**: `BlogLikeMapper.selectPageByUserId`/`countByUserId`、`BlogCollectMapper.selectPageByUserId`/`countByUserId`
+
+### 前端修复
+
+- **图片预览功能为空函数**: `PostCardList.vue` 的 `openImagePreview` 和 `openPreview` 不发出事件。添加 `preview-image` emit 事件，`Home.vue` 监听并调用 `handlePreview`
+- **阅读量双重计数**: `PostDetail.vue.fetchPost` 中后端 `getPostById` 已增加阅读量，前端又额外调用 `incrementViewCount`。移除前端重复调用
+- **代码块复制按钮 CSS 类名不匹配**: `PostDetail.vue` 用 `copy-code-btn`，`main.css` 定义 `copy-btn`。改为统一使用 `copy-btn`
+- **分页不同步到 URL**: `Home.vue.changePage` 未调用 `router.push`，浏览器前进/后退无法用于分页。添加 `router.push` 更新 URL query
+- **前端忽略后端实时计数**: `PostCardList.vue`/`PostDetail.vue` 的 `toggleLike`/`toggleCollect` 使用 +/-1 乐观更新。改为使用后端返回的 `likeCount`/`collectCount`
+
+### 影响的文件
+
+| 文件 | 改动类型 |
+|------|----------|
+| `edu_project_vue/src/views/user/UserProfile.vue` | 逻辑修复 |
+| `edu_project_vue/src/components/home/PostCardList.vue` | 逻辑修复 |
+| `edu_project_vue/src/views/Home.vue` | 逻辑修复 |
+| `edu_project_vue/src/views/post/PostDetail.vue` | 逻辑修复 |
+| `edu_project/src/main/java/.../service/impl/CircleServiceImpl.java` | 逻辑修复 |
+| `edu_project/src/main/java/.../mapper/BlogLikeMapper.java` | 新增方法 |
+| `edu_project/src/main/java/.../mapper/BlogCollectMapper.java` | 新增方法 |
+| `edu_project/src/main/java/.../service/impl/BlogLikeServiceImpl.java` | 逻辑修复 |
+| `edu_project/src/main/java/.../service/impl/BlogCollectServiceImpl.java` | 逻辑修复 |
+
+---
+
 ## v2.0.16 (2026-06-03)
 
 ### 后端修复

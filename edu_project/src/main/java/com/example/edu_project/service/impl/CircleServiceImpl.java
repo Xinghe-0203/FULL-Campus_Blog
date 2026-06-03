@@ -266,7 +266,8 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         // 批量查询这些用户是否存在（避免 N+1 查询）
         if (!mentionedUsernames.isEmpty()) {
             LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
-            wrapper.in(SysUser::getUsername, mentionedUsernames);
+            wrapper.and(w -> w.in(SysUser::getUsername, mentionedUsernames)
+                              .or().in(SysUser::getNickname, mentionedUsernames));
             List<SysUser> foundUsers = sysUserMapper.selectList(wrapper);
             for (SysUser user : foundUsers) {
                 if (!user.getId().equals(authorId)) {
@@ -1071,8 +1072,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         newPost.setRepostId(originalPostId);
         // 转发时记录被转发者的用户ID
         newPost.setRepostUserId(originalPost.getUserId());
-        // 转发时保存原动态内容作为repostContent
-        newPost.setRepostContent(originalPost.getContent());
+        // 转发时不设置repostContent，前端通过repostPost.content显示原内容
         newPost.setLikeCount(0);
         newPost.setCommentCount(0);
         newPost.setRepostCount(0);

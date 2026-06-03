@@ -126,6 +126,7 @@ const changePage = (page) => {
   currentPage.value = page
   fetchPosts()
   window.scrollTo({ top: 0, behavior: 'smooth' })
+  router.push({ query: { ...route.query, page: page > 1 ? page : undefined } })
 }
 
 const fetchSidebarData = async () => {
@@ -209,6 +210,7 @@ onMounted(() => {
           @retry="retryFetch"
           @update:liked-posts="(val) => likedPosts = val"
           @update:collected-posts="(val) => collectedPosts = val"
+          @preview-image="handlePreview"
         />
 
         <div v-if="totalPages > 1" class="pagination">

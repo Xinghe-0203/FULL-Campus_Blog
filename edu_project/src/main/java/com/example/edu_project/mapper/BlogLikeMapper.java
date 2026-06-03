@@ -40,4 +40,21 @@ public interface BlogLikeMapper extends BaseMapper<BlogLike> {
             "AND (is_deleted = 0 OR is_deleted IS NULL)" +
             "</script>")
     List<Long> selectActivePostIdsByUserAndPosts(@Param("userId") Long userId, @Param("postIds") List<Long> postIds);
+
+    /**
+     * 分页查询用户点赞记录（绕过 @TableLogic，兼容 is_deleted = 0 和 NULL）
+     */
+    @Select("<script>" +
+            "SELECT * FROM blog_like " +
+            "WHERE user_id = #{userId} AND (is_deleted = 0 OR is_deleted IS NULL) " +
+            "ORDER BY create_time DESC " +
+            "LIMIT #{offset}, #{limit}" +
+            "</script>")
+    List<BlogLike> selectPageByUserId(@Param("userId") Long userId, @Param("offset") int offset, @Param("limit") int limit);
+
+    /**
+     * 统计用户点赞记录总数（绕过 @TableLogic，兼容 is_deleted = 0 和 NULL）
+     */
+    @Select("SELECT COUNT(*) FROM blog_like WHERE user_id = #{userId} AND (is_deleted = 0 OR is_deleted IS NULL)")
+    Long countByUserId(@Param("userId") Long userId);
 }

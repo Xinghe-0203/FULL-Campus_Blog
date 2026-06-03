@@ -35,7 +35,7 @@ defineProps({
   }
 })
 
-const emit = defineEmits(['retry', 'update:liked-posts', 'update:collected-posts'])
+const emit = defineEmits(['retry', 'update:liked-posts', 'update:collected-posts', 'preview-image'])
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -51,14 +51,15 @@ const toggleLike = async (post) => {
     return
   }
   try {
-    await likeApi.toggleLike(post.id)
+    const res = await likeApi.toggleLike(post.id)
     const newLiked = new Set(likedPosts)
     if (newLiked.has(post.id)) {
       newLiked.delete(post.id)
-      post.likeCount = Math.max(0, (post.likeCount || 0) - 1)
     } else {
       newLiked.add(post.id)
-      post.likeCount = (post.likeCount || 0) + 1
+    }
+    if (res.data?.likeCount !== undefined) {
+      post.likeCount = res.data.likeCount
     }
     emit('update:liked-posts', newLiked)
   } catch (err) {
@@ -73,14 +74,15 @@ const toggleCollect = async (post) => {
     return
   }
   try {
-    await collectApi.toggleCollect(post.id)
+    const res = await collectApi.toggleCollect(post.id)
     const newCollected = new Set(collectedPosts)
     if (newCollected.has(post.id)) {
       newCollected.delete(post.id)
-      post.collectCount = Math.max(0, (post.collectCount || 0) - 1)
     } else {
       newCollected.add(post.id)
-      post.collectCount = (post.collectCount || 0) + 1
+    }
+    if (res.data?.collectCount !== undefined) {
+      post.collectCount = res.data.collectCount
     }
     emit('update:collected-posts', newCollected)
   } catch (err) {
@@ -116,7 +118,7 @@ const goToUser = (userId) => {
 const openImagePreview = (post) => {
   if (post.coverImage) {
     const images = [getSafeImageUrl(post.coverImage)]
-    // This will be handled by parent
+    emit('preview-image', images, 0)
   }
 }
 </script>

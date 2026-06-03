@@ -387,9 +387,9 @@ const scrollToHeading = (index) => {
 const addCodeCopyButtons = () => {
   const codeBlocks = document.querySelectorAll('.markdown-body pre')
   codeBlocks.forEach((block, index) => {
-    if (block.querySelector('.copy-code-btn')) return
+    if (block.querySelector('.copy-btn')) return
     const btn = document.createElement('button')
-    btn.className = 'copy-code-btn'
+    btn.className = 'copy-btn'
     btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>复制'
     btn.addEventListener('click', async () => {
       const code = block.querySelector('code')?.textContent || block.textContent
@@ -423,12 +423,6 @@ const fetchPost = async () => {
     }
 
     post.value = response.data
-
-    try {
-      await postApi.incrementViewCount(route.params.id)
-    } catch {
-      // View count increment is non-critical, ignore errors
-    }
 
     if (userStore.isLoggedIn) {
       try {
@@ -521,9 +515,11 @@ const toggleLike = async () => {
   }
   
   try {
-    const likeResult = await likeApi.toggleLike(route.params.id)
+    const res = await likeApi.toggleLike(route.params.id)
     isLiked.value = !isLiked.value
-    post.value.likeCount = Math.max(0, (post.value.likeCount || 0) + (isLiked.value ? 1 : -1))
+    if (res.data?.likeCount !== undefined) {
+      post.value.likeCount = res.data.likeCount
+    }
   } catch (err) {
     logger.error('Failed to toggle like', { error: err.message })
     toast.error('操作失败')
@@ -538,9 +534,11 @@ const toggleCollect = async () => {
   }
   
   try {
-    await collectApi.toggleCollect(route.params.id)
+    const res = await collectApi.toggleCollect(route.params.id)
     isCollected.value = !isCollected.value
-    post.value.collectCount = Math.max(0, (post.value.collectCount || 0) + (isCollected.value ? 1 : -1))
+    if (res.data?.collectCount !== undefined) {
+      post.value.collectCount = res.data.collectCount
+    }
   } catch (err) {
     logger.error('Failed to toggle collect', { error: err.message })
     toast.error('操作失败')

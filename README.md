@@ -10,9 +10,16 @@
 
 一个基于 **Spring Boot 3 + Vue 3 + MyBatis Plus** 的全栈校园博客论坛系统，支持文章发布、校友圈动态、点赞收藏、关注互动、消息通知等功能。
 
-**v2.0.16 最新修复：**
-- 修复 MySQL `Public Key Retrieval is not allowed` 错误（JDBC URL 添加 `allowPublicKeyRetrieval=true`）
-- 修复 `@TableLogic` 导致点赞/收藏"恢复已删除记录"路径为死代码的问题
+**v2.0.17 最新修复：**
+- 修复 UserProfile.vue 关注/取消关注 API 路径错误（始终发 POST 不发 DELETE）
+- 修复 PostCardList.vue 图片预览功能为空函数
+- 修复 CircleServiceImpl @mentions 按 username 查询不匹配前端@昵称的问题
+- 修复 PostDetail.vue 阅读量双重计数
+- 修复 CircleServiceImpl.repostPost 转发内容重复显示
+- 修复 Home.vue 分页不同步到 URL
+- 修复 PostDetail.vue 复制按钮 CSS 类名不匹配（copy-code-btn → copy-btn）
+- 修复 getMyLikes/getMyCollections 遗漏 is_deleted IS NULL 历史数据
+- 修复 PostCardList.vue/PostDetail.vue 前端忽略后端实时计数
 - 修复 `checkLikeStatusBatch`/`checkCollectStatusBatch` 遗漏 `is_deleted IS NULL` 历史记录
 - 修复 `BlogCollect` 实体 `isDeleted` 缺少默认值导致新建记录可能为 NULL
 - 修复 `CirclePostMapper.countByTopicIds` 的 `@MapKey` 结果映射错误（`topicId` getter 异常）

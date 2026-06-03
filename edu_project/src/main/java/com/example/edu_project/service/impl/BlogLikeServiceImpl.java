@@ -186,13 +186,13 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
     @Override
     @Transactional(readOnly = true)
     public IPage<LikeItemVO> getMyLikes(Long userId, Integer page, Integer pageSize) {
-        Page<BlogLike> likePage = new Page<>(page, pageSize);
+        // 使用自定义 SQL 绕过 @TableLogic，兼容 is_deleted = 0 和 NULL 的历史数据
+        int offset = (page - 1) * pageSize;
+        List<BlogLike> records = pageSize > 0 ? blogLikeMapper.selectPageByUserId(userId, offset, pageSize) : List.of();
+        Long total = blogLikeMapper.countByUserId(userId);
 
-        LambdaQueryWrapper<BlogLike> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BlogLike::getUserId, userId)
-                .orderByDesc(BlogLike::getCreateTime);
-
-        IPage<BlogLike> likeResult = this.page(likePage, wrapper);
+        Page<BlogLike> likeResult = new Page<>(page, pageSize, total != null ? total : 0);
+        likeResult.setRecords(records);
 
         if (likeResult.getRecords().isEmpty()) {
             return new Page<>(page, pageSize, 0);
