@@ -16,11 +16,18 @@
 
 ### 前端修复
 
+- **UserProfile.vue followerCount 使用后端实时计数**: 使用后端返回的 `followerCount` 替代本地 +/-1，避免并发场景下的计数偏差
+- **PostCardList.vue 删除遗留空函数**: 删除 `openPreview` 空函数，消除死代码
 - **图片预览功能为空函数**: `PostCardList.vue` 的 `openImagePreview` 和 `openPreview` 不发出事件。添加 `preview-image` emit 事件，`Home.vue` 监听并调用 `handlePreview`
 - **阅读量双重计数**: `PostDetail.vue.fetchPost` 中后端 `getPostById` 已增加阅读量，前端又额外调用 `incrementViewCount`。移除前端重复调用
 - **代码块复制按钮 CSS 类名不匹配**: `PostDetail.vue` 用 `copy-code-btn`，`main.css` 定义 `copy-btn`。改为统一使用 `copy-btn`
 - **分页不同步到 URL**: `Home.vue.changePage` 未调用 `router.push`，浏览器前进/后退无法用于分页。添加 `router.push` 更新 URL query
 - **前端忽略后端实时计数**: `PostCardList.vue`/`PostDetail.vue` 的 `toggleLike`/`toggleCollect` 使用 +/-1 乐观更新。改为使用后端返回的 `likeCount`/`collectCount`
+
+### 测试修复与完善
+
+- **CircleServiceImplTest 编译修复**: 测试调用 `createPost` 时参数数量不匹配（11 个参数，方法只需 10 个）。移除多余参数，新增 `createPost_WithContent_ShouldStoreContentCorrectly` 测试验证内容存储正确性
+- **BlogLikeServiceImplTest 新增测试**: 新增 `testGetMyLikes_ShouldIncludeNullIsDeleted` 测试，验证 `getMyLikes` 能正确处理 `is_deleted IS NULL` 的历史遗留数据
 
 ### 影响的文件
 

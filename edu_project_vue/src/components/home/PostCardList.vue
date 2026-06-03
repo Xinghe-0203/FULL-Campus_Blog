@@ -41,10 +41,6 @@ const router = useRouter()
 const userStore = useUserStore()
 const logger = useLogger('PostCardList')
 
-const openPreview = (images, index) => {
-  // Delegate to parent via event
-}
-
 const toggleLike = async (post) => {
   if (!userStore.isLoggedIn) {
     router.push('/login')

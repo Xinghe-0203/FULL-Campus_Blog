@@ -6,7 +6,10 @@ import com.example.edu_project.entity.BlogPost;
 import com.example.edu_project.mapper.BlogLikeMapper;
 import com.example.edu_project.mapper.BlogPostMapper;
 import com.example.edu_project.service.BlogLikeService;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.edu_project.service.BlogPostService;
+import com.example.edu_project.vo.LikeItemVO;
 import com.example.edu_project.vo.LikeResultVO;
 import com.example.edu_project.vo.LikeStatusVO;
 import org.junit.jupiter.api.BeforeEach;
@@ -150,6 +153,36 @@ public class BlogLikeServiceImplTest {
         Long postId = testPost.getId();
 
         assertFalse(blogLikeService.hasLiked(postId, null));
+    }
+
+    @Test
+    @DisplayName("getMyLikes 应包含 is_deleted IS NULL 的历史数据")
+    void testGetMyLikes_ShouldIncludeNullIsDeleted() {
+        Long userId = 106L;
+        Long postId = testPost.getId();
+
+        // First, create a like (is_deleted = 0)
+        blogLikeService.toggleLike(postId, userId);
+
+        // Manually set is_deleted = NULL to simulate historical data
+        BlogLike like = blogLikeMapper.selectActiveByUserAndPost(userId, postId);
+        assertNotNull(like);
+        LambdaUpdateWrapper<BlogLike> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(BlogLike::getId, like.getId()).set(BlogLike::getIsDeleted, null);
+        blogLikeMapper.update(null, updateWrapper);
+
+        // Verify hasLiked still returns true (bypasses @TableLogic)
+        assertTrue(blogLikeService.hasLiked(postId, userId));
+
+        // Verify checkLikeStatus still returns liked
+        LikeStatusVO status = blogLikeService.checkLikeStatus(postId, userId);
+        assertTrue(status.getLiked());
+
+        // Verify getMyLikes still includes the record with is_deleted = NULL
+        IPage<LikeItemVO> myLikes = blogLikeService.getMyLikes(userId, 1, 10);
+        assertTrue(myLikes.getTotal() > 0, "getMyLikes should include records with is_deleted IS NULL");
+        assertEquals(1, myLikes.getRecords().size());
+        assertEquals(postId, myLikes.getRecords().get(0).getPostId());
     }
 
     @Test

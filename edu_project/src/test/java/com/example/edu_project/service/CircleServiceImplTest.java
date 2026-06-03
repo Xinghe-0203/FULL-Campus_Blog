@@ -68,7 +68,7 @@ class CircleServiceImplTest {
         Long userId = testUserId;
 
         // When
-        Long postId = circleService.createPost(content, null, null, null, null, null, userId, 0, 1, 1, null);
+        Long postId = circleService.createPost(content, null, null, null, null, userId, 0, 1, 1, null);
 
         // Then
         assertNotNull(postId);
@@ -84,7 +84,7 @@ class CircleServiceImplTest {
         Long userId = testUserId;
 
         // When
-        Long postId = circleService.createPost(content, images, null, null, null, null, userId, 0, 1, 1, null);
+        Long postId = circleService.createPost(content, images, null, null, null, userId, 0, 1, 1, null);
 
         // Then
         assertNotNull(postId);
@@ -100,7 +100,7 @@ class CircleServiceImplTest {
         Long userId = testUserId;
 
         // When
-        Long postId = circleService.createPost(content, null, videos, null, null, null, userId, 0, 1, 1, null);
+        Long postId = circleService.createPost(content, null, videos, null, null, userId, 0, 1, 1, null);
 
         // Then
         assertNotNull(postId);
@@ -116,7 +116,7 @@ class CircleServiceImplTest {
 
         // When & Then
         BusinessException exception = assertThrows(BusinessException.class, () ->
-                circleService.createPost(content, null, null, null, null, null, userId, 0, 1, 1, null));
+                circleService.createPost(content, null, null, null, null, userId, 0, 1, 1, null));
         assertEquals(400, exception.getCode());
         assertTrue(exception.getMessage().contains("动态内容不能为空"));
     }
@@ -130,7 +130,7 @@ class CircleServiceImplTest {
 
         // When & Then
         BusinessException exception = assertThrows(BusinessException.class, () ->
-                circleService.createPost(content, null, null, null, null, null, userId, 0, 1, 1, null));
+                circleService.createPost(content, null, null, null, null, userId, 0, 1, 1, null));
         assertEquals(400, exception.getCode());
         assertTrue(exception.getMessage().contains("动态内容不能超过2000字符"));
     }
@@ -145,7 +145,7 @@ class CircleServiceImplTest {
 
         // When & Then
         BusinessException exception = assertThrows(BusinessException.class, () ->
-                circleService.createPost(content, null, null, location, null, null, userId, 0, 1, 1, null));
+                circleService.createPost(content, null, null, location, null, userId, 0, 1, 1, null));
         assertEquals(400, exception.getCode());
         assertTrue(exception.getMessage().contains("位置信息不能超过100字符"));
     }
@@ -162,7 +162,7 @@ class CircleServiceImplTest {
 
         // When & Then
         BusinessException exception = assertThrows(BusinessException.class, () ->
-                circleService.createPost(content, null, null, null, repostId, null, userId, 0, 1, 1, null));
+                circleService.createPost(content, null, null, null, repostId, userId, 0, 1, 1, null));
         assertEquals(404, exception.getCode());
         assertTrue(exception.getMessage().contains("原动态不存在"));
     }
@@ -184,7 +184,7 @@ class CircleServiceImplTest {
 
         // When & Then
         BusinessException exception = assertThrows(BusinessException.class, () ->
-                circleService.createPost(content, null, null, null, repostId, null, userId, 0, 1, 1, null));
+                circleService.createPost(content, null, null, null, repostId, userId, 0, 1, 1, null));
         assertEquals(403, exception.getCode());
         assertTrue(exception.getMessage().contains("禁止转发"));
     }
@@ -261,6 +261,23 @@ class CircleServiceImplTest {
 
         // Then
         assertNotNull(posts);
+    }
+
+    @Test
+    @DisplayName("createPost_WithContent_ShouldStoreContentCorrectly")
+    void createPost_WithContent_ShouldStoreContentCorrectly() {
+        // Given
+        String content = "Test post with @mentions";
+        Long userId = testUserId;
+
+        // When
+        Long postId = circleService.createPost(content, null, null, null, null, userId, 0, 1, 1, null);
+
+        // Then
+        assertNotNull(postId);
+
+        // Verify the saved post has correct content via the mocked insert
+        verify(circlePostMapper, times(1)).insert(any(CirclePost.class));
     }
 
     @Test

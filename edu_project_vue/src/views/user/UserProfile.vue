@@ -344,13 +344,13 @@ async function toggleFollow() {
   followLoading.value = true
   try {
     if (isFollowing.value) {
-      await followApi.unfollow(route.params.id)
+      const res = await followApi.unfollow(route.params.id)
       isFollowing.value = false
-      stats.value.followerCount = Math.max(0, (stats.value.followerCount || 0) - 1)
+      stats.value.followerCount = res.data?.followerCount ?? Math.max(0, (stats.value.followerCount || 0) - 1)
     } else {
-      await followApi.toggleFollow(route.params.id)
+      const res = await followApi.toggleFollow(route.params.id)
       isFollowing.value = true
-      stats.value.followerCount = (stats.value.followerCount || 0) + 1
+      stats.value.followerCount = res.data?.followerCount ?? (stats.value.followerCount || 0) + 1
     }
     toast.success(isFollowing.value ? '关注成功' : '已取消关注')
   } catch (error) {
