@@ -1,0 +1,80 @@
+/* ==================== 基础重置 ==================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--background-gradient);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background var(--transition-slow), color var(--transition-slow);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse at 20% 50%, rgba(174, 194, 224, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(174, 194, 224, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 40% 80%, rgba(174, 194, 224, 0.12) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: var(--radius-full);
+  transition: background var(--transition);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* 选中文本 */
+::selection {
+  background: var(--primary);
+  color: var(--text-inverse);
+}
+
+/* ==================== 图片加载增强 ==================== */
+img {
+  transition: opacity 0.3s ease;
+}
+
+img[loading="lazy"] {
+  opacity: 0;
+}
+
+img[loading="lazy"].loaded,
+img[loading="lazy"]:not([src=""]) {
+  opacity: 1;
+}

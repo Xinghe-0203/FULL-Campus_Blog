@@ -1,0 +1,254 @@
+/* ==================== 雨天湿润效果 ==================== */
+/* 雨滴动画背景 */
+.rain-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.rain-drop {
+  position: absolute;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(174, 194, 224, 0.4));
+  animation: rain-fall linear infinite;
+  opacity: 0;
+  will-change: transform;
+}
+
+.rain-drop:nth-child(1) { left: 10%; animation-duration: 1.2s; animation-delay: 0s; height: 20px; }
+.rain-drop:nth-child(2) { left: 20%; animation-duration: 1.5s; animation-delay: 0.3s; height: 25px; }
+.rain-drop:nth-child(3) { left: 30%; animation-duration: 1.1s; animation-delay: 0.6s; height: 18px; }
+.rain-drop:nth-child(4) { left: 40%; animation-duration: 1.4s; animation-delay: 0.2s; height: 22px; }
+.rain-drop:nth-child(5) { left: 50%; animation-duration: 1.3s; animation-delay: 0.5s; height: 20px; }
+.rain-drop:nth-child(6) { left: 60%; animation-duration: 1.6s; animation-delay: 0.1s; height: 24px; }
+.rain-drop:nth-child(7) { left: 70%; animation-duration: 1.2s; animation-delay: 0.4s; height: 19px; }
+.rain-drop:nth-child(8) { left: 80%; animation-duration: 1.5s; animation-delay: 0.7s; height: 21px; }
+.rain-drop:nth-child(9) { left: 90%; animation-duration: 1.1s; animation-delay: 0.3s; height: 23px; }
+.rain-drop:nth-child(10) { left: 15%; animation-duration: 1.4s; animation-delay: 0.8s; height: 20px; }
+.rain-drop:nth-child(11) { left: 25%; animation-duration: 1.3s; animation-delay: 0.2s; height: 22px; }
+.rain-drop:nth-child(12) { left: 35%; animation-duration: 1.5s; animation-delay: 0.6s; height: 18px; }
+.rain-drop:nth-child(13) { left: 45%; animation-duration: 1.2s; animation-delay: 0.4s; height: 25px; }
+.rain-drop:nth-child(14) { left: 55%; animation-duration: 1.6s; animation-delay: 0.1s; height: 21px; }
+.rain-drop:nth-child(15) { left: 65%; animation-duration: 1.1s; animation-delay: 0.5s; height: 19px; }
+.rain-drop:nth-child(16) { left: 75%; animation-duration: 1.4s; animation-delay: 0.7s; height: 23px; }
+.rain-drop:nth-child(17) { left: 85%; animation-duration: 1.3s; animation-delay: 0.3s; height: 20px; }
+.rain-drop:nth-child(18) { left: 95%; animation-duration: 1.5s; animation-delay: 0.2s; height: 22px; }
+.rain-drop:nth-child(19) { left: 5%; animation-duration: 1.2s; animation-delay: 0.6s; height: 24px; }
+.rain-drop:nth-child(20) { left: 50%; animation-duration: 1.4s; animation-delay: 0.9s; height: 18px; }
+
+@keyframes rain-fall {
+  0% {
+    transform: translateY(-100vh);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+/* 水滴效果 */
+.water-drops {
+  position: relative;
+}
+
+.water-drops::before,
+.water-drops::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: var(--water-drop);
+  pointer-events: none;
+}
+
+.water-drops::before {
+  width: 8px;
+  height: 8px;
+  top: 12px;
+  right: 24px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1), inset 0 -1px 1px rgba(255,255,255,0.5);
+  animation: water-drop-slide 8s ease-in-out infinite;
+}
+
+.water-drops::after {
+  width: 5px;
+  height: 5px;
+  top: 32px;
+  right: 18px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1), inset 0 -1px 1px rgba(255,255,255,0.5);
+  animation: water-drop-slide 10s ease-in-out infinite 2s;
+}
+
+@keyframes water-drop-slide {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(20px) scale(0.9);
+    opacity: 0.4;
+  }
+}
+
+/* 水波纹效果 */
+.water-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.water-ripple::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--water-ripple);
+  opacity: 0;
+  animation: ripple-effect 4s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes ripple-effect {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* 湿润边框光晕 */
+.wet-border {
+  position: relative;
+}
+
+.wet-border::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, 
+    rgba(174, 194, 224, 0.6), 
+    rgba(255, 255, 255, 0.8), 
+    rgba(174, 194, 224, 0.4));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: wet-glow 3s ease-in-out infinite;
+}
+
+@keyframes wet-glow {
+  0%, 100% {
+    opacity: 0.6;
+    filter: blur(0.5px);
+  }
+  50% {
+    opacity: 1;
+    filter: blur(1px);
+  }
+}
+
+/* 光泽反射效果 */
+.glass-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: var(--glass-shine);
+  transform: skewX(-25deg);
+  animation: shine-sweep 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes shine-sweep {
+  0%, 100% {
+    left: -100%;
+  }
+  50% {
+    left: 150%;
+  }
+}
+
+/* 雨天玻璃卡片 */
+.glass-rain {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  box-shadow: var(--glass-shadow-wet);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-rain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-shine);
+  pointer-events: none;
+}
+
+.glass-rain:hover {
+  background: var(--glass-hover);
+  box-shadow: var(--glass-shadow-wet), var(--glass-wet-glow);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* 玻璃态 */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-wet);
+  box-shadow: var(--glass-shadow-wet);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-shine);
+  pointer-events: none;
+}
+
+.glass:hover {
+  background: var(--glass-hover);
+  box-shadow: var(--glass-shadow-wet), var(--glass-wet-glow);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* 玻璃态变体 */
+.glass-light {
+  background: var(--glass-bg-light);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-heavy {
+  background: var(--glass-bg-heavy);
+  backdrop-filter: var(--glass-blur-heavy);
+  -webkit-backdrop-filter: var(--glass-blur-heavy);
+  border: 1px solid var(--glass-border-wet);
+  box-shadow: var(--glass-shadow-wet);
+}
