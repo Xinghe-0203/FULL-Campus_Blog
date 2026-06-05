@@ -510,13 +510,18 @@ const checkFollowStatus = async () => {
 // 切换点赞
 const toggleLike = async () => {
   if (!userStore.isLoggedIn) {
-    router.push('/login')
+    toast.warning('请先登录')
     return
   }
   
   try {
     const res = await likeApi.toggleLike(route.params.id)
-    isLiked.value = !isLiked.value
+    // 用后端返回的 action 字段校正状态，避免并发导致的不一致
+    if (res.data?.action === 'like') {
+      isLiked.value = true
+    } else if (res.data?.action === 'unlike') {
+      isLiked.value = false
+    }
     if (res.data?.likeCount !== undefined) {
       post.value.likeCount = res.data.likeCount
     }

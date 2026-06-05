@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { postApi } from '@/api/post'
 import { trendingApi } from '@/api/trending'
 import { statsApi } from '@/api/admin'
@@ -17,6 +17,7 @@ import PostCardList from '@/components/home/PostCardList.vue'
 import HomeSidebar from '@/components/home/HomeSidebar.vue'
 
 const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
 const logger = useLogger('Home')
 
@@ -124,7 +125,6 @@ const retryFetch = () => {
 
 const changePage = (page) => {
   currentPage.value = page
-  fetchPosts()
   window.scrollTo({ top: 0, behavior: 'smooth' })
   router.push({ query: { ...route.query, page: page > 1 ? page : undefined } })
 }
@@ -172,10 +172,9 @@ const fetchStats = async () => {
 }
 
 watch(() => route.query.page, (newPage) => {
-  if (newPage) {
-    currentPage.value = parseInt(newPage) || 1
-    fetchPosts()
-  }
+  const page = newPage ? parseInt(newPage) : 1
+  currentPage.value = page
+  fetchPosts()
 })
 
 onMounted(() => {

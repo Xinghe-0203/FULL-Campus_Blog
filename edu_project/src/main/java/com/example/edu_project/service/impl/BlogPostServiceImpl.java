@@ -581,7 +581,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         return topics.stream().collect(Collectors.toMap(Topic::getId, Topic::getName, (a, b) -> a));
     }
 
-    @Cacheable(value = CaffeineCacheConfig.CATEGORY_CACHE, key = "'postTags:' + #postIds.![#this].sort().join(',')")
+    @Cacheable(value = CaffeineCacheConfig.CATEGORY_CACHE, key = "'postTags:' + #postIds")
     public Map<Long, List<PostDetailResponse.TagVO>> getTagsMapByPostIds(List<Long> postIds) {
         if (postIds == null || postIds.isEmpty()) {
             return Collections.emptyMap();

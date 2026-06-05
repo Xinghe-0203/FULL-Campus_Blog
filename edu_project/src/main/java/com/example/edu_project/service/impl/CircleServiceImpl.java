@@ -727,22 +727,28 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             CircleLike newLike = new CircleLike();
             newLike.setUserId(userId);
             newLike.setPostId(postId);
+            newLike.setIsDeleted(0);
             try {
                 circleLikeMapper.insert(newLike);
                 baseMapper.incrementLikeCount(postId);
                 result.setAction("like");
-                // 发送点赞通知给帖子作者
-                Long postAuthorId = post.getUserId();
+                // 事务提交后发送点赞通知
+                final Long postAuthorId = post.getUserId();
                 if (postAuthorId != null && !postAuthorId.equals(userId)) {
-                    notificationService.sendNotification(
-                            "LIKE",
-                            "有人赞了你的动态",
-                            "用户赞了你的动态",
-                            userId,
-                            postAuthorId,
-                            "POST",
-                            postId
-                    );
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            notificationService.sendNotification(
+                                    "like",
+                                    "有人赞了你的动态",
+                                    "用户赞了你的动态",
+                                    userId,
+                                    postAuthorId,
+                                    "post",
+                                    postId
+                            );
+                        }
+                    });
                 }
             } catch (DuplicateKeyException e) {
                 // 并发情况下另一个请求已经插入了，查询当前状态并执行取消
@@ -757,6 +763,23 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                         circleLikeMapper.insert(newLike);
                         baseMapper.incrementLikeCount(postId);
                         result.setAction("like");
+                        final Long postAuthorId = post.getUserId();
+                        if (postAuthorId != null && !postAuthorId.equals(userId)) {
+                            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                                @Override
+                                public void afterCommit() {
+                                    notificationService.sendNotification(
+                                            "like",
+                                            "有人赞了你的动态",
+                                            "用户赞了你的动态",
+                                            userId,
+                                            postAuthorId,
+                                            "post",
+                                            postId
+                                    );
+                                }
+                            });
+                        }
                     } catch (DuplicateKeyException e2) {
                         // 再次冲突，查询最终状态
                         CircleLike finalLike = circleLikeMapper.selectOne(wrapper);

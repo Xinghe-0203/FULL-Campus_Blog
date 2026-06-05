@@ -41,5 +41,5 @@ public class CircleLike implements Serializable {
      * 逻辑删除：0-正常，1-删除
      */
     @TableLogic
-    private Integer isDeleted;
+    private Integer isDeleted = 0;
 }

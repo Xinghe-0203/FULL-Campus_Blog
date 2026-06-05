@@ -32,7 +32,11 @@ target/
 
 # Logs
 *.log
+logs/
 
 # Node (if any)
 node_modules/
 .gstack/
+
+# AI/Dev tool files
+.omc/

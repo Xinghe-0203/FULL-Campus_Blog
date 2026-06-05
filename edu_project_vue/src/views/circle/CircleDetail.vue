@@ -360,7 +360,7 @@ const fetchComments = async () => {
 
 const toggleLike = async () => {
   if (!userStore.isLoggedIn) {
-    router.push('/login')
+    toast.warning('请先登录')
     return
   }
   const prev = isLiked.value
@@ -369,7 +369,16 @@ const toggleLike = async () => {
   likeAnim.value = true
   setTimeout(() => likeAnim.value = false, 400)
   try {
-    await circleApi.toggleLike(route.params.id)
+    const res = await circleApi.toggleLike(route.params.id)
+    // 用后端返回值校正状态和计数
+    if (res.data?.action === 'like') {
+      isLiked.value = true
+    } else if (res.data?.action === 'unlike') {
+      isLiked.value = false
+    }
+    if (res.data?.likeCount !== undefined) {
+      post.value.likeCount = res.data.likeCount
+    }
   } catch (err) {
     isLiked.value = prev
     post.value.likeCount += isLiked.value ? 1 : -1

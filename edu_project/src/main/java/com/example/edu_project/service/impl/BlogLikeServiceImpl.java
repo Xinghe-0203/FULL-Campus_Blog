@@ -27,6 +27,7 @@ import com.example.edu_project.utils.FineGrainedLockManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -34,8 +35,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 /**
@@ -85,62 +84,56 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
         // 使用细粒度锁：同一用户对同一文章的点赞操作串行执行
         String lockKey = userId + "-" + postId;
         synchronized (lockManager.getLock(lockKey)) {
-            // 检查是否存在非删除的点赞记录（绕过 @TableLogic，兼容 is_deleted IS NULL 的历史数据）
+            // 查询活跃点赞记录（兼容 is_deleted = 0 和 NULL）
             BlogLike activeLike = blogLikeMapper.selectActiveByUserAndPost(userId, postId);
 
             if (activeLike != null) {
-                // 取消点赞：逻辑删除记录（解决软删除+唯一约束冲突）
+                // 取消点赞：逻辑删除记录
                 blogLikeMapper.logicalDeleteById(activeLike.getId());
                 blogPostService.decrementLikeCount(postId);
                 trendingService.updatePostTrending(postId);
                 result.setAction("unlike");
             } else {
-                // 绕过 @TableLogic 查找任意状态的记录（兼容 is_deleted = 1 和 NULL）
-                BlogLike existingLike = blogLikeMapper.selectRawByUserAndPost(userId, postId);
-
-                if (existingLike != null) {
-                    if (existingLike.getIsDeleted() != null && existingLike.getIsDeleted() == 1) {
-                        // 已软删除 → 恢复点赞
-                        existingLike.setIsDeleted(0);
-                        this.updateById(existingLike);
-                        blogPostService.incrementLikeCount(postId);
-                        trendingService.updatePostTrending(postId);
-                        result.setAction("like");
-                        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                            @Override
-                            public void afterCommit() {
-                                eventPublisher.publishEvent(new LikeCreatedEvent(userId, post.getUserId(), postId, post.getTitle()));
-                            }
-                        });
-                    } else if (existingLike.getIsDeleted() == null) {
-                        // 历史遗留 NULL → 修复为 0，不修改点赞数（已计入）
-                        existingLike.setIsDeleted(0);
-                        this.updateById(existingLike);
-                        trendingService.updatePostTrending(postId);
-                        result.setAction("like");
-                    } else {
-                        // 正常活跃状态 → 取消点赞
-                        blogLikeMapper.logicalDeleteById(existingLike.getId());
-                        blogPostService.decrementLikeCount(postId);
-                        trendingService.updatePostTrending(postId);
-                        result.setAction("unlike");
-                    }
-                } else {
-                    // 首次点赞
-                    BlogLike newLike = new BlogLike();
-                    newLike.setUserId(userId);
-                    newLike.setPostId(postId);
-                    newLike.setIsDeleted(0);
+                // 点赞：尝试插入新记录
+                BlogLike newLike = new BlogLike();
+                newLike.setUserId(userId);
+                newLike.setPostId(postId);
+                newLike.setIsDeleted(0);
+                try {
                     this.save(newLike);
                     blogPostService.incrementLikeCount(postId);
                     trendingService.updatePostTrending(postId);
                     result.setAction("like");
+                    // 事务提交后发送通知
+                    final String postTitle = post.getTitle();
+                    final Long postAuthorId = post.getUserId();
                     TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                         @Override
                         public void afterCommit() {
-                            eventPublisher.publishEvent(new LikeCreatedEvent(userId, post.getUserId(), postId, post.getTitle()));
+                            eventPublisher.publishEvent(new LikeCreatedEvent(userId, postAuthorId, postId, postTitle));
                         }
                     });
+                } catch (DuplicateKeyException e) {
+                    // 多实例并发场景：另一个实例已插入，执行取消点赞
+                    BlogLike concurrentLike = blogLikeMapper.selectActiveByUserAndPost(userId, postId);
+                    if (concurrentLike != null) {
+                        blogLikeMapper.logicalDeleteById(concurrentLike.getId());
+                        blogPostService.decrementLikeCount(postId);
+                        trendingService.updatePostTrending(postId);
+                        result.setAction("unlike");
+                    } else {
+                        // 极端情况：并发请求也删除了，重新尝试点赞
+                        try {
+                            this.save(newLike);
+                            blogPostService.incrementLikeCount(postId);
+                            trendingService.updatePostTrending(postId);
+                            result.setAction("like");
+                        } catch (DuplicateKeyException e2) {
+                            // 再次冲突，查询最终状态
+                            BlogLike finalLike = blogLikeMapper.selectActiveByUserAndPost(userId, postId);
+                            result.setAction(finalLike != null ? "unlike" : "like");
+                        }
+                    }
                 }
             }
 
