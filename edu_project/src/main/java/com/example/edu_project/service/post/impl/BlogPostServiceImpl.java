@@ -260,6 +260,15 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
 
         this.removeById(postId);
 
+        // 清理点赞和收藏记录，并重置计数
+        blogLikeMapper.update(null, new LambdaUpdateWrapper<BlogLike>()
+                .eq(BlogLike::getPostId, postId)
+                .set(BlogLike::getIsDeleted, 1));
+        blogCollectMapper.update(null, new LambdaUpdateWrapper<BlogCollect>()
+                .eq(BlogCollect::getPostId, postId)
+                .set(BlogCollect::getIsDeleted, 1));
+        this.update().set("like_count", 0).set("collect_count", 0).eq("id", postId).update();
+
         LambdaQueryWrapper<BlogPostTag> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogPostTag::getPostId, postId);
         blogPostTagMapper.delete(wrapper);
@@ -406,6 +415,9 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         blogCollectMapper.update(null, new LambdaUpdateWrapper<BlogCollect>()
                 .eq(BlogCollect::getPostId, postId)
                 .set(BlogCollect::getIsDeleted, 1));
+
+        // 重置文章的点赞和收藏计数
+        this.update().set("like_count", 0).set("collect_count", 0).eq("id", postId).update();
 
         // 更新关联话题的计数
         if (post.getTopicIds() != null && !post.getTopicIds().isEmpty()) {

@@ -4,6 +4,40 @@
 
 ---
 
+## v2.0.19 (2026-06-06)
+
+### 邮件服务修复
+
+- **MAIL_FROM 配置未生效**: `EmailServiceImpl` 的 `fromEmail` 只读取 `spring.mail.username`，导致发件人始终等于 SMTP 账号。改为优先读取 `mail.from`（即 `.env` 中的 `MAIL_FROM`）
+- **邮件发送失败后冷却时间未重置**: `sendVerificationCode()`（密码找回）发送失败时只清理了 `verificationStore`，未清理 `sendTimeStore`，导致用户失败后仍需等待冷却。已修复为与注册验证码逻辑一致
+- **邮件模板硬编码有效期**: `buildEmailTemplate()` 中写死"5 分钟"，未使用配置的 `expireMinutes`。改为动态变量
+- **注释与实际不符**: `generateSecureCode()` 注释写"8 位验证码"，实际为 6 位。已修正注释
+- **application.yml 配置优化**: 移除无效的 `spring.mail.properties.mail.from`，新增独立的 `mail.from` 配置项；增加 SSL 支持（`ssl.enable`）适配 QQ 邮箱 465 端口
+- **CORS 端口扩展**: `.env` 中 `CORS_ALLOWED_ORIGINS` 扩展为包含所有常见本地开发端口（3000/3001/5173/4173/8080/8081/4200/4201）
+
+### 点赞/收藏计数修复
+
+- **前端列表页乐观更新无回滚**: `PostCardList.vue` 点击点赞/收藏后先改前端计数再发请求，失败时仅 toast 错误未回滚计数。已添加请求失败后的计数和状态回滚逻辑
+- **后端状态缓存未清除**: `toggleLike`/`toggleCollect` 未清除 `STATUS_CACHE`，导致点赞后 2 分钟内状态检查返回旧值。已添加 `@CacheEvict` 注解
+- **管理员删除文章未清计数**: `adminDeletePost` 软删除点赞/收藏记录但未同步减少 `blog_post` 计数。已添加重置 `like_count=0` 和 `collect_count=0`
+- **普通删除文章未清计数**: `deletePost` 同样未清理关联计数。已修复
+- **校友圈点赞缺少上限保护**: `CirclePostMapper.xml` 的 `incrementLikeCount` 无上限保护（文章点赞有）。已添加 `CASE WHEN like_count < 100000000`
+
+### 影响文件
+
+| 文件 | 改动类型 |
+|------|----------|
+| `edu_project/src/main/java/.../service/auth/impl/EmailServiceImpl.java` | 邮件修复 |
+| `edu_project/src/main/resources/application.yml` | SSL 配置 |
+| `edu_project/.env.example` | MAIL_FROM 注释优化 |
+| `edu_project_vue/src/components/home/PostCardList.vue` | 回滚逻辑 |
+| `edu_project/src/main/java/.../service/social/impl/BlogLikeServiceImpl.java` | @CacheEvict |
+| `edu_project/src/main/java/.../service/social/impl/BlogCollectServiceImpl.java` | @CacheEvict |
+| `edu_project/src/main/java/.../service/post/impl/BlogPostServiceImpl.java` | 删除清计数 |
+| `edu_project/src/main/resources/mapper/CirclePostMapper.xml` | 上限保护 |
+
+---
+
 ## v2.0.18 (2026-06-05)
 
 ### 后端修复

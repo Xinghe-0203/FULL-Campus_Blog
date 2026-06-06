@@ -45,11 +45,12 @@ export function useConfirm() {
         r?.(false)
       }
       return () =>
-        h(
+          h(
           Modal,
           {
             show: isOpen.value,
             title: dialogTitle.value,
+            width: '440px',
             onClose: handleCancel
           },
           {

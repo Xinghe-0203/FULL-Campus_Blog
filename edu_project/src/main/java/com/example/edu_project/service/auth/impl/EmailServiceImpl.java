@@ -44,7 +44,7 @@ public class EmailServiceImpl implements EmailService {
     @Autowired
     private SysUserMapper sysUserMapper;
 
-    @Value("${spring.mail.username:noreply@campusblog.com}")
+    @Value("${mail.from:${spring.mail.username:noreply@campusblog.com}}")
     private String fromEmail;
 
     @Value("${mail.verification.expire-minutes:5}")
@@ -175,6 +175,7 @@ public class EmailServiceImpl implements EmailService {
         } catch (MailException e) {
             log.error("发送验证码失败: {}", e.getMessage());
             verificationStore.remove(key);
+            sendTimeStore.remove(key);
             throw new BusinessException(500, "邮件发送失败，请稍后重试");
         }
     }
@@ -277,7 +278,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     /**
-     * 生成安全的8位混合验证码（排除易混淆字符）
+     * 生成安全的6位混合验证码（排除易混淆字符）
      */
     private String generateSecureCode() {
         StringBuilder code = new StringBuilder(CODE_LENGTH);
@@ -385,7 +386,7 @@ public class EmailServiceImpl implements EmailService {
                 "            <div class=\"code-box\">\n" +
                 "                <span class=\"code\">" + code + "</span>\n" +
                 "            </div>\n" +
-                "            <p class=\"tip\">验证码在 <strong>5 分钟</strong> 内有效，请勿泄露给他人。</p>\n" +
+                "            <p class=\"tip\">验证码在 <strong>" + expireMinutes + " 分钟</strong> 内有效，请勿泄露给他人。</p>\n" +
                 "            <p class=\"tip\">如非本人操作，请忽略此邮件。</p>\n" +
                 "        </div>\n" +
                 "        <div class=\"footer\">\n" +

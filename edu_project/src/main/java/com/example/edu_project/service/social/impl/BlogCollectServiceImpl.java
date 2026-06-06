@@ -18,6 +18,7 @@ import com.example.edu_project.vo.post.CollectResultVO;
 import com.example.edu_project.vo.post.CollectStatusVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -61,6 +62,7 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
     private final FineGrainedLockManager lockManager = FineGrainedLockManager.getInstance();
 
     @Override
+    @CacheEvict(value = CaffeineCacheConfig.STATUS_CACHE, key = "'collect:' + #userId + ':' + #postId")
     @Transactional(rollbackFor = Exception.class)
     public CollectResultVO toggleCollect(Long postId, Long userId) {
         // 检查文章是否存在

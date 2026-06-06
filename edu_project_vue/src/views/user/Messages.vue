@@ -282,7 +282,7 @@ const sendMessage = async () => {
 
     messages.value.push({
       id: Date.now(),
-      sender: { id: userStore.userId, avatar: userStore.avatar, nickname: userStore.nickname || userStore.username },
+      sender: { id: userStore.userId, avatar: userStore.user?.avatar || userStore.avatar, nickname: userStore.nickname || userStore.username },
       content,
       createTime: new Date().toISOString().slice(0, 19),
       isRead: 1
@@ -309,8 +309,13 @@ const startPolling = () => {
   pollingInterval = setInterval(async () => {
     await fetchConversations(true)
     if (activeConversation.value && activeConversation.value.user?.id) {
+      const partnerId = activeConversation.value.user.id
+      const updatedConv = conversations.value.find(c => c.user?.id === partnerId)
+      if (updatedConv) {
+        activeConversation.value = updatedConv
+      }
       try {
-        const response = await messageApi.getConversationMessages(activeConversation.value.user.id, { pageNum: 1, pageSize: 20 })
+        const response = await messageApi.getConversationMessages(partnerId, { pageNum: 1, pageSize: 20 })
         const records = response.data?.records || []
         const wasAtBottom = messageList.value && (messageList.value.scrollTop + messageList.value.clientHeight >= messageList.value.scrollHeight - 50)
         messages.value = records

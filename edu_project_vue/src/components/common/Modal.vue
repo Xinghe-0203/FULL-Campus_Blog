@@ -82,6 +82,7 @@ onBeforeUnmount(() => {
 
 .modal-content {
   width: 90%;
+  max-width: 580px;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);

@@ -5,7 +5,9 @@
     <main id="main-content" class="main-content">
       <router-view v-slot="{ Component }">
         <Transition name="page" mode="out-in">
-          <component :is="Component" :key="$route.path" />
+          <div :key="$route.path" style="min-height: calc(100vh - 60px);">
+            <component :is="Component" />
+          </div>
         </Transition>
       </router-view>
     </main>
@@ -44,8 +46,8 @@ onUnmounted(() => {
 
 <style>
 .main-content {
-  min-height: calc(100vh - 60px);
-  padding-top: 60px;
+  min-height: calc(100vh - var(--navbar-height));
+  padding-top: var(--navbar-height);
 }
 
 .skip-link {

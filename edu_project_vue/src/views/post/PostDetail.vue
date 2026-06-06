@@ -5,6 +5,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       返回
     </button>
+    <div class="post-main">
     <div class="post-container">
       <!-- Loading State -->
       <div v-if="isLoading" class="loading-state glass">
@@ -293,6 +294,7 @@
         </div>
       </div>
     </aside>
+    </div>
     <ConfirmDialog />
   </div>
 </template>
@@ -732,7 +734,6 @@ watch(() => route.params.id, () => {
   transition: all var(--transition);
   width: fit-content;
   margin-bottom: var(--spacing-lg);
-  grid-column: 1 / -1;
 }
 
 .back-btn:hover {
@@ -747,9 +748,17 @@ watch(() => route.params.id, () => {
   max-width: var(--container-xl);
   margin: 0 auto;
   padding: var(--spacing-lg);
-  display: grid;
-  grid-template-columns: 1fr 280px;
+}
+
+.post-main {
+  display: flex;
   gap: var(--spacing-xl);
+  align-items: flex-start;
+}
+
+.post-container {
+  flex: 1;
+  min-width: 0;
 }
 
 /* 文章卡片 */
@@ -1227,6 +1236,8 @@ watch(() => route.params.id, () => {
 
 /* 侧边栏 */
 .post-sidebar {
+  width: 280px;
+  flex-shrink: 0;
   position: sticky;
   top: 80px;
   height: fit-content;
@@ -1364,7 +1375,6 @@ watch(() => route.params.id, () => {
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border-wet);
-  grid-column: 1 / -1;
 }
 
 .loading-state {
@@ -1421,11 +1431,12 @@ watch(() => route.params.id, () => {
 
 /* 响应式 */
 @media (max-width: 992px) {
-  .post-detail-page {
-    grid-template-columns: 1fr;
+  .post-main {
+    flex-direction: column;
   }
   
   .post-sidebar {
+    width: 100%;
     position: static;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -1435,7 +1446,9 @@ watch(() => route.params.id, () => {
 
 @media (max-width: 768px) {
   .post-sidebar {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
   }
   
   .post-title {

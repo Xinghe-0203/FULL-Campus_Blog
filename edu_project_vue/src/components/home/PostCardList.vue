@@ -34,18 +34,26 @@ const toggleLike = async (post: Post): Promise<void> => {
     router.push('/login')
     return
   }
+  const wasLiked = props.likedPosts?.has(post.id) ?? false
+  const prevCount = post.likeCount || 0
+  // 乐观更新：先改前端
+  const newLiked = new Set(props.likedPosts)
+  if (wasLiked) {
+    newLiked.delete(post.id)
+    post.likeCount = Math.max(0, prevCount - 1)
+  } else {
+    newLiked.add(post.id)
+    post.likeCount = prevCount + 1
+  }
+  emit('update:liked-posts', newLiked)
+
   try {
     await likeApi.toggleLike(post.id)
-    const newLiked = new Set(props.likedPosts)
-    if (newLiked.has(post.id)) {
-      newLiked.delete(post.id)
-      post.likeCount = Math.max(0, (post.likeCount || 1) - 1)
-    } else {
-      newLiked.add(post.id)
-      post.likeCount = (post.likeCount || 0) + 1
-    }
-    emit('update:liked-posts', newLiked)
   } catch (err) {
+    // 请求失败，回滚到之前的状态
+    post.likeCount = prevCount
+    const rollbackLiked = new Set(props.likedPosts)
+    emit('update:liked-posts', rollbackLiked)
     const error = err as Error & { response?: { status?: number; data?: { message?: string } } }
     logger.error('Failed to toggle like', { error: error.message })
     if (error.response?.status === 401) {
@@ -61,18 +69,26 @@ const toggleCollect = async (post: Post): Promise<void> => {
     router.push('/login')
     return
   }
+  const wasCollected = props.collectedPosts?.has(post.id) ?? false
+  const prevCount = post.collectCount || 0
+  // 乐观更新：先改前端
+  const newCollected = new Set(props.collectedPosts)
+  if (wasCollected) {
+    newCollected.delete(post.id)
+    post.collectCount = Math.max(0, prevCount - 1)
+  } else {
+    newCollected.add(post.id)
+    post.collectCount = prevCount + 1
+  }
+  emit('update:collected-posts', newCollected)
+
   try {
     await collectApi.toggleCollect(post.id)
-    const newCollected = new Set(props.collectedPosts)
-    if (newCollected.has(post.id)) {
-      newCollected.delete(post.id)
-      post.collectCount = Math.max(0, (post.collectCount || 1) - 1)
-    } else {
-      newCollected.add(post.id)
-      post.collectCount = (post.collectCount || 0) + 1
-    }
-    emit('update:collected-posts', newCollected)
   } catch (err) {
+    // 请求失败，回滚到之前的状态
+    post.collectCount = prevCount
+    const rollbackCollected = new Set(props.collectedPosts)
+    emit('update:collected-posts', rollbackCollected)
     const error = err as Error & { response?: { status?: number; data?: { message?: string } } }
     logger.error('Failed to toggle collect', { error: error.message })
     if (error.response?.status === 401) {

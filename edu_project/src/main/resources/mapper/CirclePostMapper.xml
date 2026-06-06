@@ -11,7 +11,7 @@
     </update>
 
     <update id="incrementLikeCount">
-        UPDATE blog_circle_post SET like_count = like_count + 1 WHERE id = #{id} AND is_deleted = 0
+        UPDATE blog_circle_post SET like_count = CASE WHEN like_count &lt; 100000000 THEN like_count + 1 ELSE like_count END WHERE id = #{id} AND is_deleted = 0
     </update>
 
     <update id="decrementLikeCount">

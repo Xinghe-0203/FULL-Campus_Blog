@@ -540,8 +540,8 @@ async function handleCoverUpload(e: Event) {
   const file = target.files?.[0]
   if (!file) return
   try {
-    const res = await mediaApi.uploadFile(file)
-    form.coverImage = res.data?.url || res.data?.fileName || ''
+    const res = await mediaApi.uploadFile(file, 'cover')
+    form.coverImage = (res.data as any)?.fileUrl || (res.data as any)?.url || ''
     toast.success('封面图上传成功')
   } catch (err: any) {
     logger.error('cover upload error', { error: err.message })
