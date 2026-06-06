@@ -293,7 +293,7 @@ const handleSubmit = async () => {
       await userApi.resetPassword({
         email: form.email.trim(),
         code: codeTrimmed,
-        password: newPasswordTrimmed
+        newPassword: newPasswordTrimmed
       })
       logger.info('Password reset successful')
       toast.success('密码重置成功')

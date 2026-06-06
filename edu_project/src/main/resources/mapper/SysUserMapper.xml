@@ -18,6 +18,14 @@
             WHERE id = #{userId} AND (lock_until IS NULL OR lock_until &lt;= datetime('now', 'localtime'))
     </update>
 
+    <!-- 默认（H2兼容）: 原子性增加登录失败计数并检查是否需要锁定 -->
+    <update id="incrementLoginFailCount">
+        UPDATE sys_user SET login_fail_count = LEAST(login_fail_count + 1, 2147483647),
+            lock_until = CASE WHEN login_fail_count + 1 &gt;= #{maxFailCount}
+            THEN DATEADD('MINUTE', #{lockMinutes}, CURRENT_TIMESTAMP) ELSE lock_until END
+            WHERE id = #{userId} AND (lock_until IS NULL OR lock_until &lt;= CURRENT_TIMESTAMP)
+    </update>
+
     <!-- 原子性增加粉丝数 -->
     <update id="incrementFollowerCount">
         UPDATE sys_user SET follower_count = follower_count + 1 WHERE id = #{userId}
@@ -25,7 +33,7 @@
 
     <!-- 原子性减少粉丝数 -->
     <update id="decrementFollowerCount">
-        UPDATE sys_user SET follower_count = MAX(follower_count - 1, 0) WHERE id = #{userId}
+        UPDATE sys_user SET follower_count = GREATEST(follower_count - 1, 0) WHERE id = #{userId}
     </update>
 
     <!-- 原子性增加关注数 -->
@@ -35,7 +43,7 @@
 
     <!-- 原子性减少关注数 -->
     <update id="decrementFollowingCount">
-        UPDATE sys_user SET following_count = MAX(following_count - 1, 0) WHERE id = #{userId}
+        UPDATE sys_user SET following_count = GREATEST(following_count - 1, 0) WHERE id = #{userId}
     </update>
 
     <!-- 批量统计每日新增用户数 -->

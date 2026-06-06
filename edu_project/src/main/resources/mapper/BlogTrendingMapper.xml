@@ -49,6 +49,14 @@
                 #{trending.commentCount}, #{trending.statDate}, datetime('now','localtime'), datetime('now','localtime'))
     </insert>
 
+    <!-- 默认（H2兼容）: 插入或更新趋势记录 -->
+    <insert id="upsert" parameterType="com.example.edu_project.entity.BlogTrending">
+        MERGE INTO blog_trending (post_id, score, view_count, like_count, comment_count, date, create_time, update_time)
+        KEY(post_id, date)
+        VALUES (#{trending.postId}, #{trending.score}, #{trending.viewCount}, #{trending.likeCount},
+                #{trending.commentCount}, #{trending.statDate}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    </insert>
+
     <!-- 获取所有文章的最新趋势数据（优化：使用 JOIN 替代相关子查询） -->
     <select id="selectAllLatest" resultType="com.example.edu_project.entity.BlogTrending">
         SELECT bt.* FROM blog_trending bt

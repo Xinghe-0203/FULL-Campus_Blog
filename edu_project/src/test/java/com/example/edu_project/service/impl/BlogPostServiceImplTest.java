@@ -134,14 +134,14 @@ class BlogPostServiceImplTest {
     void createPost_ContentTooLong_ThrowsException() {
         // Given
         validPostRequest.setTitle("Valid Title");
-        String longContent = "a".repeat(50001);
+        String longContent = "a".repeat(300001);
         validPostRequest.setContent(longContent);
 
         // When & Then
         BusinessException exception = assertThrows(BusinessException.class, () ->
                 blogPostService.createPost(validPostRequest, testUserId, false));
         assertEquals(400, exception.getCode());
-        assertTrue(exception.getMessage().contains("内容不能超过50000字符"));
+        assertTrue(exception.getMessage().contains("内容不能超过30万字符"));
     }
 
     @Test

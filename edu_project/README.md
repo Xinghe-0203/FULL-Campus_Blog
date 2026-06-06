@@ -2,17 +2,17 @@
 
 Spring Boot 3 backend service providing RESTful APIs for the Campus Blog platform.
 
-**Version**: v2.0.18 | **Java**: 21 | **Spring Boot**: 3.3.13
+**Version**: v2.0.20 | **Java**: 21 | **Spring Boot**: 3.3.13
 
 ## Tech Stack
 
 | Component | Version | Purpose |
-|-----------|---------|---------|
+|----------|---------|---------|
 | Java | 21 | LTS |
 | Spring Boot | 3.3.13 | Web framework |
 | MyBatis Plus | 3.5.8 | ORM |
 | Spring Security | 6.x | Authentication |
-| JJWT | 0.12.6 | JWT |
+| JWT | 0.12.6 | JWT |
 | Caffeine | 3.2.0 | Local cache |
 | Knife4j | 4.5.0 | API documentation |
 | Jsoup | 1.18.3 | XSS protection |

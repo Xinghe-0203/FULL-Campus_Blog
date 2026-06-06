@@ -78,7 +78,7 @@ export interface ChangePasswordRequest {
 export interface ResetPasswordRequest {
   email: string
   code: string
-  password: string
+  newPassword: string
 }
 
 /** 更新个人资料请求 */

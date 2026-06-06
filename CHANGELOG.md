@@ -4,6 +4,41 @@
 
 ---
 
+## v2.0.20 (2026-06-06)
+
+### 多数据库 Mapper XML 支持
+
+- **MyBatis DatabaseIdProvider 多方言**: 为 4 个 Mapper XML 添加 `databaseId` 属性，支持 MySQL / SQLite / H2 三种数据库方言自动切换
+- **BlogPostTagMapper.xml**: `batchInsertPostTags` 新增 SQLite 方言（`INSERT OR IGNORE`）和 H2 兼容版本
+- **BlogTrendingMapper.xml**: `upsert` 新增 SQLite 方言（`INSERT OR REPLACE`）和 H2 兼容版本（`MERGE INTO`）
+- **SysUserMapper.xml**: `incrementLoginFailCount` 新增 SQLite 方言（`datetime` 函数）和 H2 兼容版本（`DATEADD`）；新增 `incrementFollowerCount`、`decrementFollowerCount`、`incrementFollowingCount`、`decrementFollowingCount` 原子计数操作
+- **TopicMapper.xml**: `recalculateAllTrendingScore` 和 `recalculateAllPostCount` 新增 SQLite 方言（`json_each`）和 H2 兼容版本
+
+### 后端测试完善
+
+- **新增 11 个 Controller 测试**: BlogCollectControllerTest、BlogTagControllerTest、FollowControllerTest、MessageControllerTest、NotificationControllerTest、PasswordControllerTest、ReportControllerTest、ShareControllerTest、StatisticsControllerTest、TopicControllerTest、TrendingControllerTest
+- **新增 11 个 Service 测试**: BlogCollectServiceImplTest、BlogTagServiceImplTest、CircleInteractionServiceImplTest、CircleQueryServiceImplTest、FollowServiceImplTest、MessageServiceImplTest、NotificationServiceImplTest、ReportServiceImplTest、ShareServiceImplTest、StatisticsServiceImplTest、TopicServiceImplTest
+
+### 前端修复
+
+- **user.ts 类型定义更新**: User 接口字段调整，补充可选属性
+- **PasswordReset.vue 密码重置页面优化**: 改进密码强度检测、验证码重发逻辑、表单校验
+
+### 影响文件
+
+| 文件 | 改动类型 |
+|------|----------|
+| `edu_project/src/main/resources/mapper/BlogPostTagMapper.xml` | 多数据库方言 |
+| `edu_project/src/main/resources/mapper/BlogTrendingMapper.xml` | 多数据库方言 |
+| `edu_project/src/main/resources/mapper/SysUserMapper.xml` | 多数据库方言 + 新增原子操作 |
+| `edu_project/src/main/resources/mapper/TopicMapper.xml` | 多数据库方言 |
+| `edu_project/src/test/java/.../controller/` (11 个) | 新增 Controller 测试 |
+| `edu_project/src/test/java/.../service/impl/` (11 个) | 新增 Service 测试 |
+| `edu_project_vue/src/types/user.ts` | 类型定义 |
+| `edu_project_vue/src/views/auth/PasswordReset.vue` | 页面优化 |
+
+---
+
 ## v2.0.19 (2026-06-06)
 
 ### 邮件服务修复

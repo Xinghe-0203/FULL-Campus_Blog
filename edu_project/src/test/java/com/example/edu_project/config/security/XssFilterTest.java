@@ -121,7 +121,7 @@ class XssFilterTest {
             String[] contentValues = wrapper.getParameterValues("content");
             String[] xssValues = wrapper.getParameterValues("xss");
             return contentValues != null && contentValues[0].equals("Normal text")
-                    && xssValues != null && xssValues[0].contains("<script>");
+                    && xssValues != null && !xssValues[0].contains("<script>");
         }), eq(response));
     }
 

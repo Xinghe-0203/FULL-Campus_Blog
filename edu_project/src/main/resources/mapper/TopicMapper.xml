@@ -9,7 +9,7 @@
 
     <!-- 原子性减少动态数 -->
     <update id="decrementPostCount">
-        UPDATE blog_topic SET post_count = MAX(post_count - 1, 0), trending_score = MAX(trending_score - 1, 0) WHERE id = #{topicId}
+        UPDATE blog_topic SET post_count = GREATEST(post_count - 1, 0), trending_score = GREATEST(trending_score - 1, 0) WHERE id = #{topicId}
     </update>
 
     <!-- 增加热度分数 -->

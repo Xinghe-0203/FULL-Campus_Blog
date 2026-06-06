@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Version**: v2.0.18 | **GitHub**: https://github.com/Xinghe-0203/FULL-Campus_Blog
+**Version**: v2.0.20 | **GitHub**: https://github.com/Xinghe-0203/FULL-Campus_Blog
 
 ---
 
