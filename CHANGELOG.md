@@ -4,6 +4,38 @@
 
 ---
 
+## v2.0.21 (2026-06-07)
+
+### 前端交互优化
+
+- **PostDetail.vue 乐观更新与防抖**: 点赞、收藏、关注操作添加防抖状态（`isTogglingLike`/`isTogglingCollect`/`isTogglingFollow`），防止重复请求；采用乐观更新策略，先更新 UI 再发请求，失败时自动回滚；使用后端返回的实际 `action` 状态和计数替代前端本地翻转
+- **PostCardList.vue 乐观更新与防抖**: 点赞/收藏操作添加防抖 Set（`togglingLikes`/`togglingCollects`），防止同一文章重复操作；保存操作前状态快照，失败时完整回滚 Set 和计数；使用后端返回的 `likeCount`/`collectCount` 替代前端 ±1
+- **Circle.vue 校友圈点赞优化**: 添加操作前状态备份，失败时完整回滚；使用后端返回的 `action` 和 `likeCount` 确保前后端状态一致
+- **状态布尔值修复**: `PostDetail.vue` 中 `isLiked`/`isCollected`/`isFollowing` 赋值添加 `!!` 确保布尔类型，避免 falsy 值导致的状态异常
+
+### 移动端导航重构
+
+- **Navbar.vue 移动端菜单重构**: 移动端菜单拆分为 overlay + menu 双层结构，overlay 点击关闭菜单；修复移动端菜单层级问题（dropdown z-index 修复）
+- **移动端样式优化**: 移动端搜索框移除 glassmorphism 改用实体背景提升可读性；导航链接添加 `min-height: 48px` 满足触摸目标尺寸要求；添加 `-webkit-tap-highlight-color` 和 `-webkit-overflow-scrolling` 改善触摸体验
+- **移动端下拉菜单适配**: 768px 断点下 dropdown 改为全宽固定定位，优化移动端个人中心下拉菜单体验
+
+### 类型定义修复
+
+- **follow.ts FollowCounts 接口修正**: 字段名从 `followers`/`following` 改为 `followerCount`/`followingCount`，与后端返回字段对齐；新增可选 `userId` 字段
+
+### 影响文件
+
+| 文件 | 改动类型 |
+|------|----------|
+| `edu_project_vue/src/views/post/PostDetail.vue` | 乐观更新 + 防抖 |
+| `edu_project_vue/src/components/home/PostCardList.vue` | 乐观更新 + 防抖 |
+| `edu_project_vue/src/views/circle/Circle.vue` | 点赞优化 + 回滚 |
+| `edu_project_vue/src/components/layout/Navbar.vue` | 移动端菜单重构 |
+| `edu_project_vue/src/types/follow.ts` | 类型定义修正 |
+| `edu_project_vue/src/utils/__tests__/toast.test.ts` | 测试修复 |
+
+---
+
 ## v2.0.20 (2026-06-06)
 
 ### 多数据库 Mapper XML 支持

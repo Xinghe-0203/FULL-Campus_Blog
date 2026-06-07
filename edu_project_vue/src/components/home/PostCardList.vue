@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { likeApi } from '@/api/like'
@@ -29,14 +30,23 @@ const router = useRouter()
 const userStore = useUserStore()
 const logger = useLogger('PostCardList')
 
+// 防抖状态：记录正在操作的文章ID
+const togglingLikes = ref(new Set<number | string>())
+const togglingCollects = ref(new Set<number | string>())
+
 const toggleLike = async (post: Post): Promise<void> => {
   if (!userStore.isLoggedIn) {
     router.push('/login')
     return
   }
+  if (togglingLikes.value.has(post.id)) return
+  togglingLikes.value.add(post.id)
+
   const wasLiked = props.likedPosts?.has(post.id) ?? false
   const prevCount = post.likeCount || 0
-  // 乐观更新：先改前端
+  const prevLikedSet = new Set(props.likedPosts)
+
+  // 乐观更新
   const newLiked = new Set(props.likedPosts)
   if (wasLiked) {
     newLiked.delete(post.id)
@@ -48,12 +58,16 @@ const toggleLike = async (post: Post): Promise<void> => {
   emit('update:liked-posts', newLiked)
 
   try {
-    await likeApi.toggleLike(post.id)
+    const res = await likeApi.toggleLike(post.id)
+    const data = res.data as any
+    // 使用后端返回的实际状态
+    if (data?.likeCount !== undefined) {
+      post.likeCount = data.likeCount
+    }
   } catch (err) {
-    // 请求失败，回滚到之前的状态
+    // 回滚
     post.likeCount = prevCount
-    const rollbackLiked = new Set(props.likedPosts)
-    emit('update:liked-posts', rollbackLiked)
+    emit('update:liked-posts', prevLikedSet)
     const error = err as Error & { response?: { status?: number; data?: { message?: string } } }
     logger.error('Failed to toggle like', { error: error.message })
     if (error.response?.status === 401) {
@@ -61,6 +75,8 @@ const toggleLike = async (post: Post): Promise<void> => {
     } else {
       toast.error(error.response?.data?.message || '点赞操作失败，请重试')
     }
+  } finally {
+    togglingLikes.value.delete(post.id)
   }
 }
 
@@ -69,9 +85,14 @@ const toggleCollect = async (post: Post): Promise<void> => {
     router.push('/login')
     return
   }
+  if (togglingCollects.value.has(post.id)) return
+  togglingCollects.value.add(post.id)
+
   const wasCollected = props.collectedPosts?.has(post.id) ?? false
   const prevCount = post.collectCount || 0
-  // 乐观更新：先改前端
+  const prevCollectedSet = new Set(props.collectedPosts)
+
+  // 乐观更新
   const newCollected = new Set(props.collectedPosts)
   if (wasCollected) {
     newCollected.delete(post.id)
@@ -83,12 +104,15 @@ const toggleCollect = async (post: Post): Promise<void> => {
   emit('update:collected-posts', newCollected)
 
   try {
-    await collectApi.toggleCollect(post.id)
+    const res = await collectApi.toggleCollect(post.id)
+    const data = res.data as any
+    if (data?.collectCount !== undefined) {
+      post.collectCount = data.collectCount
+    }
   } catch (err) {
-    // 请求失败，回滚到之前的状态
+    // 回滚
     post.collectCount = prevCount
-    const rollbackCollected = new Set(props.collectedPosts)
-    emit('update:collected-posts', rollbackCollected)
+    emit('update:collected-posts', prevCollectedSet)
     const error = err as Error & { response?: { status?: number; data?: { message?: string } } }
     logger.error('Failed to toggle collect', { error: error.message })
     if (error.response?.status === 401) {
@@ -96,6 +120,8 @@ const toggleCollect = async (post: Post): Promise<void> => {
     } else {
       toast.error(error.response?.data?.message || '收藏操作失败，请重试')
     }
+  } finally {
+    togglingCollects.value.delete(post.id)
   }
 }
 

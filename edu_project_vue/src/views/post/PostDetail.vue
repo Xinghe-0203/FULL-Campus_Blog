@@ -45,11 +45,12 @@
               </div>
             </router-link>
             <div class="author-actions">
-              <button 
+              <button
                 v-if="userStore.isLoggedIn && userStore.userId !== post.userId"
                 class="btn btn-sm"
                 :class="isFollowing ? 'btn-secondary' : 'btn-primary'"
                 @click="toggleFollow"
+                :disabled="isTogglingFollow"
               >
                 <svg v-if="!isFollowing" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
                 <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
@@ -86,22 +87,22 @@
           
           <!-- 文章操作 -->
           <div class="post-actions">
-            <button 
+            <button
               class="action-btn glass"
               :class="{ active: isLiked }"
               @click="toggleLike"
-              :disabled="!userStore.isLoggedIn"
+              :disabled="!userStore.isLoggedIn || isTogglingLike"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" :fill="isLiked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
               </svg>
               <span>{{ post.likeCount || 0 }}</span>
             </button>
-            <button 
+            <button
               class="action-btn glass"
               :class="{ active: isCollected }"
               @click="toggleCollect"
-              :disabled="!userStore.isLoggedIn"
+              :disabled="!userStore.isLoggedIn || isTogglingCollect"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" :fill="isCollected ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
                 <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
@@ -502,7 +503,7 @@ const fetchComments = async () => {
 const checkLikeStatus = async () => {
   try {
     const response = await likeApi.checkLikeStatus(String(route.params.id))
-    isLiked.value = (response.data as any)?.liked
+    isLiked.value = !!(response.data as any)?.liked
   } catch (err: any) {
     logger.error('Failed to check like status', { error: err.message })
   }
@@ -512,7 +513,7 @@ const checkLikeStatus = async () => {
 const checkCollectStatus = async () => {
   try {
     const response = await collectApi.checkCollectStatus(String(route.params.id))
-    isCollected.value = (response.data as any)?.collected
+    isCollected.value = !!(response.data as any)?.collected
   } catch (err: any) {
     logger.error('Failed to check collect status', { error: err.message })
   }
@@ -523,11 +524,16 @@ const checkFollowStatus = async () => {
   if (!post.value?.userId) return
   try {
     const response = await followApi.checkFollowStatus(post.value.userId)
-    isFollowing.value = (response.data as any)?.following
+    isFollowing.value = !!(response.data as any)?.following
   } catch (err: any) {
     logger.error('Failed to check follow status', { error: err.message })
   }
 }
+
+// 防抖状态
+const isTogglingLike = ref(false)
+const isTogglingCollect = ref(false)
+const isTogglingFollow = ref(false)
 
 // 切换点赞
 const toggleLike = async () => {
@@ -535,16 +541,33 @@ const toggleLike = async () => {
     router.push('/login')
     return
   }
-  
+  if (isTogglingLike.value) return
+  isTogglingLike.value = true
+
+  // 乐观更新
+  const prevLiked = isLiked.value
+  const prevCount = post.value.likeCount
+  isLiked.value = !isLiked.value
+  post.value.likeCount = (post.value.likeCount || 0) + (isLiked.value ? 1 : -1)
+
   try {
     const res = await likeApi.toggleLike(String(route.params.id))
-    isLiked.value = !isLiked.value
-    if ((res.data as any)?.likeCount !== undefined) {
-      post.value.likeCount = (res.data as any).likeCount
+    const data = res.data as any
+    // 使用后端返回的实际状态
+    if (data?.action) {
+      isLiked.value = data.action === 'like'
+    }
+    if (data?.likeCount !== undefined) {
+      post.value.likeCount = data.likeCount
     }
   } catch (err: any) {
+    // 回滚
+    isLiked.value = prevLiked
+    post.value.likeCount = prevCount
     logger.error('Failed to toggle like', { error: err.message })
     toast.error('操作失败')
+  } finally {
+    isTogglingLike.value = false
   }
 }
 
@@ -554,16 +577,32 @@ const toggleCollect = async () => {
     router.push('/login')
     return
   }
-  
+  if (isTogglingCollect.value) return
+  isTogglingCollect.value = true
+
+  // 乐观更新
+  const prevCollected = isCollected.value
+  const prevCount = post.value.collectCount
+  isCollected.value = !isCollected.value
+  post.value.collectCount = (post.value.collectCount || 0) + (isCollected.value ? 1 : -1)
+
   try {
     const res = await collectApi.toggleCollect(String(route.params.id))
-    isCollected.value = !isCollected.value
-    if ((res.data as any)?.collectCount !== undefined) {
-      post.value.collectCount = (res.data as any).collectCount
+    const data = res.data as any
+    if (data?.action) {
+      isCollected.value = data.action === 'collect'
+    }
+    if (data?.collectCount !== undefined) {
+      post.value.collectCount = data.collectCount
     }
   } catch (err: any) {
+    // 回滚
+    isCollected.value = prevCollected
+    post.value.collectCount = prevCount
     logger.error('Failed to toggle collect', { error: err.message })
     toast.error('操作失败')
+  } finally {
+    isTogglingCollect.value = false
   }
 }
 
@@ -578,13 +617,26 @@ const toggleFollow = async () => {
     return
   }
   if (!post.value?.userId) return
-  
+  if (isTogglingFollow.value) return
+  isTogglingFollow.value = true
+
+  // 乐观更新
+  const prevFollowing = isFollowing.value
+  isFollowing.value = !isFollowing.value
+
   try {
-    await followApi.toggleFollow(post.value.userId)
-    isFollowing.value = !isFollowing.value
+    const res = await followApi.toggleFollow(post.value.userId)
+    const data = res.data as any
+    if (data?.action) {
+      isFollowing.value = data.action === 'follow'
+    }
   } catch (err: any) {
+    // 回滚
+    isFollowing.value = prevFollowing
     logger.error('Failed to toggle follow', { error: err.message })
     toast.error('操作失败')
+  } finally {
+    isTogglingFollow.value = false
   }
 }
 

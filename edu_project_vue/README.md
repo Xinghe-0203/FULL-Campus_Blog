@@ -2,7 +2,7 @@
 
 Vue 3 frontend for the Campus Blog platform with a Rainy Glassmorphism design system.
 
-**Version**: v2.0 | **Vue**: 3.4.21 | **Vite**: 5.2.0
+**Version**: v2.0.21 | **Vue**: 3.4.21 | **Vite**: 5.2.0
 
 ## Tech Stack
 

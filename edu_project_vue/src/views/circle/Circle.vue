@@ -664,16 +664,26 @@ const toggleLike = async (post: any) => {
   if (!userStore.isLoggedIn) { toast.warning('请先登录'); return }
   if (post._likeLoading) return
   post._likeLoading = true
-  const prev = post.isLiked
+  const prevLiked = post.isLiked
+  const prevCount = post.likeCount || 0
+  // 乐观更新
   post.isLiked = !post.isLiked
-  post.likeCount += post.isLiked ? 1 : -1
+  post.likeCount = prevCount + (post.isLiked ? 1 : -1)
   post.likeAnim = true
   setTimeout(() => post.likeAnim = false, 400)
   try {
-    await circleApi.toggleLike(post.id)
+    const res = await circleApi.toggleLike(post.id)
+    const data = res.data as any
+    if (data?.action) {
+      post.isLiked = data.action === 'like'
+    }
+    if (data?.likeCount !== undefined) {
+      post.likeCount = data.likeCount
+    }
   } catch (err: any) {
-    post.isLiked = prev
-    post.likeCount += post.isLiked ? 1 : -1
+    // 回滚
+    post.isLiked = prevLiked
+    post.likeCount = prevCount
     logger.error('toggleLike error', { error: err.message })
     toast.error(err.response?.data?.message || '点赞失败，请稍后重试')
   } finally {

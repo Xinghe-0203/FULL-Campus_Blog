@@ -17,8 +17,9 @@ export interface Follow {
 
 /** 关注计数 */
 export interface FollowCounts {
-  followers: number
-  following: number
+  userId?: number
+  followerCount: number
+  followingCount: number
 }
 
 /** 关注列表参数 */

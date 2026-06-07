@@ -175,39 +175,41 @@
     </div>
 
     <!-- 移动端菜单 -->
-    <transition name="mobile-menu">
-      <div v-if="isMobileMenuOpen" class="mobile-menu" @click.self="closeMobileMenu" role="dialog" aria-label="移动端导航菜单" aria-modal="true">
-        <div class="mobile-search">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="搜索文章..."
-            @keyup.enter="handleSearch"
-          />
+    <transition name="mobile-menu-fade">
+      <div v-if="isMobileMenuOpen" class="mobile-menu-overlay" @click="closeMobileMenu">
+        <div class="mobile-menu" @click.stop role="dialog" aria-label="移动端导航菜单" aria-modal="true">
+          <div class="mobile-search">
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="搜索文章..."
+              @keyup.enter="handleSearch"
+            />
+          </div>
+          <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">首页</router-link>
+          <router-link to="/circle" class="mobile-nav-link" @click="closeMobileMenu">校友圈</router-link>
+          <router-link to="/trending" class="mobile-nav-link" @click="closeMobileMenu">热搜</router-link>
+          <template v-if="userStore.isLoggedIn">
+            <router-link to="/post-edit" class="mobile-nav-link" @click="closeMobileMenu">写文章</router-link>
+            <router-link to="/notifications" class="mobile-nav-link" @click="closeMobileMenu">
+              消息通知
+              <span v-if="userStore.unreadNotifications > 0" class="mobile-badge">
+                {{ userStore.unreadNotifications > 99 ? '99+' : userStore.unreadNotifications }}
+              </span>
+            </router-link>
+            <router-link to="/messages" class="mobile-nav-link" @click="closeMobileMenu">
+              私信
+              <span v-if="userStore.unreadMessages > 0" class="mobile-badge">
+                {{ userStore.unreadMessages > 99 ? '99+' : userStore.unreadMessages }}
+              </span>
+            </router-link>
+            <button class="mobile-nav-link danger" @click="handleLogout">退出登录</button>
+          </template>
+          <template v-else>
+            <router-link to="/login" class="mobile-nav-link" @click="closeMobileMenu">登录</router-link>
+            <router-link to="/register" class="mobile-nav-link" @click="closeMobileMenu">注册</router-link>
+          </template>
         </div>
-        <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">首页</router-link>
-        <router-link to="/circle" class="mobile-nav-link" @click="closeMobileMenu">校友圈</router-link>
-        <router-link to="/trending" class="mobile-nav-link" @click="closeMobileMenu">热搜</router-link>
-        <template v-if="userStore.isLoggedIn">
-          <router-link to="/post-edit" class="mobile-nav-link" @click="closeMobileMenu">写文章</router-link>
-          <router-link to="/notifications" class="mobile-nav-link" @click="closeMobileMenu">
-            消息通知
-            <span v-if="userStore.unreadNotifications > 0" class="mobile-badge">
-              {{ userStore.unreadNotifications > 99 ? '99+' : userStore.unreadNotifications }}
-            </span>
-          </router-link>
-          <router-link to="/messages" class="mobile-nav-link" @click="closeMobileMenu">
-            私信
-            <span v-if="userStore.unreadMessages > 0" class="mobile-badge">
-              {{ userStore.unreadMessages > 99 ? '99+' : userStore.unreadMessages }}
-            </span>
-          </router-link>
-          <button class="mobile-nav-link danger" @click="handleLogout">退出登录</button>
-        </template>
-        <template v-else>
-          <router-link to="/login" class="mobile-nav-link" @click="closeMobileMenu">登录</router-link>
-          <router-link to="/register" class="mobile-nav-link" @click="closeMobileMenu">注册</router-link>
-        </template>
       </div>
     </transition>
   </nav>
@@ -637,14 +639,12 @@ onUnmounted(() => {
   top: calc(100% + 8px);
   right: 0;
   width: 240px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
+  background: var(--surface-solid);
+  border: 1px solid var(--border-solid);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
   overflow: hidden;
-  z-index: calc(var(--z-sticky) + 1);
+  z-index: calc(var(--z-sticky) + 2);
 }
 
 .dropdown-header {
@@ -751,19 +751,26 @@ onUnmounted(() => {
   border-color: var(--primary-light);
 }
 
-.mobile-menu {
+.mobile-menu-overlay {
   position: fixed;
   top: var(--navbar-height);
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  width: 100%;
+  height: calc(100vh - var(--navbar-height));
+  background: rgba(0, 0, 0, 0.3);
+  z-index: calc(var(--z-sticky) + 1);
+}
+
+.mobile-menu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--surface-solid);
   padding: var(--spacing-md);
   overflow-y: auto;
-  z-index: 999;
-  border-top: 1px solid var(--glass-border);
+  -webkit-overflow-scrolling: touch;
 }
 
 .mobile-search {
@@ -773,15 +780,15 @@ onUnmounted(() => {
 .mobile-search input {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-solid);
   border-radius: var(--radius);
   font-size: 1rem;
   color: var(--text-primary);
-  transition: all var(--transition);
-  box-shadow: var(--glass-shadow);
+  transition: border-color var(--transition);
+  pointer-events: auto;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .mobile-search input:focus {
@@ -794,11 +801,11 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-md);
+  padding: 0.875rem var(--spacing-md);
   font-size: 1rem;
   color: var(--text-primary);
   text-decoration: none;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border-solid);
   background: none;
   width: 100%;
   border-left: none;
@@ -806,8 +813,13 @@ onUnmounted(() => {
   border-top: none;
   cursor: pointer;
   text-align: left;
-  transition: all var(--transition);
+  transition: background var(--transition);
   border-radius: var(--radius);
+  pointer-events: auto;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  min-height: 48px;
+  position: relative;
+  z-index: 1;
 }
 
 .mobile-nav-link:hover {
@@ -849,24 +861,47 @@ onUnmounted(() => {
   transform: translateY(-10px);
 }
 
-.mobile-menu-enter-active,
-.mobile-menu-leave-active {
-  transition: all 0.3s ease;
+.mobile-menu-fade-enter-active,
+.mobile-menu-fade-leave-active {
+  transition: opacity 0.2s ease;
 }
 
-.mobile-menu-enter-from,
-.mobile-menu-leave-to {
+.mobile-menu-fade-enter-from,
+.mobile-menu-fade-leave-to {
   opacity: 0;
-  transform: translateY(-20px);
 }
 
 @media (max-width: 768px) {
   .navbar-container {
     padding: 0 var(--spacing-md);
   }
-  
+
   .navbar-nav {
     display: none;
+  }
+
+  .dropdown-menu {
+    position: fixed;
+    top: var(--navbar-height);
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: calc(100vh - var(--navbar-height));
+    overflow-y: auto;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    z-index: calc(var(--z-sticky) + 2);
+  }
+
+  .dropdown-header {
+    padding: var(--spacing-lg);
+  }
+
+  .dropdown-item {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: 1rem;
+    min-height: 48px;
   }
 }
 
