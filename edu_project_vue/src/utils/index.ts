@@ -82,16 +82,22 @@ export function truncateText(text: string | null | undefined, maxLength = 100): 
 
 /**
  * 获取安全的图片URL
+ * 处理后端返回的相对路径（如 /uploads/xxx.jpg），确保在任何环境下都能正确访问
  */
 export function getSafeImageUrl(url: string | null | undefined, fallback = '/default-image.png'): string {
   if (!url) return fallback
-  if (url.startsWith('/') && !url.startsWith('//')) return url
-  try {
-    const parsed = new URL(url)
-    if (['http:', 'https:'].includes(parsed.protocol)) return url
-  } catch {
-    // invalid URL
-  }
+
+  // 完整的 http/https URL，直接返回
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+
+  // 协议相对 URL（//example.com），直接返回
+  if (url.startsWith('//')) return url
+
+  // 相对路径（如 /uploads/xxx.jpg），直接返回
+  // 在 Vercel 环境中，会通过 vercel.json 的 rewrites 代理到后端
+  if (url.startsWith('/')) return url
+
+  // 其他情况返回 fallback
   return fallback
 }
 

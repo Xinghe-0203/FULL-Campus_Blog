@@ -59,6 +59,7 @@ JWT双Token: Access(24h) + Refresh(7d)，Refresh仅用于刷新AccessToken
 |------|------|
 | `application.yml` | 主配置 |
 | `.env` | 敏感信息 (DB密码, JWT密钥) |
+| `edu_project_vue/.env` | 前端统一环境配置 (API地址、版本号) |
 | `SecurityConfig.java` | 安全策略、CORS、路径权限 |
 | `JwtAuthenticationFilter.java` | Token解析、黑名单检查 |
 
