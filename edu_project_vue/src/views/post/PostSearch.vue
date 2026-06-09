@@ -89,7 +89,7 @@ onMounted(() => {
 
 <style scoped>
 .post-search-page {
-  max-width: 1000px;
+  max-width: var(--container-xl);
   margin: 0 auto;
   padding: var(--spacing-lg);
 }
@@ -164,6 +164,7 @@ onMounted(() => {
   gap: var(--spacing-md);
   font-size: 0.75rem;
   color: var(--text-muted);
+  flex-wrap: wrap;
 }
 
 .post-author {
@@ -226,5 +227,23 @@ onMounted(() => {
 .error-state p {
   color: var(--error);
   margin-bottom: var(--spacing-md);
+}
+
+@media (max-width: 768px) {
+  .post-search-page {
+    padding: var(--spacing-md);
+  }
+  .post-title {
+    font-size: 1.125rem;
+  }
+  .post-meta {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+  .post-stats {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 </style>

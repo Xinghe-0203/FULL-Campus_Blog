@@ -4,6 +4,56 @@
 
 ---
 
+## v2.0.22 (2026-06-09)
+
+### Bug 修复
+
+- **昵称修改不生效**: `SysUserServiceImpl.java` 移除 `htmlSanitizer.sanitizePlainText()`，与注册行为一致
+- **私信头像不显示**: `Messages.vue` 内联SVG改为 `/default-avatar.png` 静态文件
+- **时间显示错乱**: `application.yml` 添加 `write-dates-as-timestamps: false`，修复 LocalDateTime 序列化为数组的问题
+- **草稿ID提取失败**: `PostEdit.vue` 兼容 `res.data` 为数字或对象格式
+- **写文章加载旧内容**: `PostEdit.vue` 移除无条件 `fetchDraft()`
+- **搜索不全面**: `PostQueryServiceImpl.java` 搜索增加 `summary` 字段匹配
+- **移动端宽度不一致**: `PostSearch.vue` `max-width` 改为 `var(--container-xl)` + `@media 768px` 响应式
+- **CirclePost.vue TypeScript**: `location` 类型修复 `null` → `undefined`
+
+### 功能增强
+
+- **弹窗@提及功能**: `Circle.vue` 弹窗添加 @用户搜索和选择功能
+- **弹窗多话题选择**: `selectedTopic` 改为 `selectedTopics` 数组，支持多选
+- **弹窗草稿保存**: 弹窗关闭时自动保存草稿，打开时恢复
+- **CSS line-clamp**: 在 `utilities.css` + 7个组件中添加标准 `line-clamp` 属性
+- **在线状态UI清理**: `Messages.vue` 移除不支持的在线状态显示
+
+### 数据库
+
+- **计数器同步脚本**: 新建 `fix-counter-sync.sql`，修复 `like_count`/`collect_count` 与实际记录不一致
+  - 执行方式: `sqlite3 edu_project/campus_blog.db < edu_project/src/main/resources/fix-counter-sync.sql`
+
+### 基础设施
+
+- **前端环境配置统一**: 合并 `.env.development` 和 `.env.production` 为单一 `.env` 文件
+- **Vercel 部署**: 添加 `vercel.json` 配置 `/api` 和 `/uploads` 代理
+- **项目技能**: 新建 `.omc/skills/` 目录，包含 4 个项目技能
+
+### 影响文件
+
+| 文件 | 改动类型 |
+|------|----------|
+| `SysUserServiceImpl.java` | 移除昵称 sanitizer |
+| `PostQueryServiceImpl.java` | 搜索增加 summary 字段 |
+| `application.yml` | Jackson 时间配置 |
+| `PostSearch.vue` | 响应式修复 |
+| `PostEdit.vue` | 草稿逻辑修复 |
+| `Messages.vue` | 头像修复 + 移除在线状态 |
+| `PostDetail.vue` | 移动端 padding |
+| `Circle.vue` | @提及 + 多话题 + 草稿 |
+| `CirclePost.vue` | TypeScript 修复 |
+| `utilities.css` | line-clamp 标准属性 |
+| `fix-counter-sync.sql` | 新建 |
+
+---
+
 ## v2.0.21 (2026-06-07)
 
 ### 前端交互优化

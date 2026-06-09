@@ -36,6 +36,8 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss  # 日期格式
     time-zone: GMT+8                    # 时区设置
     default-property-inclusion: non_null # 只序列化非空字段
+    serialization:
+      write-dates-as-timestamps: false  # 禁用时间戳格式，使用date-format
 
   # ==================== 文件上传配置 ====================
   servlet:

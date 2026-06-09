@@ -221,11 +221,11 @@
 
   <teleport to="body">
       <transition name="modal">
-        <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
+        <div v-if="showCreateModal" class="modal-overlay" @click.self="closeCreateModal">
           <div class="modal-content glass">
             <div class="modal-header">
               <h3>发布动态</h3>
-              <button class="close-btn" @click="showCreateModal = false">
+              <button class="close-btn" @click="closeCreateModal">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
@@ -255,20 +255,34 @@
                   </transition>
                 </div>
               </div>
-              <textarea v-model="newPost.content" class="post-textarea" placeholder="分享你的校园生活..." rows="4" @input="autoResize" ref="textareaRef" maxlength="2000"></textarea>
+              <div class="textarea-wrapper">
+                <textarea v-model="newPost.content" class="post-textarea" placeholder="分享你的校园生活... 使用 @ 提及用户" rows="4" @input="handleTextareaInput" ref="textareaRef" maxlength="2000"></textarea>
+                <transition name="dropdown">
+                  <div v-if="showMentionDropdown" class="mention-dropdown glass">
+                    <div v-if="mentionLoading" class="mention-loading"><span class="spinner-small"></span> 搜索中...</div>
+                    <div v-else-if="mentionResults.length">
+                      <div v-for="user in mentionResults" :key="user.id" class="mention-item" @mousedown.prevent="selectMention(user)">
+                        <img :src="user.avatar || '/default-avatar.png'" class="mention-avatar" />
+                        <span class="mention-name">{{ user.nickname || user.username }}</span>
+                      </div>
+                    </div>
+                    <div v-else class="mention-empty">未找到用户</div>
+                  </div>
+                </transition>
+              </div>
               <div class="char-count" :class="{ warn: newPost.content.length > 1800 }">{{ newPost.content.length }}/2000</div>
 
               <div class="topic-selector">
-                <div v-if="selectedTopic" class="selected-topic">
-                  <span class="topic-badge glass-chip">
+                <div v-if="selectedTopics.length > 0" class="selected-topics">
+                  <span v-for="topic in selectedTopics" :key="topic.id" class="topic-badge glass-chip">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
-                    {{ selectedTopic.name }}
+                    {{ topic.name }}
+                    <button class="remove-topic" @click="removeTopic(topic)" title="移除话题">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
                   </span>
-                  <button class="remove-topic" @click="removeTopic" title="移除话题">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                  </button>
                 </div>
-                <div v-else class="topic-input-wrapper">
+                <div class="topic-input-wrapper">
                   <div class="topic-search-box glass">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     <input v-model="topicSearch" placeholder="添加话题..." @focus="showTopicDropdown = true" @blur="hideTopicDropdown" />
@@ -296,6 +310,21 @@
                     </div>
                   </transition>
                 </div>
+              </div>
+
+              <div class="location-input-wrapper">
+                <button class="location-btn glass-chip" @click="showLocationInput = !showLocationInput">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  {{ newPost.location || '添加位置' }}
+                </button>
+                <transition name="dropdown">
+                  <div v-if="showLocationInput" class="location-input-box glass">
+                    <input v-model="newPost.location" placeholder="输入位置信息..." maxlength="100" />
+                    <button class="clear-location" @click="newPost.location = ''; showLocationInput = false" v-if="newPost.location">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </div>
+                </transition>
               </div>
 
               <div v-if="newPost.images.length" class="uploaded-images">
@@ -435,6 +464,8 @@ import { circleApi } from '../../api/circle'
 import { useConfirm } from '../../composables/useConfirm'
 import { topicApi } from '../../api/topic'
 import { mediaApi } from '../../api/media'
+import { userApi } from '../../api/user'
+import { postApi } from '../../api/post'
 import { useUserStore } from '../../stores/user'
 import { formatRelativeTime, formatNumber, debounce } from '../../utils'
 import { useLogger } from '../../utils/logger'
@@ -482,12 +513,76 @@ const newPost = reactive({
   content: '',
   images: [] as string[],
   videos: [] as string[],
-  visibility: 0
+  visibility: 0,
+  location: ''
 })
+
+const showLocationInput = ref(false)
+
+// @提及相关
+const showMentionDropdown = ref(false)
+const mentionKeyword = ref('')
+const mentionSearchTimer = ref<any>(null)
+const mentionLoading = ref(false)
+const mentionResults = ref<any[]>([])
+
+const handleTextareaInput = () => {
+  autoResize()
+  const textarea = textareaRef.value
+  if (!textarea) return
+  const cursorPos = textarea.selectionStart
+  const textBeforeCursor = newPost.content.substring(0, cursorPos)
+  const match = textBeforeCursor.match(/@(\w*)$/)
+  if (match) {
+    const keyword: string = match[1] || ''
+    mentionKeyword.value = keyword
+    showMentionDropdown.value = true
+    if (mentionSearchTimer.value) clearTimeout(mentionSearchTimer.value)
+    if (keyword.length > 0) {
+      mentionSearchTimer.value = setTimeout(() => searchMentionUsers(keyword), 300)
+    } else {
+      mentionResults.value = []
+    }
+  } else {
+    showMentionDropdown.value = false
+    mentionResults.value = []
+  }
+}
+
+const searchMentionUsers = async (keyword: string) => {
+  if (!keyword.trim()) { mentionResults.value = []; return }
+  mentionLoading.value = true
+  try {
+    const res = await userApi.searchUsers({ keyword, pageNum: 1, pageSize: 10 })
+    const data = res.data as any
+    mentionResults.value = Array.isArray(data) ? data : (data?.records || [])
+  } catch { mentionResults.value = [] }
+  finally { mentionLoading.value = false }
+}
+
+const selectMention = (user: any) => {
+  const textarea = textareaRef.value
+  if (!textarea) return
+  const cursorPos = textarea.selectionStart
+  const textBeforeCursor = newPost.content.substring(0, cursorPos)
+  const textAfterCursor = newPost.content.substring(cursorPos)
+  const matchPos = textBeforeCursor.lastIndexOf('@')
+  if (matchPos === -1) return
+  const newTextBefore = textBeforeCursor.substring(0, matchPos) + `@${user.nickname || user.username} `
+  newPost.content = newTextBefore + textAfterCursor
+  showMentionDropdown.value = false
+  mentionResults.value = []
+  nextTick(() => {
+    textarea.focus()
+    const newPos = newTextBefore.length
+    textarea.setSelectionRange(newPos, newPos)
+    autoResize()
+  })
+}
 
 const topicSearch = ref('')
 const showTopicDropdown = ref(false)
-const selectedTopic = ref<any>(null)
+const selectedTopics = ref<any[]>([])
 const allTopics = ref<any[]>([])
 const topicsLoading = ref(false)
 
@@ -515,14 +610,15 @@ const filteredTopics = computed(() => {
 })
 
 const selectTopic = (topic: any) => {
-  selectedTopic.value = topic
+  if (!selectedTopics.value.find(t => t.id === topic.id)) {
+    selectedTopics.value.push(topic)
+  }
   topicSearch.value = ''
   showTopicDropdown.value = false
 }
 
-const removeTopic = () => {
-  selectedTopic.value = null
-  topicSearch.value = ''
+const removeTopic = (topic: any) => {
+  selectedTopics.value = selectedTopics.value.filter(t => t.id !== topic.id)
 }
 
 const hideTopicDropdown = () => {
@@ -552,7 +648,9 @@ const confirmCreateTopic = async () => {
       postCount: 0
     }
     allTopics.value.unshift(createdTopic)
-    selectedTopic.value = createdTopic
+    if (!selectedTopics.value.find(t => t.id === createdTopic.id)) {
+      selectedTopics.value.push(createdTopic)
+    }
     topicSearch.value = ''
     showCreateTopicModal.value = false
     toast.success('话题创建成功')
@@ -814,7 +912,8 @@ const publishPost = async () => {
       images: newPost.images,
       videos: newPost.videos,
       visibility: newPost.visibility,
-      topicIds: selectedTopic.value ? [selectedTopic.value.id] : null,
+      location: newPost.location || undefined,
+      topicIds: selectedTopics.value.length > 0 ? selectedTopics.value.map(t => t.id) : null,
       allowComment: 1,
       allowRepost: 1
     })
@@ -823,7 +922,18 @@ const publishPost = async () => {
     newPost.images = []
     newPost.videos = []
     newPost.visibility = 0
-    selectedTopic.value = null
+    newPost.location = ''
+    showLocationInput.value = false
+    selectedTopics.value = []
+    // 清除校友圈草稿（仅删除校友圈草稿，不影响博客草稿）
+    try {
+      const draftRes = await postApi.getLatestDraft()
+      const draft = draftRes.data
+      const draftId = draft?.id || draft?.draftId
+      if (draftId && draft?.title === '[校友圈]') {
+        await postApi.deleteDraft(draftId)
+      }
+    } catch { /* ignore */ }
     toast.success('发布成功')
     await fetchPosts(true)
   } catch (err: any) {
@@ -834,6 +944,40 @@ const publishPost = async () => {
   }
 }
 
+// 草稿保存
+const saveCircleDraft = async () => {
+  if (!newPost.content.trim() && newPost.images.length === 0) return
+  try {
+    await postApi.saveDraft({
+      title: '[校友圈]',
+      content: newPost.content,
+      coverImage: newPost.images[0] || undefined,
+      tagNames: selectedTopics.value.map(t => t.name)
+    } as any)
+  } catch { /* ignore */ }
+}
+
+const loadCircleDraft = async () => {
+  try {
+    const res = await postApi.getLatestDraft()
+    if (res.data && res.data.title === '[校友圈]') {
+      newPost.content = res.data.content || ''
+      if (res.data.coverImage) {
+        newPost.images = [res.data.coverImage]
+      }
+      // 恢复话题
+      if (res.data.tags && res.data.tags.length > 0) {
+        selectedTopics.value = res.data.tags.map((t: any) => ({ id: t.id, name: t.name }))
+      }
+    }
+  } catch { /* ignore */ }
+}
+
+const closeCreateModal = async () => {
+  await saveCircleDraft()
+  showCreateModal.value = false
+}
+
 const openCreateModal = () => {
   if (!userStore.isLoggedIn) {
     toast.warning('请先登录')
@@ -842,6 +986,7 @@ const openCreateModal = () => {
   }
   showCreateModal.value = true
   nextTick(() => autoResize())
+  loadCircleDraft()
   if (allTopics.value.length === 0) {
     topicsLoading.value = true
     topicApi.getTopicList({ pageNum: 1, pageSize: 100 })
@@ -1996,23 +2141,102 @@ onBeforeUnmount(() => {
   transform: translateY(-8px);
 }
 
+.location-input-wrapper {
+  margin-bottom: var(--spacing-md);
+}
+
+.location-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  transition: all var(--transition);
+  box-shadow: var(--glass-shadow);
+}
+
+.location-btn:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.location-input-box {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-top: var(--spacing-xs);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  transition: all var(--transition);
+  box-shadow: var(--glass-shadow);
+}
+
+.location-input-box:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
+}
+
+.location-input-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.8125rem;
+  outline: none;
+  color: var(--text-primary);
+  padding: 0;
+}
+
+.location-input-box input::placeholder {
+  color: var(--text-muted);
+}
+
+.clear-location {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--radius-xs);
+  transition: all var(--transition);
+}
+
+.clear-location:hover {
+  color: var(--error);
+  background: var(--error-light);
+}
+
 .topic-selector {
   margin-bottom: var(--spacing-md);
 }
 
-.selected-topic {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--primary-light);
-  border-radius: var(--radius-full);
+.selected-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
 }
 
 .topic-badge {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--primary-light);
+  border-radius: var(--radius-full);
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--primary);
@@ -2087,6 +2311,59 @@ onBeforeUnmount(() => {
   padding: var(--spacing-md);
   color: var(--text-muted);
   font-size: 0.8125rem;
+}
+
+.textarea-wrapper {
+  position: relative;
+}
+
+.mention-dropdown {
+  position: absolute;
+  bottom: calc(100% + var(--spacing-xs));
+  left: 0;
+  right: 0;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.mention-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.mention-item:hover {
+  background: var(--primary-light);
+}
+
+.mention-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+.mention-name {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.mention-loading,
+.mention-empty {
+  padding: var(--spacing-md);
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
 }
 
 .topic-dropdown {
@@ -2354,6 +2631,7 @@ onBeforeUnmount(() => {
   margin: 0 0 var(--spacing-xs);
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

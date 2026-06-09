@@ -1,7 +1,7 @@
 # Campus Blog Forum System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-v2.0.21-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
+[![Version](https://img.shields.io/badge/version-v2.0.22-blue)](https://github.com/Xinghe-0203/FULL-Campus_Blog)
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.13-green)](https://spring.io/projects/spring-boot)
 [![Vue](https://img.shields.io/badge/Vue-3.4.21-brightgreen)](https://vuejs.org/)
@@ -400,6 +400,33 @@ Controller（控制器）→ Service（服务）→ Mapper（数据访问）→ 
 | 前端文档 | [edu_project_vue/README.md](edu_project_vue/README.md) | 前端详细文档 |
 | 部署文档 | [edu_project/DEPLOY.md](edu_project/DEPLOY.md) | 生产环境部署指南 |
 | API 文档 | http://localhost:8825/api/doc.html | 启动后端后访问 |
+
+---
+
+## 更新日志
+
+### v2.0.22 (2026-06-09)
+
+**Bug 修复**
+- 修复昵称修改不生效（后端 `htmlSanitizer` 过度转义）
+- 修复私信头像不显示（内联SVG改为静态文件）
+- 修复时间显示错乱（Jackson `write-dates-as-timestamps: false`）
+- 修复草稿ID提取失败（兼容数字和对象格式）
+- 修复写文章加载旧内容（移除无条件 `fetchDraft()`）
+- 修复搜索不全面（增加 `summary` 字段匹配）
+- 修复移动端宽度不一致（`PostSearch.vue` 响应式）
+
+**功能增强**
+- Circle 弹窗添加 @提及用户功能
+- Circle 弹窗支持多话题选择
+- Circle 弹窗添加草稿自动保存/恢复
+- CSS 添加标准 `line-clamp` 属性
+
+**文档**
+- 统一前端环境配置（`.env` 合并）
+- 添加 Vercel 部署配置（`vercel.json`）
+- 添加 SQLite 计数器修复脚本
+- 添加项目技能（`.omc/skills/`）
 
 ---
 

@@ -216,7 +216,9 @@ public class PostQueryServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> 
         if (request.getKeyword() != null && !request.getKeyword().trim().isEmpty()) {
             wrapper.and(w -> w.like(BlogPost::getTitle, request.getKeyword())
                     .or()
-                    .like(BlogPost::getContent, request.getKeyword()));
+                    .like(BlogPost::getContent, request.getKeyword())
+                    .or()
+                    .like(BlogPost::getSummary, request.getKeyword()));
         }
 
         if (request.getCategory() != null && !request.getCategory().trim().isEmpty()) {

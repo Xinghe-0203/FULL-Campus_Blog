@@ -1,8 +1,8 @@
-# CLAUDE.md - 校园博客论坛 Vue 3 前端 (v2.0.21)
+# CLAUDE.md - 校园博客论坛 Vue 3 前端 (v2.0.22)
 
 ## 项目概述
 
-这是校园博客论坛系统的前端项目，基于 Vue 3 + Vite 构建。当前版本 v2.0.21。
+这是校园博客论坛系统的前端项目，基于 Vue 3 + Vite 构建。当前版本 v2.0.22。
 
 ## 常用命令
 
@@ -76,6 +76,38 @@ src/
 ## API 配置
 
 开发环境自动代理 `/api` 到 `http://localhost:8825`
+
+## 环境变量
+
+统一使用 `.env` 文件配置（开发/生产环境通用）：
+
+```env
+VITE_API_BASE_URL=/api          # API基础路径
+VITE_APP_TITLE=校园博客          # 应用标题
+VITE_APP_VERSION=2.0.22         # 版本号
+VITE_API_TARGET=http://localhost:8825  # 开发环境代理目标
+```
+
+如需本地覆盖，创建 `.env.local`（不提交 git）。
+
+## Vercel 部署
+
+1. Root Directory 设为 `edu_project_vue`
+2. Framework Preset 选 `Vite`
+3. `vercel.json` 已配置 `/api` 和 `/uploads` 代理到后端
+
+## v2.0.22 修复记录
+
+| 问题 | 修复文件 | 修复内容 |
+|------|----------|----------|
+| 移动端宽度不一致 | `PostSearch.vue` | `max-width` 改为 `var(--container-xl)` + `@media` |
+| 私信头像不显示 | `Messages.vue` | 内联SVG → `/default-avatar.png` |
+| 草稿ID提取失败 | `PostEdit.vue` | 兼容 `res.data` 为数字或对象 |
+| 写文章加载旧内容 | `PostEdit.vue` | 移除无条件 `fetchDraft()` |
+| CSS line-clamp | 8个文件 | 添加标准 `line-clamp` 属性 |
+| 弹窗@提及 | `Circle.vue` | 添加 mention 搜索和选择 |
+| 弹窗多话题 | `Circle.vue` | `selectedTopic` → `selectedTopics` 数组 |
+| 弹窗草稿 | `Circle.vue` | 关闭保存/打开恢复 |
 
 ## 注意事项
 

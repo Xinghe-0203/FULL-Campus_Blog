@@ -425,7 +425,7 @@ const publishPost = async () => {
     content: form.content,
     images: form.images,
     videos: form.videos,
-    location: form.location || null,
+    location: form.location || undefined,
     topicIds: selectedTopics.value.map(t => t.id),
     visibility: form.visibility,
     allowComment: allowComment.value ? 1 : 0,

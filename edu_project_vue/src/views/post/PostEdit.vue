@@ -575,24 +575,6 @@ const fetchPost = async () => {
   }
 }
 
-const fetchDraft = async () => {
-  try {
-    const res = await postApi.getLatestDraft()
-    if (res.data) {
-      currentDraftId.value = res.data?.draftId || null
-      form.title = res.data.title || ''
-      form.content = res.data.content || ''
-      form.summary = res.data.summary || ''
-      form.category = res.data.category || ''
-      selectedTags.value = res.data.tags || []
-      form.coverImage = res.data.coverImage || ''
-    }
-  } catch (err: any) {
-    logger.error('fetch draft error', { error: err.message })
-    toast.error(err.response?.data?.message || '加载草稿失败')
-  }
-}
-
 const fetchDraftById = async (draftId: string) => {
   try {
     const res = await postApi.getDraft(draftId)
@@ -621,7 +603,7 @@ const saveDraft = async () => {
     const data: Record<string, any> = { title: form.title, content: form.content, summary: form.summary, category: form.category, coverImage: form.coverImage, tagIds: selectedTags.value.filter((t: any) => t.id).map((t: any) => t.id), tagNames: selectedTags.value.map((t: any) => t.name), draftId: currentDraftId.value || undefined }
     if (route.params.id) data.postId = Number(route.params.id)
     const res = await postApi.saveDraft(data as any)
-    currentDraftId.value = res.data?.draftId || res.data?.id || currentDraftId.value
+    currentDraftId.value = typeof res.data === 'number' ? res.data : (res.data?.draftId || res.data?.id || currentDraftId.value)
     saveStatus.value = 'saved'
     setTimeout(() => { if (saveStatus.value === 'saved') saveStatus.value = '' }, 3000)
   } catch (err: any) {
@@ -671,7 +653,7 @@ const autoSave = async () => {
     const data: Record<string, any> = { title: form.title, content: form.content, summary: form.summary, category: form.category, coverImage: form.coverImage, tagIds: selectedTags.value.filter((t: any) => t.id).map((t: any) => t.id), tagNames: selectedTags.value.map((t: any) => t.name), draftId: currentDraftId.value || undefined }
     if (route.params.id) data.postId = Number(route.params.id)
     const res = await postApi.saveDraft(data as any)
-    currentDraftId.value = res.data?.draftId || res.data?.id || currentDraftId.value
+    currentDraftId.value = typeof res.data === 'number' ? res.data : (res.data?.draftId || res.data?.id || currentDraftId.value)
     dirty.value = false
     saveStatus.value = 'saved'
     setTimeout(() => { if (saveStatus.value === 'saved') saveStatus.value = '' }, 3000)
@@ -695,8 +677,6 @@ onMounted(async () => {
     await fetchPost()
   } else if (route.query.draft) {
     await fetchDraftById(route.query.draft as string)
-  } else {
-    await fetchDraft()
   }
   isLoading.value = false
   history.value = [form.content]

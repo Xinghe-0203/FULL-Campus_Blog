@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Version**: v2.0.21 | **GitHub**: https://github.com/Xinghe-0203/FULL-Campus_Blog
+**Version**: v2.0.22 | **GitHub**: https://github.com/Xinghe-0203/FULL-Campus_Blog
 
 ---
 
@@ -108,3 +108,36 @@ admin / Admin123 (ROLE_ADMIN)
 3. **禁止硬编码敏感信息**: 使用环境变量
 4. **每次更新代码后同步更新md文档**
 5. **API文档**: 启动后访问 http://localhost:8825/api/doc.html
+
+---
+
+## v2.0.22 修复记录
+
+### 后端修复
+- **Jackson时间序列化**: `application.yml` 添加 `write-dates-as-timestamps: false`，修复 LocalDateTime 序列化为数组的问题
+- **昵称修改不生效**: `SysUserServiceImpl.java:427` 移除 `htmlSanitizer.sanitizePlainText()`，与注册行为一致
+- **搜索不全面**: `PostQueryServiceImpl.java:217` 搜索增加 `summary` 字段匹配
+
+### 前端修复
+- **移动端宽度不一致**: `PostSearch.vue` `max-width` 改为 `var(--container-xl)`，添加 `@media 768px` 响应式
+- **私信头像不显示**: `Messages.vue` 内联SVG改为 `/default-avatar.png` 静态文件
+- **时间显示错乱**: Jackson 配置修复后前端时间正常
+- **草稿ID提取失败**: `PostEdit.vue` 兼容 `res.data` 为数字或对象格式
+- **写文章加载旧内容**: `PostEdit.vue` 移除无条件 `fetchDraft()`
+- **发布后跳回编辑器**: 同上，草稿不再自动加载
+- **CSS line-clamp**: 在 `utilities.css` + 7个组件中添加标准 `line-clamp` 属性
+- **弹窗@提及功能**: `Circle.vue` 弹窗添加 @用户搜索和选择功能
+- **弹窗多话题选择**: `selectedTopic` 改为 `selectedTopics` 数组
+- **弹窗草稿保存**: 弹窗关闭时自动保存草稿，打开时恢复
+- **CirclePost.vue TypeScript**: `location` 类型修复 `null` → `undefined`
+
+### 数据库修复
+- **计数器同步脚本**: 新建 `fix-counter-sync.sql`，修复 `like_count`/`collect_count` 与实际记录不一致
+  - 执行方式: `sqlite3 edu_project/campus_blog.db < edu_project/src/main/resources/fix-counter-sync.sql`
+
+### 技能系统
+- 新建 `.omc/skills/` 目录，包含 4 个项目技能:
+  - `vue-modal-mention` - Vue弹窗@提及功能
+  - `jackson-date-fix` - Jackson日期序列化修复
+  - `sqlite-counter-sync` - SQLite计数器同步
+  - `draft-system-reuse` - 草稿系统复用模式

@@ -34,7 +34,6 @@
             >
               <div class="avatar-wrapper">
                 <img :src="conv.user?.avatar || defaultAvatar" :alt="conv.user?.nickname || conv.user?.username" class="conv-avatar" @error="onAvatarError" />
-                <span class="online-dot" :class="{ online: conv.user?.online }"></span>
               </div>
               <div class="conv-info">
                 <div class="conv-name-row">
@@ -60,11 +59,9 @@
             <div class="header-user">
               <div class="avatar-wrapper">
                 <img :src="activeConversation.user?.avatar || defaultAvatar" :alt="activeConversation.user?.nickname" class="header-avatar" @error="onAvatarError" />
-                <span class="online-dot" :class="{ online: activeConversation.user?.online }"></span>
               </div>
               <div class="header-info">
                 <h3>{{ activeConversation.user?.nickname || activeConversation.user?.username }}</h3>
-                <span class="header-status">{{ activeConversation.user?.online ? '在线' : '离线' }}</span>
               </div>
             </div>
           </div>
@@ -142,7 +139,7 @@ function goBack() {
   }
 }
 
-const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44"><rect width="44" height="44" rx="22" fill="#e0e0e0"/><text x="22" y="28" text-anchor="middle" fill="#999" font-size="18" font-family="sans-serif">?</text></svg>')
+const defaultAvatar = '/default-avatar.png'
 
 const onAvatarError = (e: Event) => {
   const target = e.target as HTMLImageElement
@@ -492,23 +489,6 @@ onUnmounted(() => {
   box-shadow: var(--shadow-sm);
 }
 
-.online-dot {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 10px;
-  height: 10px;
-  border-radius: var(--radius-full);
-  background: var(--text-muted);
-  border: 2px solid var(--surface-solid);
-  transition: all var(--transition);
-}
-
-.online-dot.online {
-  background: var(--success);
-  box-shadow: 0 0 6px var(--success-glow);
-}
-
 .conv-info {
   flex: 1;
   min-width: 0;
@@ -633,16 +613,6 @@ onUnmounted(() => {
   font-size: 1rem;
   font-weight: 600;
   margin: 0;
-}
-
-.header-status {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.header-status:has(+ .online-dot.online),
-.header-status {
-  color: var(--text-muted);
 }
 
 .message-list {

@@ -1497,6 +1497,10 @@ watch(() => route.params.id, () => {
 }
 
 @media (max-width: 768px) {
+  .post-detail-page {
+    padding: var(--spacing-md);
+  }
+
   .post-sidebar {
     display: flex;
     flex-direction: column;

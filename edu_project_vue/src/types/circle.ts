@@ -65,6 +65,7 @@ export interface CreateCirclePostRequest {
   videoUrl?: string
   type?: CirclePostType
   visibility?: number
+  location?: string
   topicIds?: number[] | null
   allowComment?: number
   allowRepost?: number
