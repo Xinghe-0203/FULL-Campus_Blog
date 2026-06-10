@@ -1,6 +1,6 @@
 # AGENTS.md — Campus Blog Forum System
 
-> Spring Boot 3 + Vue 3 full-stack project. Current version v2.0.21.
+> Spring Boot 3 + Vue 3 full-stack project. Current version v2.0.23.
 
 ## Project Structure
 
@@ -115,14 +115,14 @@ config/
 ### Frontend
 - Vue 3 Composition API (`<script setup>`)
 - Path alias: `@` → `src/`
-- State management: Pinia (user, theme, app stores)
+- State management: Pinia (user, theme stores)
 - API modules: 17 files in `src/api/`
 - Modular routing: `router/modules/` (auth, home, post, circle, user, discover, admin)
 - TypeScript with strict type checking
 - Confirm dialog: `useConfirm()` composable
 - Token auto-refresh + 401 clears Pinia store
 - Rainy Glassmorphism UI design system
-- 30 page components, 11 reusable components
+- 36 page components, 11 reusable components
 
 ## Key Configuration
 

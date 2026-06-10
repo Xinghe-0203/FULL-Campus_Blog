@@ -1,90 +1,93 @@
 <template>
   <div class="notifications-page">
-    <div class="notifications-container">
-      <button class="back-btn glass" @click="router.back()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-        返回
+    <button class="back-btn" @click="router.back()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      返回
+    </button>
+
+    <header class="page-header">
+      <div class="header-left">
+        <h1>消息通知</h1>
+        <span v-if="unreadCount > 0" class="unread-badge">{{ unreadCount }} 条未读</span>
+        <span v-else class="all-read">全部已读</span>
+      </div>
+      <button v-if="notifications.length > 0" class="btn btn-sm btn-ghost" @click="markAllAsRead()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        全部已读
       </button>
-      <div class="page-header">
-        <div class="header-left">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="header-icon"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <div>
-            <h1>消息通知</h1>
-            <p class="header-subtitle">{{ unreadCount > 0 ? `你有 ${unreadCount} 条未读通知` : '所有通知已读' }}</p>
-          </div>
+    </header>
+
+    <!-- Error -->
+    <div v-if="error" class="error-block">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p>{{ error }}</p>
+      <button class="btn btn-sm btn-primary" @click="fetchNotifications()">重新加载</button>
+    </div>
+
+    <!-- Skeleton -->
+    <div v-else-if="loading && notifications.length === 0" class="notif-list">
+      <div v-for="n in 4" :key="n" class="notif-item skeleton-item">
+        <div class="skel-circle"></div>
+        <div class="skel-avatar"></div>
+        <div class="skel-body">
+          <div class="skel-line" style="width:60%"></div>
+          <div class="skel-line" style="width:35%;height:10px;margin-top:6px"></div>
         </div>
-        <div class="header-actions">
-          <button v-if="notifications.length > 0" class="btn btn-sm btn-secondary" @click="markAllAsRead()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-            全部已读
-          </button>
+      </div>
+    </div>
+
+    <!-- List -->
+    <div v-else-if="notifications.length > 0" class="notif-list">
+      <div
+        v-for="notification in notifications"
+        :key="notification.id"
+        class="notif-item"
+        :class="{ unread: !notification.isRead }"
+        @click="handleNotification(notification)"
+      >
+        <span class="unread-dot" v-if="!notification.isRead"></span>
+        <div v-else class="unread-dot-placeholder"></div>
+
+        <img
+          :src="notification.fromUser?.avatar || '/default-avatar.png'"
+          :alt="notification.fromUser?.nickname || notification.fromUser?.username"
+          class="notif-avatar"
+          @error="onAvatarError"
+        />
+
+        <div class="notif-body">
+          <p class="notif-text">
+            <strong class="notif-sender">{{ notification.fromUser?.nickname || notification.fromUser?.username }}</strong>
+            {{ getNotificationText(notification.type) }}
+            <span v-if="notification.content" class="notif-target">{{ notification.content }}</span>
+          </p>
+          <span class="notif-time">{{ notification.timeAgo || formatRelativeTime(notification.createTime) }}</span>
         </div>
+
+        <button class="notif-delete" @click.stop="deleteNotification(notification.id)" title="删除">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
       </div>
 
-      <div v-if="error" class="error-card glass">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="error-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <p>{{ error }}</p>
-        <button class="btn btn-primary" @click="fetchNotifications()">重新加载</button>
+      <div v-if="hasMore" class="load-more">
+        <button class="btn btn-sm btn-ghost" @click="loadMore" :disabled="loading">
+          <svg v-if="loading" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          {{ loading ? '加载中...' : '加载更多' }}
+        </button>
       </div>
+    </div>
 
-      <div v-if="loading && notifications.length === 0" class="skeleton-list">
-        <div v-for="n in 4" :key="n" class="skeleton-card-item glass">
-          <div class="skeleton-avatar"></div>
-          <div class="skeleton-body">
-            <div class="skeleton skeleton-line w-60"></div>
-            <div class="skeleton skeleton-line w-40"></div>
-          </div>
-        </div>
-      </div>
-
-      <div v-else-if="notifications.length > 0" class="notification-list">
-        <div
-          v-for="notification in notifications"
-          :key="notification.id"
-          class="notification-card glass"
-          :class="{ unread: !notification.isRead }"
-          @click="handleNotification(notification)"
-        >
-          <div class="notification-icon" :class="getNotificationIconClass(notification.type)">
-            <svg v-if="notification.type === 'LIKE'" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            <svg v-else-if="notification.type === 'COMMENT'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <svg v-else-if="notification.type === 'REPLY'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
-            <svg v-else-if="notification.type === 'FOLLOW'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-            <svg v-else-if="notification.type === 'MENTION'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>
-            <svg v-else-if="notification.type === 'SYSTEM'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            <svg v-else-if="notification.type === 'MESSAGE'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          </div>
-          <img :src="notification.fromUser?.avatar || '/default-avatar.png'" :alt="notification.fromUser?.nickname || notification.fromUser?.username" class="sender-avatar" @error="onAvatarError" />
-          <div class="notification-body">
-            <p class="notification-content">
-              <strong>{{ notification.fromUser?.nickname || notification.fromUser?.username }}</strong>
-              {{ getNotificationText(notification.type) }}
-              <span v-if="notification.content" class="target-title">「{{ notification.content }}」</span>
-            </p>
-            <span class="notification-time">{{ notification.timeAgo || formatRelativeTime(notification.createTime) }}</span>
-          </div>
-          <button class="delete-btn" @click.stop="deleteNotification(notification.id)" title="删除">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-            </svg>
-          </button>
-          <div class="unread-indicator" v-if="!notification.isRead"></div>
-        </div>
-        <div v-if="hasMore" class="load-more">
-          <button class="btn btn-secondary" @click="loadMore" :disabled="loading">
-            <svg v-if="loading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-            {{ loading ? '加载中...' : '加载更多' }}
-          </button>
-        </div>
-      </div>
-
-      <div v-else class="empty-state glass">
-        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <p class="empty-title">暂无通知</p>
-        <p class="empty-text">当有人与你互动时，通知会出现在这里</p>
-      </div>
+    <!-- Empty -->
+    <div v-else class="empty-block">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <p class="empty-title">暂无通知</p>
+      <p class="empty-desc">当有人与你互动时，通知会出现在这里</p>
     </div>
   </div>
 </template>
@@ -109,7 +112,7 @@ const hasMore = ref(false)
 const pageSize = 20
 let pollingInterval: ReturnType<typeof setInterval> | null = null
 
-const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44"><rect width="44" height="44" rx="22" fill="#e0e0e0"/><text x="22" y="28" text-anchor="middle" fill="#999" font-size="18" font-family="sans-serif">?</text></svg>')
+const defaultAvatar = '/default-avatar.png'
 
 const onAvatarError = (e: Event) => {
   const target = e.target as HTMLImageElement
@@ -154,7 +157,6 @@ const startPolling = () => {
       const response = await notificationApi.getNotifications({ pageNum: 1, pageSize: pageSize })
       const pageData = response.data || {}
       const newRecords = pageData.records || []
-
       const existingIds = new Set(notifications.value.map(n => n.id))
       const trulyNew = newRecords.filter(n => !existingIds.has(n.id))
       if (trulyNew.length > 0) {
@@ -179,19 +181,6 @@ const getNotificationText = (type: string) => {
     MESSAGE: '给你发了私信'
   }
   return texts[type] || '有新通知'
-}
-
-const getNotificationIconClass = (type: string) => {
-  const classes: Record<string, string> = {
-    LIKE: 'icon-like',
-    COMMENT: 'icon-comment',
-    REPLY: 'icon-reply',
-    FOLLOW: 'icon-follow',
-    MENTION: 'icon-mention',
-    SYSTEM: 'icon-system',
-    MESSAGE: 'icon-message'
-  }
-  return classes[type] || 'icon-default'
 }
 
 const stopPolling = () => {
@@ -284,324 +273,261 @@ onUnmounted(() => {
 
 <style scoped>
 .notifications-page {
-  max-width: 900px;
+  max-width: 720px;
   margin: 0 auto;
   padding: var(--spacing-lg);
 }
 
+/* Back button */
 .back-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
+  gap: 4px;
+  padding: 6px 12px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border-solid);
   border-radius: var(--radius);
-  color: var(--text-secondary);
   cursor: pointer;
-  font-size: 0.875rem;
-  transition: all var(--transition);
-  box-shadow: var(--glass-shadow);
-  margin-bottom: var(--spacing-md);
+  transition: all var(--duration-fast) var(--ease-default);
+  margin-bottom: var(--spacing-lg);
 }
 
 .back-btn:hover {
-  background: var(--glass-hover);
   color: var(--primary);
   border-color: var(--primary);
-  transform: translateY(-1px);
 }
 
+/* Header */
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--spacing-lg);
-  gap: var(--spacing-md);
 }
 
 .header-left {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.header-icon {
-  color: var(--primary);
-  flex-shrink: 0;
-}
-
-.page-header h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.header-subtitle {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  margin: 2px 0 0;
-}
-
-.header-actions {
-  flex-shrink: 0;
-}
-
-.notification-list {
-  display: flex;
-  flex-direction: column;
+  align-items: baseline;
   gap: var(--spacing-sm);
 }
 
-.notification-card {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md) var(--spacing-lg);
-  cursor: pointer;
-  transition: all var(--transition);
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius-lg);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-wet);
-  box-shadow: var(--glass-shadow-wet);
+.page-header h1 {
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
 }
 
-.notification-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-  pointer-events: none;
+.unread-badge {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--error);
+  padding: 2px 8px;
+  background: var(--error-light);
+  border-radius: var(--radius-full);
 }
 
-.notification-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md), var(--glass-shadow-wet);
-}
-
-.notification-card.unread {
-  background: linear-gradient(135deg, var(--primary-light), rgba(139, 92, 246, 0.05));
-  border-color: rgba(99, 102, 241, 0.2);
-}
-
-.notification-card.unread::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: linear-gradient(180deg, var(--primary-start), var(--primary-end));
-}
-
-.notification-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all var(--transition);
-}
-
-.icon-like {
-  background: var(--accent-light);
-  color: var(--accent);
-}
-
-.icon-comment {
-  background: var(--info-light);
-  color: var(--info);
-}
-
-.icon-reply {
-  background: var(--success-light);
-  color: var(--success);
-}
-
-.icon-follow {
-  background: var(--purple-light);
-  color: var(--purple);
-}
-
-.icon-mention {
-  background: var(--warning-light);
-  color: var(--warning);
-}
-
-.icon-system {
-  background: var(--primary-light);
-  color: var(--primary);
-}
-
-.icon-message {
-  background: var(--blue-light);
-  color: var(--blue);
-}
-
-.icon-default {
-  background: var(--bg-secondary);
+.all-read {
+  font-size: var(--text-xs);
   color: var(--text-muted);
 }
 
-.sender-avatar {
-  width: 40px;
-  height: 40px;
+/* Notification list */
+.notif-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.notif-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-sm);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default);
+  border-bottom: 1px solid var(--gray-100);
+  position: relative;
+}
+
+.notif-item:first-child {
+  border-top: 1px solid var(--gray-100);
+}
+
+.notif-item:hover {
+  background: var(--gray-50);
+}
+
+.notif-item.unread {
+  background: rgba(13, 148, 136, 0.03);
+}
+
+/* Unread dot */
+.unread-dot {
+  width: 7px;
+  height: 7px;
   border-radius: var(--radius-full);
-  object-fit: cover;
-  border: 2px solid var(--surface-solid);
-  box-shadow: var(--shadow-sm);
+  background: var(--primary);
   flex-shrink: 0;
 }
 
-.notification-body {
+.unread-dot-placeholder {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+}
+
+/* Avatar */
+.notif-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
+/* Body */
+.notif-body {
   flex: 1;
   min-width: 0;
 }
 
-.notification-content {
-  font-size: 0.875rem;
+.notif-text {
+  font-size: var(--text-sm);
   color: var(--text-primary);
-  margin-bottom: 4px;
   line-height: 1.5;
+  margin: 0;
 }
 
-.target-title {
+.notif-sender {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.notif-target {
   color: var(--primary);
   font-weight: 500;
 }
 
-.notification-time {
-  font-size: 0.75rem;
+.notif-time {
+  font-size: var(--text-xs);
   color: var(--text-muted);
+  margin-top: 2px;
+  display: block;
 }
 
-.delete-btn {
+/* Delete button */
+.notif-delete {
+  opacity: 0;
   background: none;
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  padding: 6px;
+  padding: 4px;
   border-radius: var(--radius-sm);
-  opacity: 0;
-  transition: all var(--transition);
+  transition: all var(--duration-fast) var(--ease-default);
   flex-shrink: 0;
 }
 
-.notification-card:hover .delete-btn {
+.notif-item:hover .notif-delete {
   opacity: 1;
 }
 
-.delete-btn:hover {
+.notif-delete:hover {
   color: var(--error);
   background: var(--error-light);
 }
 
-.unread-indicator {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--radius-full);
-  background: var(--primary);
-  flex-shrink: 0;
-  box-shadow: 0 0 6px var(--primary-glow);
+/* Skeleton */
+.skeleton-item {
+  pointer-events: none;
 }
 
-.error-card {
+.skel-circle {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--gray-200);
+  flex-shrink: 0;
+}
+
+.skel-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--gray-200);
+  flex-shrink: 0;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skel-body {
+  flex: 1;
+}
+
+.skel-line {
+  height: 12px;
+  border-radius: var(--radius-xs);
+  background: var(--gray-200);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Load more */
+.load-more {
   text-align: center;
-  padding: var(--spacing-3xl) var(--spacing-xl);
+  padding: var(--spacing-lg) 0;
+}
+
+/* Error */
+.error-block {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-md);
-  border-radius: var(--radius-lg);
-}
-
-.error-card p {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-}
-
-.error-icon {
-  color: var(--error);
-  opacity: 0.6;
-}
-
-.empty-state {
+  padding: var(--spacing-3xl) var(--spacing-lg);
   text-align: center;
-  padding: var(--spacing-3xl) var(--spacing-xl);
-  border-radius: var(--radius-lg);
+  color: var(--text-muted);
+}
+
+.error-block p {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+/* Empty */
+.empty-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-3xl) var(--spacing-lg);
+  text-align: center;
 }
 
 .empty-icon {
   color: var(--text-muted);
   opacity: 0.3;
-  margin-bottom: var(--spacing-md);
 }
 
 .empty-title {
-  font-size: 1.125rem;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: var(--spacing-xs);
+  margin: 0;
 }
 
-.empty-text {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
+.empty-desc {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
 }
-
-.skeleton-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.skeleton-card-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-radius: var(--radius-lg);
-}
-
-.skeleton-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-full);
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  flex-shrink: 0;
-}
-
-.skeleton-body {
-  flex: 1;
-}
-
-.skeleton-line {
-  height: 14px;
-  border-radius: var(--radius-xs);
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-.skeleton-line + .skeleton-line {
-  margin-top: 8px;
-}
-
-.w-60 { width: 60%; }
-.w-40 { width: 40%; }
 
 .spin {
   animation: spin 1s linear infinite;
@@ -611,17 +537,26 @@ onUnmounted(() => {
   to { transform: rotate(360deg); }
 }
 
-.load-more {
-  text-align: center;
-  padding: var(--spacing-lg);
-}
-
+/* Responsive */
 @media (max-width: 768px) {
-  .notifications-page { padding: var(--spacing-md); }
-  .notification-card { padding: var(--spacing-md); gap: var(--spacing-sm); }
-  .sender-avatar { width: 36px; height: 36px; }
-  .notification-icon { width: 32px; height: 32px; }
-  .page-header { flex-direction: column; align-items: flex-start; }
-  .header-actions { align-self: flex-end; }
+  .notifications-page {
+    padding: var(--spacing-md);
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+
+  .notif-item {
+    gap: var(--spacing-1);
+    padding: var(--spacing-sm) 0;
+  }
+
+  .notif-avatar {
+    width: 32px;
+    height: 32px;
+  }
 }
 </style>

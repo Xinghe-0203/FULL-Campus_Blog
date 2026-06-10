@@ -12,6 +12,9 @@ import { useLogger } from './utils/logger'
 // 导入样式
 import './styles/main.css'
 
+// 注册全局滚动揭示指令
+import { vScrollReveal } from './composables/useScrollReveal'
+
 // 全局配置Markdown渲染（breaks:true 确保单换行被转换为<br>）
 marked.setOptions({
   gfm: true,
@@ -32,6 +35,9 @@ userStore.restoreFromStorage()
 
 // 使用路由
 app.use(router)
+
+// 注册全局指令
+app.directive('scroll-reveal', vScrollReveal)
 
 // 全局错误处理
 app.config.errorHandler = (err, _instance, info) => {

@@ -3,7 +3,7 @@
  */
 
 import api from './index'
-import type { ApiResponse, PaginatedResponse, Topic, CreateTopicRequest } from '@/types'
+import type { ApiResponse, PaginatedResponse, Topic, Post, CreateTopicRequest } from '@/types'
 
 export const topicApi = {
   /**
@@ -35,6 +35,16 @@ export const topicApi = {
     params: { pageNum?: number; pageSize?: number }
   ): Promise<PaginatedResponse<unknown>> {
     return api.get(`/topic/${topicId}/posts`, { params })
+  },
+
+  /**
+   * 获取话题下的博客文章
+   */
+  getTopicBlogPosts(
+    topicId: number | string,
+    params: { pageNum?: number; pageSize?: number }
+  ): Promise<PaginatedResponse<Post>> {
+    return api.get(`/topic/${topicId}/blog-posts`, { params })
   },
 
   /**

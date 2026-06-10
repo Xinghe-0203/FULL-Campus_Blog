@@ -1,56 +1,61 @@
 <template>
   <div class="post-search-page">
-    <button class="back-btn" @click="router.back()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-      返回
+    <button class="back-link" @click="router.back()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      <span>返回</span>
     </button>
-    <div class="search-container">
-      <div class="page-header">
-        <h1>热门文章</h1>
-      </div>
-      
-      <div v-if="loading" class="loading-state">
-        <div class="loading-spinner"></div>
-        <p>加载中...</p>
-      </div>
-      <div v-else-if="error" class="error-state">
-        <p>加载失败，请稍后重试</p>
-        <button class="btn btn-primary" @click="fetchHotPosts">重新加载</button>
-      </div>
-      <div v-else-if="posts.length > 0" class="post-list">
-        <div v-for="post in posts" :key="post.id" class="post-item card">
-          <img v-if="post.coverImage" :src="getSafeImageUrl(post.coverImage)" alt="" class="post-cover" />
-          <div class="post-body">
-            <h2 class="post-title">
-              <router-link :to="`/post/${post.id}`">{{ post.title }}</router-link>
-            </h2>
-            <p class="post-excerpt">{{ truncateText(post.summary || post.content, 150) }}</p>
-            <div class="post-tags" v-if="post.tags && post.tags.length">
-              <span
-                v-for="tag in post.tags.slice(0, 3)"
-                :key="tag.id"
-                class="tag"
-              >
-                {{ tag.name }}
-              </span>
-            </div>
-            <div class="post-meta">
-              <span class="post-author">
-                <img :src="post.avatar || '/default-avatar.png'" :alt="post.nickname || post.username" class="author-avatar" />
-                <router-link :to="`/user/${post.userId}`" class="author-name">{{ post.nickname || post.username || '匿名' }}</router-link>
-              </span>
-              <span class="post-time">{{ formatRelativeTime(post.createTime) }}</span>
-              <div class="post-stats">
-                <span>{{ post.viewCount || 0 }} 阅读</span>
-                <span>{{ post.likeCount || 0 }} 点赞</span>
-              </div>
-            </div>
+
+    <header class="page-head">
+      <h1 class="page-title">热门文章</h1>
+      <p class="page-sub">社区近期最受欢迎的内容</p>
+    </header>
+
+    <!-- Loading -->
+    <div v-if="loading" class="state-block">
+      <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Error -->
+    <div v-else-if="error" class="state-block">
+      <p class="state-error-text">加载失败，请稍后重试</p>
+      <button class="btn btn-primary btn-sm" @click="fetchHotPosts">重新加载</button>
+    </div>
+
+    <!-- Posts -->
+    <div v-else-if="posts.length > 0" class="post-stack">
+      <router-link
+        v-for="(post, index) in posts"
+        :key="post.id"
+        :to="`/post/${post.id}`"
+        class="post-row"
+      >
+        <span class="post-rank" :class="{ 'rank-top': index < 3 }">{{ index + 1 }}</span>
+        <div v-if="post.coverImage" class="post-row-cover">
+          <img :src="getSafeImageUrl(post.coverImage)" alt="" />
+        </div>
+        <div class="post-row-body">
+          <h2 class="post-row-title">{{ post.title }}</h2>
+          <p class="post-row-excerpt">{{ truncateText(post.summary || post.content, 130) }}</p>
+          <div class="post-row-meta">
+            <img :src="post.avatar || '/default-avatar.png'" :alt="post.nickname || post.username" class="post-row-avatar" />
+            <span class="post-row-author">{{ post.nickname || post.username || '匿名' }}</span>
+            <span class="meta-dot">&middot;</span>
+            <span class="post-row-time">{{ formatRelativeTime(post.createTime) }}</span>
+          </div>
+          <div class="post-row-stats">
+            <span class="stat-item">{{ post.viewCount || 0 }} 阅读</span>
+            <span class="stat-item">{{ post.likeCount || 0 }} 点赞</span>
+          </div>
+          <div v-if="post.tags && post.tags.length" class="post-row-tags">
+            <span v-for="tag in post.tags.slice(0, 3)" :key="tag.id" class="mini-tag">{{ tag.name }}</span>
           </div>
         </div>
-      </div>
-      <div v-else class="empty-state">
-        <p>暂无文章</p>
-      </div>
+      </router-link>
+    </div>
+
+    <!-- Empty -->
+    <div v-else class="state-block state-empty">
+      <p class="state-empty-text">暂无文章</p>
     </div>
   </div>
 </template>
@@ -88,162 +93,286 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* =====================================================
+   Post Search (Hot Posts) — Typography-Forward Minimalist
+   ===================================================== */
+
 .post-search-page {
-  max-width: var(--container-xl);
+  max-width: 720px;
   margin: 0 auto;
-  padding: var(--spacing-lg);
+  padding: var(--spacing-xl) var(--spacing-lg);
 }
 
-.page-header {
+/* ---------- Back link ---------- */
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1_5);
+  padding: var(--spacing-2) 0;
+  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  font-weight: var(--font-medium);
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color var(--transition-fast);
   margin-bottom: var(--spacing-lg);
 }
 
-.page-header h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
+.back-link:hover {
+  color: var(--primary);
 }
 
-.post-list {
+/* ---------- Page header ---------- */
+
+.page-head {
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-solid);
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: var(--font-extrabold);
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  line-height: var(--leading-tight);
+  margin: 0 0 var(--spacing-2);
+}
+
+.page-sub {
+  font-size: var(--text-base);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ---------- Post list ---------- */
+
+.post-stack {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
 }
 
-.post-item {
-  padding: var(--spacing-lg);
+.post-row {
+  display: flex;
+  gap: var(--spacing-4);
+  padding: var(--spacing-5) 0;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition-fast);
+  align-items: flex-start;
 }
-.back-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; width: fit-content; margin-bottom: var(--spacing-lg); }
-.back-btn:hover { background: var(--border); color: var(--text-primary); }
 
-.post-cover {
+.post-row:last-child {
+  border-bottom: none;
+}
+
+.post-row:hover {
+  background: var(--primary-subtle);
+}
+
+/* Rank number */
+.post-rank {
+  flex-shrink: 0;
+  width: 32px;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-muted);
+  line-height: 1;
+  padding-top: 2px;
+  text-align: center;
+}
+
+.post-rank.rank-top {
+  color: var(--accent);
+}
+
+/* Cover */
+.post-row-cover {
+  width: 120px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.post-row-cover img {
   width: 100%;
-  height: 160px;
+  height: 100%;
   object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 12px;
+  display: block;
 }
 
-.post-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: var(--spacing-sm);
-}
-
-.post-title a {
-  color: var(--text-primary);
-}
-
-.post-title a:hover {
-  color: var(--primary);
-}
-
-.post-excerpt {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-sm);
-}
-
-.post-tags {
-  display: flex;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
-}
-
-.tag {
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-  background: var(--primary-light);
-  color: var(--primary);
-  border-radius: var(--radius-full);
-  text-decoration: none;
-}
-
-.post-meta {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  flex-wrap: wrap;
-}
-
-.post-author {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  text-decoration: none;
-  color: var(--text-primary);
-}
-
-.author-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-full);
-  object-fit: cover;
-}
-
-.author-name {
-  font-size: 0.8125rem;
-  color: var(--text-primary);
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.author-name:hover {
-  color: var(--primary);
-}
-
-.post-stats {
-  margin-left: auto;
-  display: flex;
-  gap: var(--spacing-md);
-}
-
-.empty-state {
-  text-align: center;
-  padding: var(--spacing-2xl);
-}
-
-.empty-state p {
-  color: var(--text-muted);
-  margin-bottom: var(--spacing-md);
-}
-
-.loading-state {
+/* Body */
+.post-row-body {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-1_5);
+}
+
+.post-row-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0;
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.post-row:hover .post-row-title {
+  color: var(--primary);
+}
+
+.post-row-excerpt {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.post-row-meta {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  padding: var(--spacing-2xl);
+  gap: var(--spacing-2);
+  font-size: var(--text-xs);
   color: var(--text-muted);
-  gap: var(--spacing-md);
 }
 
-.error-state {
+.post-row-avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.post-row-author {
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+}
+
+.meta-dot {
+  opacity: 0.35;
+}
+
+.post-row-stats {
+  display: flex;
+  gap: var(--spacing-3);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.stat-item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.post-row-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-1_5);
+  margin-top: var(--spacing-1);
+}
+
+.mini-tag {
+  font-size: 0.6875rem;
+  font-weight: var(--font-medium);
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 1px var(--spacing-2);
+  border-radius: var(--radius-sm);
+  line-height: 1.5;
+}
+
+/* ---------- States ---------- */
+
+.state-block {
   text-align: center;
-  padding: var(--spacing-2xl);
+  padding: var(--spacing-3xl) var(--spacing-lg);
 }
 
-.error-state p {
+.state-error-text {
+  font-size: var(--text-sm);
   color: var(--error);
   margin-bottom: var(--spacing-md);
 }
 
+.state-empty-text {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--text-muted);
+}
+
+/* ---------- Responsive ---------- */
+
 @media (max-width: 768px) {
   .post-search-page {
-    padding: var(--spacing-md);
+    padding: var(--spacing-lg) var(--spacing-md);
   }
-  .post-title {
-    font-size: 1.125rem;
+
+  .page-title {
+    font-size: var(--text-3xl);
   }
-  .post-meta {
+
+  .post-row {
+    gap: var(--spacing-3);
+    padding: var(--spacing-4) 0;
+  }
+
+  .post-rank {
+    font-size: var(--text-xl);
+    width: 24px;
+  }
+
+  .post-row-cover {
+    width: 88px;
+    height: 60px;
+  }
+
+  .post-row-title {
+    font-size: var(--text-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: var(--text-2xl);
+  }
+
+  .post-row {
     flex-wrap: wrap;
-    gap: var(--spacing-sm);
   }
-  .post-stats {
-    margin-left: 0;
+
+  .post-row-cover {
     width: 100%;
-    justify-content: space-between;
+    height: 140px;
+    order: -1;
+    margin-bottom: var(--spacing-2);
+  }
+
+  .post-rank {
+    width: 100%;
+    text-align: left;
+    font-size: var(--text-sm);
+    font-family: var(--font-sans);
+    font-weight: var(--font-semibold);
+    color: var(--accent);
+    margin-bottom: calc(-1 * var(--spacing-2));
   }
 }
 </style>

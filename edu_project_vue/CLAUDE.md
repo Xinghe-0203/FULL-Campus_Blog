@@ -1,8 +1,8 @@
-# CLAUDE.md - 校园博客论坛 Vue 3 前端 (v2.0.22)
+# CLAUDE.md - 校园博客论坛 Vue 3 前端 (v2.0.23)
 
 ## 项目概述
 
-这是校园博客论坛系统的前端项目，基于 Vue 3 + Vite 构建。当前版本 v2.0.22。
+这是校园博客论坛系统的前端项目，基于 Vue 3 + Vite 构建。当前版本 v2.0.23。
 
 ## 常用命令
 
@@ -30,16 +30,25 @@ npm run lint       # 代码检查
 ```
 src/
 ├── api/            # API 接口 (17个模块)
-├── components/     # 组件 (共11个)
-│   ├── common/     # 通用组件 (8个)
+├── components/     # 组件 (共20个)
+│   ├── common/     # 通用组件 (11个)
 │   │   ├── BackToTop.vue     # 返回顶部
+│   │   ├── Button.vue        # 通用按钮
+│   │   ├── Card.vue          # 通用卡片
+│   │   ├── CollectButton.vue # 收藏按钮
 │   │   ├── EmptyState.vue    # 空状态提示
-│   │   ├── FileUploader.vue  # 文件上传
+│   │   ├── FollowButton.vue  # 关注按钮
 │   │   ├── ImagePreview.vue  # 图片预览灯箱
+│   │   ├── Input.vue         # 通用输入框
+│   │   ├── LikeButton.vue    # 点赞按钮
 │   │   ├── Modal.vue         # 通用模态框
-│   │   ├── PostCard.vue      # 文章卡片
-│   │   ├── Skeleton.vue      # 骨架屏
+│   │   ├── Tag.vue           # 标签组件
 │   │   └── Toast.vue         # Toast通知
+│   ├── circle/     # Circle组件 (4个)
+│   │   ├── CirclePostCard.vue    # Circle文章卡片
+│   │   ├── CircleSidebar.vue     # Circle侧边栏
+│   │   ├── CreatePostModal.vue   # 创建帖子弹窗
+│   │   └── QuickComposer.vue     # 快速发布器
 │   └── layout/     # 布局组件 (3个)
 │       ├── Footer.vue        # 页脚
 │       ├── Navbar.vue        # 导航栏
@@ -50,7 +59,7 @@ src/
 ├── stores/         # Pinia 状态管理 (3个store)
 ├── styles/         # 样式文件
 ├── utils/          # 工具函数
-└── views/          # 页面组件 (30个)
+└── views/          # 页面组件 (37个)
 ```
 
 ## v2.0 新特性
@@ -84,7 +93,7 @@ src/
 ```env
 VITE_API_BASE_URL=/api          # API基础路径
 VITE_APP_TITLE=校园博客          # 应用标题
-VITE_APP_VERSION=2.0.22         # 版本号
+VITE_APP_VERSION=2.0.23         # 版本号
 VITE_API_TARGET=http://localhost:8825  # 开发环境代理目标
 ```
 

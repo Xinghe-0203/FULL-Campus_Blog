@@ -7,7 +7,6 @@ edu_project/uploads/
 *.temp
 *.swp
 *~
-
 # Environment
 .env
 .env.local

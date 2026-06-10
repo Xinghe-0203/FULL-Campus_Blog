@@ -220,11 +220,11 @@ public class EmailServiceImpl implements EmailService {
             incrementDailySendCount(to);
             log.info("注册验证码已发送至: {}, username={}", StringMaskUtils.maskEmail(to), username);
             return true;
-        } catch (MailException e) {
-            log.error("发送注册验证码失败: {}", e.getMessage());
-            verificationStore.remove(key);
-            sendTimeStore.remove(key);
-            throw new BusinessException(500, "邮件发送失败，请稍后重试");
+        } catch (BusinessException e) {
+            // sendHtmlEmail 内部已经打印验证码到控制台
+            // 不删除 verificationStore，允许用户在开发模式使用控制台打印的验证码
+            log.info("邮件发送失败但验证码仍有效（可用于开发测试）: {} -> {}", to, code);
+            throw e;
         }
     }
 
@@ -348,7 +348,13 @@ public class EmailServiceImpl implements EmailService {
                 mailSender.send(simpleMessage);
             } catch (MailException ex) {
                 log.error("纯文本邮件发送也失败: {}", ex.getMessage());
-                throw new BusinessException(500, "邮件发送失败，请稍后重试");
+                log.info("============================================");
+                log.info("📧 邮件发送失败，验证码已生成：{}", code);
+                log.info("   收件人: {}", to);
+                log.info("   有效期: {} 分钟", expireMinutes);
+                log.info("   请在开发环境中使用此验证码完成注册");
+                log.info("============================================");
+                throw new BusinessException(500, "邮件发送失败，请检查SMTP配置。开发模式验证码已打印在控制台。");
             }
         }
     }

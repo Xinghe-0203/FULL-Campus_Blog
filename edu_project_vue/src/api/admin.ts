@@ -20,6 +20,7 @@ import type {
   Report,
   Tag,
   Topic,
+  Comment,
   CreateTagRequest,
   UpdateTagRequest,
   CreateTopicRequest,
@@ -140,6 +141,15 @@ export const adminApi = {
    */
   getStatistics(): Promise<ApiResponse<AdminStatistics>> {
     return api.get('/admin/statistics')
+  },
+
+  // Comment management
+  getCommentList(params: { pageNum?: number; pageSize?: number; postId?: number }): Promise<PaginatedResponse<Comment>> {
+    return api.get('/admin/comment/list', { params })
+  },
+
+  deleteComment(commentId: number | string): Promise<ApiResponse> {
+    return api.delete(`/admin/comment/${commentId}`)
   },
 
   // Circle management

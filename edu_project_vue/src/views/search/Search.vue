@@ -1,269 +1,238 @@
 <template>
   <div class="search-page">
-    <div class="search-container">
-      <div class="search-header glass">
-        <div class="header-top">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="header-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <h1>搜索</h1>
-        </div>
-        <div class="search-box-wrapper">
-          <div class="search-box">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="搜索文章、校友圈、用户..."
-              @keyup.enter="doSearch"
-              @focus="onSearchFocus"
-              @blur="hideSuggestions"
-              maxlength="200"
-              class="search-input"
-            />
-            <button class="btn btn-primary search-btn" @click="doSearch">搜索</button>
+    <!-- Hero search area -->
+    <section class="search-hero" :class="{ 'has-results': hasSearched }">
+      <h1 class="search-title">搜索</h1>
+      <p class="search-subtitle">发现文章、校友圈、标签和更多内容</p>
+      <div class="search-input-wrap">
+        <input
+          ref="searchInputRef"
+          v-model="searchQuery"
+          type="text"
+          placeholder="输入关键词..."
+          class="search-field"
+          @keyup.enter="doSearch"
+          @focus="onSearchFocus"
+          @blur="hideSuggestions"
+          maxlength="200"
+          aria-label="搜索"
+        />
+        <button class="search-submit" @click="doSearch" aria-label="执行搜索">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <transition name="dropdown">
+          <div v-if="showSuggestions && suggestions.length > 0" class="suggestions-dropdown">
+            <button
+              v-for="(suggestion, index) in suggestions"
+              :key="index"
+              class="suggestion-item"
+              @mousedown.prevent="selectSuggestion(suggestion)"
+            >
+              <span class="suggestion-text">{{ suggestion }}</span>
+            </button>
           </div>
-          <transition name="dropdown">
-            <div v-if="showSuggestions && suggestions.length > 0" class="suggestions-dropdown glass">
-              <div
-                v-for="(suggestion, index) in suggestions"
-                :key="index"
-                class="suggestion-item"
-                @mousedown.prevent="selectSuggestion(suggestion)"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <span>{{ suggestion }}</span>
-              </div>
-            </div>
-          </transition>
+        </transition>
+      </div>
+
+      <!-- Filter pills -->
+      <nav class="filter-row" role="tablist" aria-label="搜索类别筛选">
+        <button
+          v-for="filter in filters"
+          :key="filter.value"
+          role="tab"
+          :aria-selected="activeFilter === filter.value"
+          class="filter-pill"
+          :class="{ active: activeFilter === filter.value }"
+          @click="setFilter(filter.value)"
+        >
+          {{ filter.label }}
+        </button>
+      </nav>
+    </section>
+
+    <!-- Search history -->
+    <section v-if="!hasSearched && searchHistory.length > 0" class="history-section">
+      <div class="section-label">
+        <span>搜索历史</span>
+        <button class="clear-btn" @click="clearSearchHistory">清除</button>
+      </div>
+      <div class="history-chips">
+        <button
+          v-for="item in searchHistory"
+          :key="item"
+          class="history-chip"
+          @click="searchQuery = item; doSearch()"
+        >
+          <span>{{ item }}</span>
+          <span class="chip-x" @click.stop="removeHistoryItem(item)" aria-label="删除">&times;</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Results area -->
+    <section v-if="hasSearched" class="results-section">
+      <!-- Error state -->
+      <div v-if="error" class="state-block state-error">
+        <p class="state-text">{{ error }}</p>
+        <button class="btn btn-primary btn-sm" @click="doSearch">重试</button>
+      </div>
+
+      <!-- Loading skeleton -->
+      <div v-else-if="loading && results.length === 0" class="skeleton-list">
+        <div v-for="i in 4" :key="i" class="skeleton-card">
+          <div class="sk-line sk-w60"></div>
+          <div class="sk-line sk-w90"></div>
+          <div class="sk-line sk-w35"></div>
         </div>
-        <div class="search-filters">
-          <button
-            v-for="filter in filters"
-            :key="filter.value"
-            class="filter-btn"
-            :class="{ active: activeFilter === filter.value }"
-            @click="setFilter(filter.value)"
+      </div>
+
+      <template v-else>
+        <!-- Result count -->
+        <p v-if="results.length > 0" class="result-count">
+          找到 <strong>{{ totalResults }}</strong> 个结果
+        </p>
+
+        <!-- Users -->
+        <div v-if="activeFilter === 'users' && results.length > 0" class="result-stack">
+          <router-link
+            v-for="item in results"
+            :key="item.userId"
+            :to="`/user/${item.userId}`"
+            class="user-card"
           >
-            <svg v-if="filter.value === 'all'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-            <svg v-else-if="filter.value === 'posts'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            <svg v-else-if="filter.value === 'circles'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
-            <svg v-else-if="filter.value === 'tags'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-            <svg v-else-if="filter.value === 'topics'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-            <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            {{ filter.label }}
+            <img :src="item.avatar || defaultAvatar" class="user-avatar" @error="onAvatarError" alt="" />
+            <div class="user-meta">
+              <span class="user-display">{{ item.nickname || item.username }}</span>
+              <span class="user-handle">@{{ item.username }}</span>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- Posts -->
+        <div v-else-if="activeFilter === 'posts' && results.length > 0" class="result-stack">
+          <router-link
+            v-for="item in results"
+            :key="item.id"
+            :to="`/post/${item.id}`"
+            class="post-card"
+          >
+            <h3 class="post-card-title">{{ item.title }}</h3>
+            <p class="post-card-excerpt">{{ truncateText(item.summary, 160) }}</p>
+            <div class="post-card-footer">
+              <span class="post-card-author">{{ item.nickname || item.username }}</span>
+              <span class="post-card-dot">&middot;</span>
+              <span class="post-card-time">{{ formatRelativeTime(item.createTime) }}</span>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- Circles -->
+        <div v-else-if="activeFilter === 'circles' && results.length > 0" class="result-stack">
+          <router-link
+            v-for="item in results"
+            :key="item.id"
+            :to="`/circle/${item.id}`"
+            class="circle-card"
+          >
+            <div class="circle-card-head">
+              <img :src="item.userAvatar || defaultAvatar" class="circle-avatar" @error="(e: Event) => { const t = e.target as HTMLImageElement; if (t) t.src = defaultAvatar; }" alt="" />
+              <span class="circle-author">{{ item.userNickname || item.userUsername }}</span>
+              <span class="circle-time">{{ item.timeAgo || formatRelativeTime(item.createTime) }}</span>
+            </div>
+            <p class="circle-text">{{ truncateText(item.content, 200) }}</p>
+            <div v-if="item.topicNames && item.topicNames.length > 0" class="circle-topic-row">
+              <router-link v-for="(topic, idx) in item.topicNames" :key="topic" :to="`/topic/${item.topicIds?.[idx] || ''}`" class="topic-tag">#{{ topic }}</router-link>
+            </div>
+            <div v-if="item.images && item.images.length > 0" class="circle-img-row">
+              <img v-for="(img, idx) in item.images.slice(0, 3)" :key="idx" :src="img" class="circle-thumb" alt="" />
+            </div>
+          </router-link>
+        </div>
+
+        <!-- Tags -->
+        <div v-else-if="activeFilter === 'tags' && results.length > 0" class="tag-cloud">
+          <router-link
+            v-for="item in results"
+            :key="item.id"
+            :to="`/tag/${item.id}`"
+            class="tag-chip"
+          >
+            {{ item.name }}
+          </router-link>
+        </div>
+
+        <!-- Topics -->
+        <div v-else-if="activeFilter === 'topics' && results.length > 0" class="result-stack">
+          <router-link
+            v-for="item in results"
+            :key="item.id"
+            :to="`/topic/${item.id}`"
+            class="topic-card"
+          >
+            <span class="topic-hash">#</span>
+            <div class="topic-meta">
+              <span class="topic-name">{{ item.name }}</span>
+              <span v-if="item.description" class="topic-desc">{{ item.description }}</span>
+            </div>
+            <span class="topic-count">{{ item.postCount || 0 }} 动态</span>
+          </router-link>
+        </div>
+
+        <!-- All (aggregated) -->
+        <div v-else-if="activeFilter === 'all' && results.length > 0" class="result-stack">
+          <template v-for="item in results" :key="item.type + '-' + item.id">
+            <!-- Post -->
+            <router-link v-if="item.type === 'post'" :to="`/post/${item.id}`" class="post-card">
+              <span class="card-type-label">文章</span>
+              <h3 class="post-card-title">{{ item.title }}</h3>
+              <p class="post-card-excerpt">{{ truncateText(item.summary, 140) }}</p>
+              <div class="post-card-footer">
+                <span class="post-card-author">{{ item.nickname || item.username }}</span>
+                <span class="post-card-dot">&middot;</span>
+                <span class="post-card-time">{{ formatRelativeTime(item.createTime) }}</span>
+              </div>
+            </router-link>
+            <!-- Circle -->
+            <router-link v-else-if="item.type === 'circle'" :to="`/circle/${item.id}`" class="circle-card">
+              <div class="circle-card-head">
+                <img :src="item.userAvatar || defaultAvatar" class="circle-avatar" alt="" />
+                <span class="circle-author">{{ item.userNickname || item.userUsername }}</span>
+                <span class="card-type-label">校友圈</span>
+              </div>
+              <p class="circle-text">{{ truncateText(item.content, 140) }}</p>
+            </router-link>
+            <!-- Tag -->
+            <router-link v-else-if="item.type === 'tag'" :to="`/tag/${item.id}`" class="tag-inline-card">
+              <span class="card-type-label">标签</span>
+              <span class="tag-chip-lg">{{ item.name }}</span>
+            </router-link>
+            <!-- Topic -->
+            <router-link v-else-if="item.type === 'topic'" :to="`/topic/${item.id}`" class="topic-card">
+              <span class="card-type-label">话题</span>
+              <span class="topic-hash">#</span>
+              <span class="topic-name">{{ item.name }}</span>
+              <span v-if="item.postCount" class="topic-count">{{ item.postCount }} 动态</span>
+            </router-link>
+          </template>
+        </div>
+
+        <!-- Load more -->
+        <div v-if="hasMore" class="load-more-row">
+          <button class="btn btn-secondary" @click="loadMore" :disabled="loading">
+            {{ loading ? '加载中...' : '加载更多' }}
           </button>
         </div>
-      </div>
 
-      <div v-if="!hasSearched && searchHistory.length > 0" class="search-history glass">
-        <div class="history-header">
-          <div class="history-header-left">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span>搜索历史</span>
-          </div>
-          <button class="btn btn-xs btn-ghost" @click="clearSearchHistory">清除</button>
+        <!-- No more -->
+        <p v-else-if="results.length > 0" class="state-end">已显示全部结果</p>
+
+        <!-- Empty -->
+        <div v-else class="state-block state-empty">
+          <p class="state-empty-title">没有找到相关内容</p>
+          <p class="state-empty-hint">试试换个关键词，或者切换搜索类别</p>
         </div>
-        <div class="history-list">
-          <div
-            v-for="item in searchHistory"
-            :key="item"
-            class="history-chip"
-            @click="searchQuery = item; doSearch()"
-          >
-            <span>{{ item }}</span>
-            <button class="chip-remove" @click.stop="removeHistoryItem(item)">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="hasSearched" class="search-results">
-        <div v-if="error" class="error-state glass">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="error-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <p>{{ error }}</p>
-          <button class="btn btn-primary btn-sm" @click="doSearch">重试</button>
-        </div>
-        <div v-else-if="loading && results.length === 0" class="loading-skeleton">
-          <div v-for="i in 3" :key="i" class="result-item glass">
-            <div class="skeleton-title-line w-70"></div>
-            <div class="skeleton-title-line w-90"></div>
-            <div class="skeleton-text-line w-40"></div>
-          </div>
-        </div>
-        <template v-else>
-          <div class="results-header">
-            <span>共找到 <strong>{{ totalResults }}</strong> 个结果</span>
-          </div>
-
-          <div v-if="results.length > 0" class="result-list">
-            <!-- 用户结果 -->
-            <template v-if="activeFilter === 'users'">
-              <div v-for="item in results" :key="item.userId" class="result-item glass user-result-item">
-                <div class="user-result">
-                  <img v-if="item.avatar" :src="item.avatar" class="user-avatar" @error="onAvatarError" />
-                  <div class="user-info">
-                    <router-link :to="`/user/${item.userId}`" class="user-name">
-                      {{ item.nickname || item.username }}
-                    </router-link>
-                    <p class="user-username">@{{ item.username }}</p>
-                  </div>
-                </div>
-              </div>
-            </template>
-
-            <!-- 文章结果 -->
-            <template v-else-if="activeFilter === 'posts'">
-              <div v-for="item in results" :key="item.id" class="result-item glass">
-                <div class="result-body">
-                  <h3 class="result-title">
-                    <router-link :to="`/post/${item.id}`">{{ item.title }}</router-link>
-                  </h3>
-                  <p class="result-excerpt">{{ truncateText(item.summary, 150) }}</p>
-                  <div class="result-meta">
-                    <router-link :to="`/user/${item.userId}`" class="result-author">
-                      {{ item.nickname || item.username }}
-                    </router-link>
-                    <span class="result-time">{{ formatRelativeTime(item.createTime) }}</span>
-                  </div>
-                </div>
-              </div>
-            </template>
-
-            <!-- 校友圈结果 -->
-            <template v-else-if="activeFilter === 'circles'">
-              <router-link
-                v-for="item in results"
-                :key="item.id"
-                :to="`/circle/${item.id}`"
-                class="result-item glass circle-result-item"
-              >
-                <div class="circle-result-header">
-                  <img v-if="item.userAvatar" :src="item.userAvatar" class="user-avatar-sm" @error="(e: Event) => { const t = e.target as HTMLImageElement; if (t) t.src = defaultAvatar; }" />
-                  <div class="circle-user-info">
-                    <span class="user-name">
-                      {{ item.userNickname || item.userUsername }}
-                    </span>
-                    <span class="result-time">{{ item.timeAgo || formatRelativeTime(item.createTime) }}</span>
-                  </div>
-                </div>
-                <div class="circle-content">
-                  <p>{{ truncateText(item.content, 200) }}</p>
-                </div>
-                <div v-if="item.topicNames && item.topicNames.length > 0" class="circle-topics">
-                  <router-link v-for="(topic, idx) in item.topicNames" :key="topic" :to="`/topic/${item.topicIds?.[idx] || ''}`" class="topic-tag">#{{ topic }}</router-link>
-                </div>
-                <div v-if="item.images && item.images.length > 0" class="circle-images">
-                  <img v-for="(img, idx) in item.images.slice(0, 4)" :key="idx" :src="img" class="circle-image-thumb" />
-                </div>
-                <div class="result-meta">
-                  <span>❤️ {{ item.likeCount || 0 }}</span>
-                  <span>💬 {{ item.commentCount || 0 }}</span>
-                </div>
-              </router-link>
-            </template>
-
-            <!-- 标签结果 -->
-            <template v-else-if="activeFilter === 'tags'">
-              <div v-for="item in results" :key="item.id" class="result-item glass tag-result-item">
-                <router-link :to="`/tag/${item.id}`" class="tag-link">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                  <span class="tag-name">{{ item.name }}</span>
-                </router-link>
-              </div>
-            </template>
-
-            <!-- 话题结果 -->
-            <template v-else-if="activeFilter === 'topics'">
-              <div v-for="item in results" :key="item.id" class="result-item glass topic-result-item">
-                <router-link :to="`/topic/${item.id}`" class="topic-link">
-                  <div class="topic-icon">#</div>
-                  <div class="topic-info">
-                    <span class="topic-name">{{ item.name }}</span>
-                    <span v-if="item.description" class="topic-desc">{{ item.description }}</span>
-                    <span class="topic-stats">{{ item.postCount || 0 }} 动态</span>
-                  </div>
-                </router-link>
-              </div>
-            </template>
-
-            <!-- 全部结果 - 聚合显示 -->
-            <template v-else-if="activeFilter === 'all'">
-              <div v-for="item in results" :key="item.type + '-' + item.id" class="result-item glass">
-                <!-- 文章类型 -->
-                <template v-if="item.type === 'post'">
-                  <div class="result-body">
-                    <div class="result-type-badge">文章</div>
-                    <h3 class="result-title">
-                      <router-link :to="`/post/${item.id}`">{{ item.title }}</router-link>
-                    </h3>
-                    <p class="result-excerpt">{{ truncateText(item.summary, 150) }}</p>
-                    <div class="result-meta">
-                      <router-link :to="`/user/${item.userId}`" class="result-author">
-                        {{ item.nickname || item.username }}
-                      </router-link>
-                      <span class="result-time">{{ formatRelativeTime(item.createTime) }}</span>
-                    </div>
-                  </div>
-                </template>
-                <!-- 校友圈类型 -->
-                <template v-else-if="item.type === 'circle'">
-                  <router-link :to="`/circle/${item.id}`" class="circle-all-link">
-                    <div class="circle-result-header">
-                      <img v-if="item.userAvatar" :src="item.userAvatar" class="user-avatar-sm" />
-                      <div class="circle-user-info">
-                        <span class="user-name">
-                          {{ item.userNickname || item.userUsername }}
-                        </span>
-                        <span class="result-time">{{ item.timeAgo || formatRelativeTime(item.createTime) }}</span>
-                      </div>
-                      <span class="result-type-badge">校友圈</span>
-                    </div>
-                    <p class="result-excerpt">{{ truncateText(item.content, 150) }}</p>
-                  </router-link>
-                </template>
-                <!-- 标签类型 -->
-                <template v-else-if="item.type === 'tag'">
-                  <div class="tag-result">
-                    <span class="result-type-badge">标签</span>
-                    <router-link :to="`/tag/${item.id}`" class="tag-link">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                      <span class="tag-name">{{ item.name }}</span>
-                    </router-link>
-                  </div>
-                </template>
-                <!-- 话题类型 -->
-                <template v-else-if="item.type === 'topic'">
-                  <div class="topic-result">
-                    <span class="result-type-badge">话题</span>
-                    <router-link :to="`/topic/${item.id}`" class="topic-link">
-                      <span class="topic-name">#{{ item.name }}</span>
-                    </router-link>
-                    <span v-if="item.postCount" class="topic-post-count">{{ item.postCount }} 动态</span>
-                  </div>
-                </template>
-              </div>
-            </template>
-          </div>
-
-          <div v-if="hasMore" class="load-more">
-            <button class="btn btn-secondary" @click="loadMore" :disabled="loading">
-              <svg v-if="loading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-              {{ loading ? '加载中...' : '加载更多' }}
-            </button>
-          </div>
-
-          <div v-else-if="results.length > 0" class="no-more-state glass">
-            <p>没有更多结果了</p>
-          </div>
-
-          <div v-else class="empty-state glass">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-            <p class="empty-title">未找到相关内容</p>
-            <p class="empty-text">尝试更换关键词或使用不同的筛选条件</p>
-          </div>
-        </template>
-      </div>
-    </div>
+      </template>
+    </section>
   </div>
 </template>
 
@@ -392,7 +361,6 @@ const doSearch = async () => {
       totalResults.value = data.length
       hasMore.value = false
     } else if (activeFilter.value === 'all') {
-      // 聚合搜索：并行调用多个接口
       const [postsRes, circlesRes, tagsRes, topicsRes] = await Promise.allSettled([
         postApi.advancedSearch({ keyword: searchQuery.value, pageNum: 1, pageSize: 10 }),
         circleApi.searchPosts({ keyword: searchQuery.value, pageNum: 1, pageSize: 10 }),
@@ -403,28 +371,21 @@ const doSearch = async () => {
       let total = 0
       results.value = []
 
-      // 文章结果
       if (postsRes.status === 'fulfilled' && postsRes.value.data) {
         const posts = postsRes.value.data.records || []
         results.value.push(...posts.map(p => ({ ...p, type: 'post' })))
         total += postsRes.value.data.total || 0
       }
-
-      // 校友圈结果
       if (circlesRes.status === 'fulfilled' && circlesRes.value.data) {
         const circles = (circlesRes.value.data || []) as unknown as any[]
         results.value.push(...circles.map((c: any) => ({ ...c, type: 'circle' })))
         total += circles.length
       }
-
-      // 标签结果
       if (tagsRes.status === 'fulfilled' && tagsRes.value.data) {
         const tags = tagsRes.value.data || []
         results.value.push(...tags.map(t => ({ id: t.id, name: t.name, type: 'tag' })))
         total += tags.length
       }
-
-      // 话题结果
       if (topicsRes.status === 'fulfilled' && topicsRes.value.data) {
         const topics = topicsRes.value.data || []
         results.value.push(...topics.map(tp => ({ ...tp, type: 'topic' })))
@@ -434,7 +395,6 @@ const doSearch = async () => {
       totalResults.value = total
       hasMore.value = false
     } else {
-      // 默认文章搜索
       const response = await postApi.advancedSearch({
         keyword: searchQuery.value,
         pageNum: currentPage.value,
@@ -542,321 +502,356 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* =====================================================
+   Search Page — Typography-Forward Minimalist
+   ===================================================== */
+
 .search-page {
-  max-width: 1000px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: var(--spacing-lg);
+  padding: var(--spacing-xl) var(--spacing-lg);
 }
 
-.search-container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
+/* ---------- Hero ---------- */
+
+.search-hero {
+  text-align: center;
+  padding: var(--spacing-3xl) 0 var(--spacing-xl);
+  transition: padding var(--transition-slow);
 }
 
-.search-header {
-  padding: var(--spacing-xl);
-  border-radius: var(--radius-lg);
-  transition: all var(--transition);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-wet);
-  box-shadow: var(--glass-shadow-wet);
-  position: relative;
+.search-hero.has-results {
+  padding: var(--spacing-lg) 0 var(--spacing-md);
+}
+
+.search-title {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: var(--font-extrabold);
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  margin: 0 0 var(--spacing-2);
+  line-height: var(--leading-tight);
+}
+
+.search-hero.has-results .search-title {
+  font-size: var(--text-2xl);
+  margin-bottom: var(--spacing-1);
+}
+
+.search-subtitle {
+  font-size: var(--text-base);
+  color: var(--text-muted);
+  margin: 0 0 var(--spacing-xl);
+  transition: opacity var(--transition), margin var(--transition-slow);
+}
+
+.search-hero.has-results .search-subtitle {
+  opacity: 0;
+  height: 0;
+  margin: 0;
   overflow: hidden;
 }
 
-.search-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  pointer-events: none;
-}
+/* ---------- Search field ---------- */
 
-.header-top {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
-}
-
-.header-icon {
-  color: var(--primary);
-}
-
-.search-header h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.search-box-wrapper {
+.search-input-wrap {
   position: relative;
-  margin-bottom: var(--spacing-md);
+  max-width: 560px;
+  margin: 0 auto var(--spacing-lg);
 }
 
-.search-box {
+.search-field {
+  width: 100%;
+  padding: var(--spacing-4) var(--spacing-12) var(--spacing-4) var(--spacing-5);
+  font-size: var(--text-lg);
+  font-family: var(--font-sans);
+  font-weight: var(--font-normal);
+  color: var(--text-primary);
+  background: var(--surface-solid);
+  border: 2px solid var(--border-solid);
+  border-radius: var(--radius-xl);
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  line-height: var(--leading-normal);
+}
+
+.search-field::placeholder {
+  color: var(--text-muted);
+  font-weight: var(--font-normal);
+}
+
+.search-field:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+.search-submit {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-  padding: 4px;
-  box-shadow: var(--glass-shadow);
-  transition: all var(--transition);
-}
-
-.search-box:focus-within {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
-}
-
-.search-icon {
-  padding: 0 8px;
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
-.search-input {
-  flex: 1;
-  padding: 10px 8px;
+  justify-content: center;
+  background: var(--primary);
   border: none;
-  background: transparent;
-  font-size: 1rem;
-  color: var(--text-primary);
-  outline: none;
+  border-radius: var(--radius-lg);
+  color: white;
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
 }
 
-.search-input::placeholder {
-  color: var(--text-muted);
+.search-submit:hover {
+  background: var(--primary-hover);
+  transform: translateY(-50%) scale(1.04);
 }
 
-.search-btn {
-  padding: 10px 20px;
-  flex-shrink: 0;
+.search-submit:active {
+  transform: translateY(-50%) scale(0.97);
 }
 
+/* Suggestions dropdown */
 .suggestions-dropdown {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 8px);
   left: 0;
   right: 0;
   z-index: var(--z-dropdown);
-  border-radius: var(--radius);
+  background: var(--surface-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
-  max-height: 240px;
+  max-height: 260px;
   overflow-y: auto;
 }
 
 .suggestion-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: 10px var(--spacing-md);
-  font-size: 0.875rem;
+  display: block;
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-5);
+  font-size: var(--text-base);
+  font-family: var(--font-sans);
   color: var(--text-primary);
+  background: transparent;
+  border: none;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  text-align: left;
+  transition: background var(--transition-fast);
 }
 
 .suggestion-item:hover {
   background: var(--primary-light);
-  color: var(--primary);
 }
 
-.suggestion-item svg {
-  color: var(--text-muted);
-  flex-shrink: 0;
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity var(--transition), transform var(--transition);
 }
 
-.search-filters {
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* ---------- Filter pills ---------- */
+
+.filter-row {
   display: flex;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-2);
+  justify-content: center;
   flex-wrap: wrap;
 }
 
-.filter-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  font-size: 0.875rem;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
+.filter-pill {
+  padding: var(--spacing-2) var(--spacing-4);
+  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  font-weight: var(--font-medium);
   color: var(--text-secondary);
+  background: transparent;
+  border: 1.5px solid var(--border-solid);
+  border-radius: var(--radius-full);
   cursor: pointer;
   transition: all var(--transition);
-  box-shadow: var(--shadow-xs);
+  line-height: 1;
 }
 
-.filter-btn:hover {
+.filter-pill:hover {
   border-color: var(--primary);
   color: var(--primary);
-  transform: translateY(-1px);
 }
 
-.filter-btn.active {
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-  border-color: transparent;
+.filter-pill.active {
+  background: var(--primary);
+  border-color: var(--primary);
   color: white;
-  box-shadow: var(--shadow-sm), var(--shadow-glow-primary);
 }
 
-.search-history {
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-radius: var(--radius-lg);
-  transition: all var(--transition);
+/* ---------- History ---------- */
+
+.history-section {
+  margin-bottom: var(--spacing-xl);
 }
 
-.history-header {
+.section-label {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-md);
-}
-
-.history-header-left {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
   color: var(--text-muted);
-  font-weight: 500;
+  margin-bottom: var(--spacing-3);
 }
 
-.history-list {
+.clear-btn {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.clear-btn:hover {
+  color: var(--error);
+  background: var(--error-light);
+}
+
+.history-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-2);
 }
 
 .history-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 10px;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid transparent;
   border-radius: var(--radius-full);
   cursor: pointer;
-  font-size: 0.8125rem;
-  color: var(--text-secondary);
-  transition: all var(--transition);
+  transition: all var(--transition-fast);
 }
 
 .history-chip:hover {
   background: var(--primary-light);
   color: var(--primary);
-  border-color: var(--primary);
 }
 
-.chip-remove {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
+.chip-x {
+  font-size: var(--text-base);
+  line-height: 1;
   color: var(--text-muted);
-  cursor: pointer;
-  padding: 2px;
-  border-radius: var(--radius-xs);
-  transition: all var(--transition);
+  transition: color var(--transition-fast);
 }
 
-.chip-remove:hover {
+.chip-x:hover {
   color: var(--error);
-  background: var(--error-light);
 }
 
-.results-header {
-  font-size: 0.875rem;
+/* ---------- Results ---------- */
+
+.results-section {
+  padding-top: var(--spacing-md);
+}
+
+.result-count {
+  font-size: var(--text-sm);
   color: var(--text-muted);
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 
-.results-header strong {
-  color: var(--primary);
-  font-weight: 600;
+.result-count strong {
+  color: var(--text-primary);
+  font-weight: var(--font-semibold);
 }
 
-.result-list {
+.result-stack {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-3);
 }
 
-.result-item {
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-lg);
-  transition: all var(--transition);
+/* --- Post card --- */
+
+.post-card {
+  display: block;
+  padding: var(--spacing-5) var(--spacing-6);
+  background: var(--surface-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
 
-.result-item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+.post-card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
 }
 
-.result-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: var(--spacing-xs);
-}
-
-.result-title a {
+.post-card-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
+  margin: 0 0 var(--spacing-2);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
 }
 
-.result-title a:hover {
-  color: var(--primary);
-}
-
-.result-excerpt {
-  font-size: 0.875rem;
+.post-card-excerpt {
+  font-size: var(--text-sm);
   color: var(--text-secondary);
-  margin-bottom: var(--spacing-sm);
-  line-height: 1.6;
+  line-height: var(--leading-normal);
+  margin: 0 0 var(--spacing-3);
 }
 
-.result-meta {
+.post-card-footer {
   display: flex;
-  gap: var(--spacing-md);
-  font-size: 0.75rem;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--text-xs);
   color: var(--text-muted);
 }
 
-.result-author {
-  color: var(--primary);
+.post-card-author {
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
 }
 
-.result-type-badge {
-  display: inline-block;
-  font-size: 0.7rem;
-  padding: 2px 8px;
-  background: var(--primary-light);
-  color: var(--primary);
-  border-radius: var(--radius-full);
-  margin-bottom: var(--spacing-xs);
+.post-card-dot {
+  opacity: 0.4;
 }
 
-.user-result-item {
-  padding: var(--spacing-md) var(--spacing-lg);
-}
+/* --- User card --- */
 
-.user-result {
+.user-card {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-5);
+  background: var(--surface-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.user-card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .user-avatar {
@@ -864,309 +859,366 @@ onUnmounted(() => {
   height: 48px;
   border-radius: var(--radius-full);
   object-fit: cover;
-  border: 2px solid var(--surface-solid);
-  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
 }
 
-.user-avatar-sm {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-full);
-  object-fit: cover;
-}
-
-.user-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.user-name {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.user-name:hover {
-  color: var(--primary);
-}
-
-.user-username {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-}
-
-/* 校友圈样式 */
-.circle-result-item {
-  padding: var(--spacing-md) var(--spacing-lg);
-}
-
-.circle-result-header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
-}
-
-.circle-user-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.circle-content {
-  font-size: 0.9rem;
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
-  line-height: 1.6;
-}
-
-.circle-topics {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-  margin-bottom: var(--spacing-sm);
-}
-
-.topic-tag {
-  font-size: 0.8rem;
-  color: var(--primary);
-  background: var(--primary-light);
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  text-decoration: none;
-}
-.topic-tag:hover {
-  background: var(--primary);
-  color: white;
-}
-
-.circle-images {
-  display: flex;
-  gap: var(--spacing-xs);
-  margin-bottom: var(--spacing-sm);
-  flex-wrap: wrap;
-}
-
-.circle-image-thumb {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: var(--radius);
-}
-
-.circle-all-link {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-}
-
-.circle-all-link:hover {
-  color: inherit;
-}
-
-/* 标签样式 */
-.tag-result-item {
-  padding: var(--spacing-md) var(--spacing-lg);
-}
-
-.tag-link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  color: var(--text-primary);
-  text-decoration: none;
-}
-
-.tag-link:hover {
-  color: var(--primary);
-}
-
-.tag-name {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--primary);
-}
-
-.tag-result {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-/* 话题样式 */
-.topic-result-item {
-  padding: var(--spacing-md) var(--spacing-lg);
-}
-
-.topic-link {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  text-decoration: none;
-}
-
-.topic-icon {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--primary-light);
-  color: var(--primary);
-  border-radius: var(--radius);
-  font-size: 1.2rem;
-  font-weight: 700;
-}
-
-.topic-info {
+.user-meta {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.topic-name {
-  font-size: 1rem;
-  font-weight: 600;
+.user-display {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
 }
 
-.topic-link:hover .topic-name {
-  color: var(--primary);
-}
-
-.topic-desc {
-  font-size: 0.8rem;
+.user-handle {
+  font-size: var(--text-sm);
   color: var(--text-muted);
 }
 
-.topic-stats {
-  font-size: 0.75rem;
-  color: var(--text-muted);
+/* --- Circle card --- */
+
+.circle-card {
+  display: block;
+  padding: var(--spacing-5) var(--spacing-6);
+  background: var(--surface-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
 
-.topic-result {
+.circle-card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.circle-card-head {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-3);
 }
 
-.topic-post-count {
-  font-size: 0.8rem;
-  color: var(--text-muted);
+.circle-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
-.empty-state {
-  text-align: center;
-  padding: var(--spacing-3xl) var(--spacing-xl);
-  border-radius: var(--radius-lg);
-}
-
-.empty-icon {
-  color: var(--text-muted);
-  opacity: 0.3;
-  margin-bottom: var(--spacing-md);
-}
-
-.empty-title {
-  font-size: 1.125rem;
-  font-weight: 600;
+.circle-author {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
-  margin-bottom: var(--spacing-xs);
 }
 
-.empty-text {
-  font-size: 0.875rem;
+.circle-time {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.circle-text {
+  font-size: var(--text-sm);
   color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  margin: 0 0 var(--spacing-3);
 }
 
-.error-state {
-  text-align: center;
-  padding: var(--spacing-3xl) var(--spacing-xl);
-  border-radius: var(--radius-lg);
+.circle-topic-row {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
 }
 
-.error-icon {
-  color: var(--error);
-  opacity: 0.5;
+.topic-tag {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 2px var(--spacing-2);
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  transition: background var(--transition-fast);
 }
 
-.error-state p {
-  color: var(--error);
-  font-size: 0.875rem;
+.topic-tag:hover {
+  background: var(--primary);
+  color: white;
 }
 
-.no-more-state {
-  text-align: center;
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-lg);
-  color: var(--text-muted);
-  font-size: 0.875rem;
-}
-
-.loading-skeleton {
+.circle-img-row {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-2);
 }
 
-.loading-skeleton .result-item {
+.circle-thumb {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+/* --- Tag cloud --- */
+
+.tag-cloud {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
 }
 
-.skeleton-title-line {
-  height: 16px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-.skeleton-text-line {
-  height: 12px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-.skeleton-title-line.w-70 { width: 70%; }
-.skeleton-title-line.w-90 { width: 90%; }
-.skeleton-text-line.w-40 { width: 40%; }
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.load-more {
-  text-align: center;
-  padding: var(--spacing-lg);
-}
-
-.dropdown-enter-active,
-.dropdown-leave-active {
+.tag-chip {
+  padding: var(--spacing-2) var(--spacing-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-full);
+  text-decoration: none;
   transition: all var(--transition);
 }
 
-.dropdown-enter-from,
-.dropdown-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
+.tag-chip:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
 }
 
+/* --- Tag inline card (in "all" view) --- */
+
+.tag-inline-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-5);
+  background: var(--surface-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: border-color var(--transition);
+}
+
+.tag-inline-card:hover {
+  border-color: var(--primary);
+}
+
+.tag-chip-lg {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--primary);
+}
+
+/* --- Topic card --- */
+
+.topic-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-5);
+  background: var(--surface-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.topic-card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.topic-hash {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-extrabold);
+  color: var(--primary);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.topic-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.topic-name {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.topic-desc {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topic-count {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* --- Type label --- */
+
+.card-type-label {
+  display: inline-block;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 1px var(--spacing-2);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-2);
+}
+
+/* ---------- States ---------- */
+
+.state-block {
+  text-align: center;
+  padding: var(--spacing-3xl) var(--spacing-lg);
+}
+
+.state-text {
+  font-size: var(--text-sm);
+  color: var(--error);
+  margin-bottom: var(--spacing-md);
+}
+
+.state-empty-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-2);
+}
+
+.state-empty-hint {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.state-end {
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  padding: var(--spacing-lg) 0;
+}
+
+/* ---------- Skeleton ---------- */
+
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.skeleton-card {
+  padding: var(--spacing-5) var(--spacing-6);
+  background: var(--surface-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.sk-line {
+  height: 14px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.sk-w60 { width: 60%; }
+.sk-w90 { width: 90%; }
+.sk-w35 { width: 35%; }
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---------- Load more ---------- */
+
+.load-more-row {
+  text-align: center;
+  padding: var(--spacing-lg) 0;
+}
+
+/* ---------- Responsive ---------- */
+
 @media (max-width: 768px) {
-  .search-page { padding: var(--spacing-md); }
-  .search-header { padding: var(--spacing-md); }
-  .result-item { padding: var(--spacing-md); }
-  .search-filters { flex-wrap: wrap; }
+  .search-page {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+
+  .search-hero {
+    padding: var(--spacing-xl) 0 var(--spacing-lg);
+  }
+
+  .search-hero.has-results {
+    padding: var(--spacing-md) 0;
+  }
+
+  .search-title {
+    font-size: var(--text-3xl);
+  }
+
+  .search-hero.has-results .search-title {
+    font-size: var(--text-xl);
+  }
+
+  .search-field {
+    font-size: var(--text-base);
+    padding: var(--spacing-3) var(--spacing-12) var(--spacing-3) var(--spacing-4);
+  }
+
+  .post-card,
+  .circle-card,
+  .user-card,
+  .topic-card,
+  .tag-inline-card {
+    padding: var(--spacing-4);
+  }
+
+  .post-card-title {
+    font-size: var(--text-lg);
+  }
+
+  .filter-pill {
+    padding: var(--spacing-1_5) var(--spacing-3);
+    font-size: var(--text-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .search-title {
+    font-size: var(--text-2xl);
+  }
+
+  .search-subtitle {
+    font-size: var(--text-sm);
+  }
+
+  .circle-thumb {
+    width: 56px;
+    height: 56px;
+  }
 }
 </style>

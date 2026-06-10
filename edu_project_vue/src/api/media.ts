@@ -3,7 +3,7 @@
  */
 
 import api from './index'
-import type { ApiResponse, UploadType, Media, UploadResponse } from '@/types'
+import type { ApiResponse, PaginatedResponse, UploadType, Media, UploadResponse } from '@/types'
 import type { AxiosProgressEvent } from 'axios'
 
 export const mediaApi = {
@@ -76,7 +76,7 @@ export const mediaApi = {
   /**
    * 获取用户媒体列表（分页）
    */
-  getUserMediaList(params: { pageNum?: number; pageSize?: number }): Promise<ApiResponse> {
+  getUserMediaList(params: { pageNum?: number; pageSize?: number }): Promise<PaginatedResponse<Media>> {
     return api.get('/media/list', { params })
   }
 }

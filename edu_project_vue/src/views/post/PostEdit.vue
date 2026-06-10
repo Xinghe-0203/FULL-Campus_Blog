@@ -52,7 +52,7 @@
           </span>
           <span v-if="route.params.id && postInfo.createTime" class="meta-item meta-time">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            创建于 {{ formatTime(postInfo.createTime) }}
+            创建于 {{ formatDate(postInfo.createTime) }}
           </span>
         </div>
       </div>
@@ -273,6 +273,7 @@ import { mediaApi } from '../../api/media'
 import { useLogger } from '../../utils/logger'
 import { toast } from '../../utils/toast'
 import { useConfirm } from '../../composables/useConfirm'
+import { formatDate } from '../../utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -336,11 +337,6 @@ const saveStatusText = computed(() => {
 function categoryLabel(category: string) {
   const labels: Record<string, string> = { tech: '技术', life: '生活', study: '学习', other: '其他' }
   return labels[category] || category
-}
-
-function formatTime(t: string) {
-  if (!t) return ''
-  try { return new Date(t).toLocaleString('zh-CN') } catch { return t }
 }
 
 function insertMarkdown(before: string, after: string) {

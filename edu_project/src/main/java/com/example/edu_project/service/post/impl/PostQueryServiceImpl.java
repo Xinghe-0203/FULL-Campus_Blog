@@ -21,6 +21,7 @@ import com.example.edu_project.vo.post.PostDetailResponse;
 import com.example.edu_project.vo.post.PostListResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,11 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class PostQueryServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> implements PostQueryService {
+
+    @Value("${DB_TYPE:mysql}")
+    private String dbType;
+
+    private boolean isSqlite() { return "sqlite".equalsIgnoreCase(dbType); }
 
     @Autowired
     private BlogPostTagMapper blogPostTagMapper;
@@ -243,7 +249,11 @@ public class PostQueryServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> 
         }
 
         if (request.getTopicId() != null) {
-            wrapper.apply("JSON_CONTAINS(topic_ids, CAST({0} AS JSON))", request.getTopicId());
+            if (isSqlite()) {
+                wrapper.apply("EXISTS (SELECT 1 FROM json_each(topic_ids) WHERE CAST(value AS INTEGER) = {0})", request.getTopicId());
+            } else {
+                wrapper.apply("JSON_CONTAINS(topic_ids, CAST({0} AS JSON))", request.getTopicId());
+            }
         }
 
         String sortBy = request.getSortBy();

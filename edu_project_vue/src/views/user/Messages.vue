@@ -1,84 +1,93 @@
 <template>
   <div class="messages-page">
-    <button class="floating-back-btn" @click="goBack">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    <button class="back-btn-floating" @click="goBack">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-    <div class="messages-container">
-      <div class="conversation-list glass-rain water-drops" :class="{ show: showMobileList }">
-        <div class="list-header">
-          <div class="list-header-left">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="list-icon"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <h2>私信</h2>
-          </div>
-          <button class="list-close-btn" @click="showMobileList = false" v-if="activeConversation">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+
+    <div class="messages-layout">
+      <!-- Conversation list -->
+      <aside class="conv-panel" :class="{ show: showMobileList }">
+        <div class="conv-header">
+          <h2>私信</h2>
+          <button class="conv-close" @click="showMobileList = false" v-if="activeConversation">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
-        <div class="list-content">
-          <div v-if="loadingConversations" class="empty-list">
-            <div class="loading-spinner"></div>
-            <p>加载中...</p>
+
+        <div class="conv-scroll">
+          <!-- Loading -->
+          <div v-if="loadingConversations" class="conv-empty">
+            <div class="spinner"></div>
+            <span>加载中</span>
           </div>
-          <div v-else-if="conversationsError" class="empty-list">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <p class="error-text">{{ conversationsError }}</p>
-            <button class="btn btn-sm btn-secondary" @click="fetchConversations()">重试</button>
+
+          <!-- Error -->
+          <div v-else-if="conversationsError" class="conv-empty">
+            <p class="conv-error-text">{{ conversationsError }}</p>
+            <button class="btn btn-xs btn-primary" @click="fetchConversations()">重试</button>
           </div>
+
+          <!-- List -->
           <div v-else-if="conversations.length > 0">
             <div
               v-for="conv in conversations"
               :key="conv.conversationId || `virtual-${conv.user?.id}`"
-              class="conversation-item"
+              class="conv-item"
               :class="{ active: activeConversation?.conversationId != null ? activeConversation.conversationId === conv.conversationId : activeConversation?.user?.id === conv.user?.id }"
               @click="selectConversation(conv)"
             >
-              <div class="avatar-wrapper">
-                <img :src="conv.user?.avatar || defaultAvatar" :alt="conv.user?.nickname || conv.user?.username" class="conv-avatar" @error="onAvatarError" />
-              </div>
-              <div class="conv-info">
-                <div class="conv-name-row">
+              <img :src="conv.user?.avatar || defaultAvatar" :alt="conv.user?.nickname || conv.user?.username" class="conv-avatar" @error="onAvatarError" />
+              <div class="conv-body">
+                <div class="conv-row">
                   <span class="conv-name">{{ conv.user?.nickname || conv.user?.username }}</span>
-                  <span v-if="conv.unreadCount > 0" class="conv-badge">{{ conv.unreadCount > 99 ? '99+' : conv.unreadCount }}</span>
+                  <span class="conv-time">{{ formatRelativeTime(conv.lastMessageTime) }}</span>
                 </div>
-                <span class="conv-last-message">{{ conv.lastMessage || '暂无消息' }}</span>
+                <div class="conv-row">
+                  <span class="conv-preview">{{ conv.lastMessage || '暂无消息' }}</span>
+                  <span v-if="conv.unreadCount > 0" class="conv-unread">{{ conv.unreadCount > 99 ? '99+' : conv.unreadCount }}</span>
+                </div>
               </div>
-              <span class="conv-time">{{ formatRelativeTime(conv.lastMessageTime) }}</span>
             </div>
           </div>
-          <div v-else class="empty-list">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <p class="empty-title">暂无私信</p>
-            <p class="empty-text">开始与校园好友对话吧</p>
+
+          <!-- Empty -->
+          <div v-else class="conv-empty">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="conv-empty-icon"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <p class="conv-empty-title">暂无私信</p>
+            <p class="conv-empty-desc">开始与校园好友对话吧</p>
           </div>
         </div>
-      </div>
+      </aside>
 
-      <div class="message-area glass-rain water-drops">
+      <!-- Message area -->
+      <main class="msg-panel">
         <template v-if="activeConversation">
-          <div class="area-header">
-            <div class="header-user">
-              <div class="avatar-wrapper">
-                <img :src="activeConversation.user?.avatar || defaultAvatar" :alt="activeConversation.user?.nickname" class="header-avatar" @error="onAvatarError" />
-              </div>
-              <div class="header-info">
-                <h3>{{ activeConversation.user?.nickname || activeConversation.user?.username }}</h3>
-              </div>
+          <!-- Chat header -->
+          <div class="msg-header">
+            <div class="msg-header-user">
+              <img :src="activeConversation.user?.avatar || defaultAvatar" :alt="activeConversation.user?.nickname" class="msg-header-avatar" @error="onAvatarError" />
+              <span class="msg-header-name">{{ activeConversation.user?.nickname || activeConversation.user?.username }}</span>
             </div>
           </div>
-          <div v-if="messagesError" class="empty-list">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <p class="error-text">{{ messagesError }}</p>
-            <button class="btn btn-sm btn-secondary" @click="selectConversation(activeConversation)">重试</button>
+
+          <!-- Error -->
+          <div v-if="messagesError" class="msg-empty">
+            <p class="msg-error-text">{{ messagesError }}</p>
+            <button class="btn btn-xs btn-primary" @click="selectConversation(activeConversation)">重试</button>
           </div>
-          <div v-else-if="loadingMessages" class="empty-list">
-            <div class="loading-spinner"></div>
-            <p>加载消息中...</p>
+
+          <!-- Loading -->
+          <div v-else-if="loadingMessages" class="msg-empty">
+            <div class="spinner"></div>
+            <span>加载消息中</span>
           </div>
-          <div v-else class="message-list" ref="messageList">
+
+          <!-- Messages -->
+          <div v-else class="msg-list" ref="messageList">
             <div
               v-for="msg in messages"
               :key="msg.id"
-              class="message-item"
+              class="msg-row"
               :class="{ mine: String(msg.sender?.id) === String(userStore.userId) }"
             >
               <img :src="msg.sender?.avatar || defaultAvatar" :alt="msg.sender?.nickname" class="msg-avatar" @error="onAvatarError" />
@@ -88,30 +97,31 @@
               </div>
             </div>
           </div>
-          <div class="message-input">
+
+          <!-- Input -->
+          <div class="msg-input-bar">
             <input
               v-model="newMessage"
               type="text"
               maxlength="1000"
               placeholder="输入消息..."
               @keyup.enter="sendMessage"
-              class="form-input"
+              class="msg-input"
             />
-            <button class="btn btn-primary btn-sm send-btn" @click="sendMessage" :disabled="!newMessage.trim() || sending">
+            <button class="msg-send" @click="sendMessage" :disabled="!newMessage.trim() || sending">
               <span v-if="sending" class="sending-spinner"></span>
               <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-              发送
             </button>
           </div>
         </template>
-        <div v-else class="no-conversation">
-          <div class="no-conversation-inner">
-            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <p class="empty-title">选择一个会话</p>
-            <p class="empty-text">从左侧列表选择好友开始聊天</p>
-          </div>
+
+        <!-- No conversation selected -->
+        <div v-else class="msg-empty msg-placeholder">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="msg-placeholder-icon"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <p class="msg-placeholder-title">选择一个会话</p>
+          <p class="msg-placeholder-desc">从左侧列表选择好友开始聊天</p>
         </div>
-      </div>
+      </main>
     </div>
   </div>
 </template>
@@ -183,7 +193,6 @@ const fetchConversations = async (silent = false) => {
   try {
     const response = await messageApi.getConversations()
     const newConversations = response.data || []
-
     conversations.value = newConversations
 
     if (!silent && route.query.userId && !activeConversation.value) {
@@ -352,7 +361,7 @@ onUnmounted(() => {
   position: relative;
 }
 
-.floating-back-btn {
+.back-btn-floating {
   position: fixed;
   left: 20px;
   top: 100px;
@@ -360,78 +369,63 @@ onUnmounted(() => {
   display: none;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-wet);
-  border-radius: var(--radius-full);
+  width: 36px;
+  height: 36px;
+  background: var(--surface-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all var(--transition);
-  box-shadow: var(--glass-shadow-wet);
+  transition: all var(--duration-fast) var(--ease-default);
+  box-shadow: var(--shadow-sm);
 }
 
-.floating-back-btn:hover {
-  background: var(--glass-hover);
+.back-btn-floating:hover {
   color: var(--primary);
   border-color: var(--primary);
-  transform: translateY(-2px);
-  box-shadow: var(--glass-shadow-wet), var(--shadow-glow-primary);
 }
 
-.messages-container {
-  max-width: 1400px;
+/* Layout */
+.messages-layout {
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: var(--spacing-md);
+  grid-template-columns: 320px 1fr;
+  gap: 1px;
+  background: var(--border-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
-.conversation-list {
+/* Conversation panel */
+.conv-panel {
   display: flex;
   flex-direction: column;
+  background: var(--surface-solid);
   overflow: hidden;
-  border-radius: var(--radius-lg);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-wet);
-  box-shadow: var(--glass-shadow-wet);
-  transition: all var(--transition);
 }
 
-.list-header {
+.conv-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-md) var(--spacing-lg);
-  border-bottom: 1px solid var(--glass-border);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--gray-100);
 }
 
-.list-header-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.list-icon {
-  color: var(--primary);
-}
-
-.list-header h2 {
-  font-size: 1.125rem;
+.conv-header h2 {
+  font-size: var(--text-sm);
   font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
 }
 
-.list-close-btn {
+.conv-close {
   display: none;
   background: none;
   border: none;
@@ -439,96 +433,67 @@ onUnmounted(() => {
   cursor: pointer;
   padding: 4px;
   border-radius: var(--radius-sm);
-  transition: all var(--transition);
+  transition: all var(--duration-fast) var(--ease-default);
 }
 
-.list-close-btn:hover {
-  background: var(--primary-light);
-  color: var(--primary);
+.conv-close:hover {
+  background: var(--gray-100);
+  color: var(--text-primary);
 }
 
-.list-content {
+.conv-scroll {
   flex: 1;
   overflow-y: auto;
 }
 
-.conversation-item {
+.conv-item {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-lg);
   cursor: pointer;
-  transition: all var(--transition);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.3);
+  transition: background var(--duration-fast) var(--ease-default);
+  border-bottom: 1px solid var(--gray-50);
 }
 
-.conversation-item:last-child {
-  border-bottom: none;
+.conv-item:hover {
+  background: var(--gray-50);
 }
 
-.conversation-item:hover {
-  background: var(--primary-light);
-}
-
-.conversation-item.active {
-  background: var(--primary-light);
-  border-left: 3px solid var(--primary);
-}
-
-.avatar-wrapper {
-  position: relative;
-  flex-shrink: 0;
+.conv-item.active {
+  background: rgba(13, 148, 136, 0.06);
+  border-left: 2px solid var(--primary);
 }
 
 .conv-avatar {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-full);
   object-fit: cover;
-  border: 2px solid var(--surface-solid);
-  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+  border: 1px solid var(--border);
 }
 
-.conv-info {
+.conv-body {
   flex: 1;
   min-width: 0;
 }
 
-.conv-name-row {
+.conv-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 2px;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.conv-row + .conv-row {
+  margin-top: 2px;
 }
 
 .conv-name {
+  font-size: var(--text-sm);
   font-weight: 600;
-  font-size: 0.875rem;
   color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.conv-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: white;
-  background: linear-gradient(135deg, var(--error), #DC2626);
-  border-radius: var(--radius-full);
-  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
-}
-
-.conv-last-message {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -538,84 +503,104 @@ onUnmounted(() => {
   font-size: 0.625rem;
   color: var(--text-muted);
   flex-shrink: 0;
-  align-self: flex-start;
-  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
 }
 
-.empty-list {
+.conv-preview {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.conv-unread {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: white;
+  background: var(--primary);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* Conversation empty / loading */
+.conv-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: var(--spacing-3xl) var(--spacing-lg);
-  color: var(--text-muted);
   gap: var(--spacing-sm);
-}
-
-.empty-icon {
   color: var(--text-muted);
-  opacity: 0.4;
+  height: 100%;
 }
 
-.empty-title {
-  font-size: 1rem;
+.conv-empty-icon {
+  opacity: 0.3;
+}
+
+.conv-empty-title {
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--text-primary);
+  margin: 0;
 }
 
-.empty-text {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
+.conv-empty-desc {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: 0;
 }
 
-.error-text {
+.conv-error-text {
   color: var(--error);
-  font-size: 0.875rem;
+  font-size: var(--text-xs);
+  margin: 0;
 }
 
-.message-area {
+/* Message panel */
+.msg-panel {
   display: flex;
   flex-direction: column;
+  background: var(--surface-solid);
   overflow: hidden;
-  border-radius: var(--radius-lg);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-wet);
-  box-shadow: var(--glass-shadow-wet);
-  transition: all var(--transition);
 }
 
-.area-header {
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-bottom: 1px solid var(--glass-border);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+.msg-header {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-bottom: 1px solid var(--gray-100);
 }
 
-.header-user {
+.msg-header-user {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
 }
 
-.header-avatar {
-  width: 40px;
-  height: 40px;
+.msg-header-avatar {
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-full);
   object-fit: cover;
-  border: 2px solid var(--surface-solid);
+  border: 1px solid var(--border);
 }
 
-.header-info h3 {
-  font-size: 1rem;
+.msg-header-name {
+  font-size: var(--text-sm);
   font-weight: 600;
-  margin: 0;
+  color: var(--text-primary);
 }
 
-.message-list {
+/* Message list */
+.msg-list {
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-lg);
@@ -625,49 +610,47 @@ onUnmounted(() => {
   min-height: 200px;
 }
 
-.message-item {
+.msg-row {
   display: flex;
   gap: var(--spacing-sm);
-  max-width: 85%;
-  animation: slideUp var(--duration-normal) ease;
+  max-width: 75%;
+  animation: fadeIn 0.2s ease;
 }
 
-.message-item.mine {
+.msg-row.mine {
   margin-left: auto;
   flex-direction: row-reverse;
 }
 
 .msg-avatar {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: var(--radius-full);
   object-fit: cover;
   flex-shrink: 0;
   align-self: flex-end;
+  border: 1px solid var(--border);
 }
 
 .msg-bubble {
   padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-wet);
-  box-shadow: var(--glass-shadow-wet);
+  border-radius: var(--radius);
+  background: var(--gray-50);
+  border: 1px solid var(--gray-100);
   max-width: 100%;
 }
 
-.message-item.mine .msg-bubble {
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-  border-color: transparent;
-  color: var(--text-inverse);
-  box-shadow: var(--glass-shadow-wet), var(--shadow-glow-primary);
+.msg-row.mine .msg-bubble {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
 }
 
 .msg-text {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   line-height: 1.5;
   word-break: break-word;
+  margin: 0;
 }
 
 .msg-time {
@@ -678,97 +661,143 @@ onUnmounted(() => {
   text-align: right;
 }
 
-.message-item.mine .msg-time {
+.msg-row.mine .msg-time {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.message-input {
+/* Input bar */
+.msg-input-bar {
   display: flex;
   gap: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-top: 1px solid var(--glass-border-wet);
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-top: 1px solid var(--gray-100);
 }
 
-.message-input input {
+.msg-input {
   flex: 1;
-  padding: 12px 16px;
-  font-size: 0.875rem;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border-wet);
+  padding: 10px 14px;
+  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  background: var(--gray-50);
+  border: 1px solid var(--border-solid);
   border-radius: var(--radius);
-  transition: all var(--transition);
-}
-
-.message-input input:focus {
+  color: var(--text-primary);
+  transition: all var(--duration-fast) var(--ease-default);
   outline: none;
+}
+
+.msg-input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light);
+  box-shadow: 0 0 0 2px var(--primary-light);
+  background: var(--surface-solid);
 }
 
-.send-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 18px;
-  flex-shrink: 0;
+.msg-input::placeholder {
+  color: var(--text-muted);
 }
 
-.sending-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--glass-border);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-
-.no-conversation {
+.msg-send {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  width: 40px;
+  height: 40px;
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius);
+  color: white;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--duration-fast) var(--ease-default);
 }
 
-.no-conversation-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-sm);
-  text-align: center;
+.msg-send:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.msg-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sending-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
+/* No conversation */
+.msg-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--spacing-sm);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.msg-error-text {
+  color: var(--error);
+  font-size: var(--text-xs);
+  margin: 0;
+}
+
+.msg-placeholder-icon {
+  opacity: 0.2;
+}
+
+.msg-placeholder-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.msg-placeholder-desc {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Spinner */
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-solid);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .floating-back-btn {
+  .back-btn-floating {
     display: flex;
   }
 
-  .messages-container {
+  .messages-layout {
     grid-template-columns: 1fr;
   }
 
-  .conversation-list {
+  .conv-panel {
     display: none;
   }
 
-  .conversation-list.show {
+  .conv-panel.show {
     display: flex;
     position: fixed;
     inset: 0;
@@ -776,43 +805,18 @@ onUnmounted(() => {
     border-radius: 0;
   }
 
-  .list-close-btn {
+  .conv-close {
     display: block;
   }
 
-  .mobile-back-btn {
-    display: block;
-    position: fixed;
-    bottom: 16px;
-    left: 16px;
-    z-index: 1001;
-    padding: 10px 18px;
-    background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-    color: #fff;
-    border: none;
-    border-radius: var(--radius-full);
-    font-size: 14px;
-    cursor: pointer;
-    box-shadow: var(--shadow-lg), var(--shadow-glow-primary);
-    transition: all var(--transition);
-  }
-
-  .mobile-back-btn:hover {
-    transform: translateY(-2px);
-  }
-
-  .message-item {
-    max-width: 90%;
+  .msg-row {
+    max-width: 88%;
   }
 }
 
 @media (max-width: 1024px) {
-  .floating-back-btn {
+  .back-btn-floating {
     display: flex;
-  }
-
-  .messages-container {
-    max-width: 1200px;
   }
 }
 </style>

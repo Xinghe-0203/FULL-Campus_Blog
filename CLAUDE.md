@@ -141,3 +141,41 @@ admin / Admin123 (ROLE_ADMIN)
   - `jackson-date-fix` - Jackson日期序列化修复
   - `sqlite-counter-sync` - SQLite计数器同步
   - `draft-system-reuse` - 草稿系统复用模式
+
+---
+
+## v2.0.22 前端重构记录
+
+### API层修复
+- **topic.ts**: 新增 `getTopicBlogPosts` 方法（获取话题下的博客文章）
+- **admin.ts**: 新增 `getCommentList`、`deleteComment` 方法（管理员评论管理）
+- **user.ts**: 修复 `searchUsers` 返回类型为 `PaginatedResponse<User>`，`getDevices` 返回类型为 `ApiResponse<number>`
+- **like.ts**: `getMyLikes` 添加 `PaginatedResponse<Post>` 泛型
+- **collect.ts**: `getMyCollections` 添加 `PaginatedResponse<Post>` 泛型
+- **media.ts**: `getUserMediaList` 添加 `PaginatedResponse<Media>` 泛型
+
+### 新增VO类型定义
+- 新建 `edu_project_vue/src/types/vo.ts`，包含 17 个后端VO对应的前端类型:
+  - `PostListResponse`, `PostDetailResponse`, `CommentVO`
+  - `CirclePostVO`, `CircleCommentVO`
+  - `NotificationVO`, `MessageVO`, `ConversationVO`
+  - `HotContentVO`, `HotTagVO`, `MediaVO`
+  - `CollectItemVO`, `LikeItemVO`, `ReportVO`
+  - `StatisticsVO`, `FollowStatusVO`
+
+### 新增通用组件
+- `LikeButton.vue` - 通用点赞按钮（乐观更新、防重复点击）
+- `FollowButton.vue` - 通用关注按钮
+- `CollectButton.vue` - 通用收藏按钮
+
+### 新增Composables
+- `usePagination.ts` - 通用分页逻辑（支持泛型、自动加载）
+
+### Circle.vue 拆分
+- **Circle.vue**: 从 2697 行精简到 882 行
+- 新增 `CreatePostModal.vue` - 弹窗发布组件（含@提及、话题、草稿）
+- 新增 `CirclePostCard.vue` - 动态卡片组件
+- 新增 `CircleSidebar.vue` - 侧边栏组件
+
+### 时间格式统一
+- `PostEdit.vue`: 移除本地 `formatTime`，改用共享 `formatDate`

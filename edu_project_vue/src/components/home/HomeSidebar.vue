@@ -128,19 +128,18 @@ const getTagSize = (count: number): string => {
 }
 
 .sidebar-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-wet);
+  background: var(--surface-primary);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
-  box-shadow: var(--glass-shadow-wet);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   padding: 20px;
   margin-bottom: 16px;
   transition: all var(--transition-slow);
 }
 
 .sidebar-card:hover {
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10);
+  transform: translateY(-1px);
 }
 
 .sidebar-title {
@@ -149,7 +148,7 @@ const getTagSize = (count: number): string => {
   color: var(--text-primary);
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 2px solid var(--glass-border);
+  border-bottom: 2px solid var(--border-light);
   position: relative;
 }
 
@@ -160,7 +159,7 @@ const getTagSize = (count: number): string => {
   left: 0;
   width: 36px;
   height: 2px;
-  background: linear-gradient(90deg, var(--primary-start), var(--primary-end));
+  background: linear-gradient(90deg, var(--purple), var(--purple-muted));
   border-radius: 1px;
 }
 
@@ -197,18 +196,18 @@ const getTagSize = (count: number): string => {
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-muted);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: var(--purple-light);
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   flex-shrink: 0;
   transition: all var(--transition-fast);
 }
 
 .hot-rank.top {
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+  background: var(--purple);
   color: white;
   border-color: transparent;
-  box-shadow: 0 2px 8px var(--primary-glow);
+  box-shadow: 0 2px 8px rgba(105, 65, 198, 0.25);
 }
 
 .hot-post-title {
@@ -245,28 +244,24 @@ const getTagSize = (count: number): string => {
   padding: 6px 14px;
   font-weight: 500;
   color: var(--text-secondary);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
+  background: var(--purple-light);
+  border: 1px solid transparent;
   border-radius: var(--radius-full);
   text-decoration: none;
   transition: all var(--transition-fast);
   line-height: 1.4;
-  box-shadow: var(--glass-shadow);
 }
 
 .tag-item:hover {
-  background: var(--primary);
+  background: var(--purple);
   color: white;
-  border-color: var(--primary);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md), var(--shadow-glow-primary);
+  box-shadow: 0 2px 8px rgba(105, 65, 198, 0.25);
 }
 
 .tag-count {
   font-size: 0.625rem;
-  color: var(--text-muted);
+  color: var(--purple-muted);
   font-weight: 400;
   opacity: 0.7;
 }
@@ -300,24 +295,22 @@ const getTagSize = (count: number): string => {
 }
 
 .stat-icon {
-  color: var(--primary);
+  color: var(--purple);
   margin-bottom: 8px;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .stat-value {
   font-size: 1.375rem;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--purple);
   line-height: 1.2;
   margin-bottom: 4px;
 }
 
 .stat-label {
   font-size: 0.75rem;
+  color: var(--text-secondary);
   color: var(--text-muted);
 }
 

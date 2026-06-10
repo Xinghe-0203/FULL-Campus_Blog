@@ -4,6 +4,38 @@
 
 ---
 
+## v2.0.23 (2026-06-10)
+
+### 新功能
+
+- **QuickComposer 快速发布组件**: Circle 页面新增 Twitter/X 风格快速发布器，支持文字、图片（最多9张）、视频（最多1个，100MB）、话题选择、位置输入、Ctrl+Enter 提交
+- **视频上传预览**: QuickComposer 支持视频文件选择、预览播放、上传进度条
+- **渐变占位背景**: Home.vue 无封面文章卡片显示渐变灰背景，统一卡片视觉结构
+
+### 功能增强
+
+- **Home 布局统一**: 移除 Featured 大卡片布局，所有文章统一使用 `bento-standard` 双列网格布局
+- **热门文章页面**: `PostSearch.vue` 重命名为 `HotPosts.vue`，路由改为 `/hot-posts`
+
+### Bug 修复
+
+- **CORS 配置**: `.env:55` 全角逗号改为半角逗号，修复跨域请求问题
+- **热门标签加载失败**: `Home.vue` 修复 `response?.data?.records || []` 响应解析
+- **热门标签类型错误**: `trending.ts` `getHotTags()` 返回类型修正
+
+### 影响文件
+
+| 文件 | 改动类型 |
+|------|----------|
+| `QuickComposer.vue` | 新增组件（图片/视频上传、话题、位置） |
+| `Circle.vue` | 集成 QuickComposer |
+| `Home.vue` | 移除 Featured 布局、统一卡片、渐变占位 |
+| `HotPosts.vue` | 从 PostSearch 重命名 |
+| `trending.ts` | getHotTags 类型修复 |
+| `.env` | CORS 逗号修复 |
+
+---
+
 ## v2.0.22 (2026-06-09)
 
 ### Bug 修复

@@ -18,6 +18,7 @@ import com.example.edu_project.utils.TimeUtils;
 import com.example.edu_project.vo.circle.CirclePostVO;
 import com.example.edu_project.vo.user.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,11 @@ import java.util.stream.Collectors;
  */
 @Service
 public class CircleQueryServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost> implements CircleQueryService {
+
+    @Value("${DB_TYPE:mysql}")
+    private String dbType;
+
+    private boolean isSqlite() { return "sqlite".equalsIgnoreCase(dbType); }
 
     @Autowired
     private SysUserMapper sysUserMapper;
@@ -166,7 +172,9 @@ public class CircleQueryServiceImpl extends ServiceImpl<CirclePostMapper, Circle
                 .and(w -> w.eq(CirclePost::getVisibility, 0)
                         .or(currentUserId != null, w2 -> w2
                                 .eq(CirclePost::getUserId, currentUserId)))
-                .apply("JSON_CONTAINS(JSON_UNQUOTE(topic_ids), CAST({0} AS JSON))", topicId)
+                .apply(isSqlite()
+                ? "EXISTS (SELECT 1 FROM json_each(topic_ids) WHERE CAST(value AS INTEGER) = {0})"
+                : "JSON_CONTAINS(JSON_UNQUOTE(topic_ids), CAST({0} AS JSON))", topicId)
                 .orderByDesc(CirclePost::getIsTop)
                 .orderByDesc(CirclePost::getCreateTime);
 

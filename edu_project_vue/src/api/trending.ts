@@ -21,7 +21,7 @@ export const trendingApi = {
   /**
    * 获取热门标签
    */
-  getHotTags(): Promise<ApiResponse<Tag[]>> {
+  getHotTags(): Promise<PaginatedResponse<Tag>> {
     return api.get('/trending/hot-tags')
   },
 

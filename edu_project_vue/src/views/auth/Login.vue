@@ -1,85 +1,128 @@
 <template>
   <div class="auth-page">
-    <div class="auth-bg-orb orb-1"></div>
-    <div class="auth-bg-orb orb-2"></div>
-    <div class="auth-bg-orb orb-3"></div>
-    <div class="auth-container">
-      <div class="auth-card">
-        <div class="auth-header">
-          <div class="auth-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </div>
-          <h1>登录</h1>
-          <p>欢迎回到校园博客</p>
+    <div class="auth-card" :class="{ 'card-enter': mounted }">
+      <!-- Window chrome: title bar -->
+      <div class="chrome-bar" aria-hidden="true">
+        <span class="chrome-dot chrome-dot--red"></span>
+        <span class="chrome-dot chrome-dot--yellow"></span>
+        <span class="chrome-dot chrome-dot--green"></span>
+      </div>
+
+      <!-- Brand -->
+      <div class="auth-brand">
+        <div class="brand-icon">
+          <svg width="32" height="32" viewBox="0 0 56 56" fill="none">
+            <rect width="56" height="56" rx="16" fill="url(#logo-grad)" />
+            <path d="M16 20h24M16 28h18M16 36h12" stroke="white" stroke-width="2.5" stroke-linecap="round" />
+            <circle cx="40" cy="36" r="4" fill="white" opacity="0.9" />
+            <defs>
+              <linearGradient id="logo-grad" x1="0" y1="0" x2="56" y2="56">
+                <stop stop-color="#0D9488" />
+                <stop offset="1" stop-color="#14B8A6" />
+              </linearGradient>
+            </defs>
+          </svg>
         </div>
-        
-        <form class="auth-form" @submit.prevent="handleLogin">
-          <div class="form-group">
-            <label class="form-label">用户名 / 邮箱</label>
-            <input 
-              v-model="form.account" 
-              type="text" 
+        <div class="brand-text">
+          <span class="brand-name">Campus Blog</span>
+          <span class="brand-tagline">校园博客社区</span>
+        </div>
+      </div>
+
+      <!-- Header -->
+      <div class="auth-header">
+        <h1>欢迎回来</h1>
+        <p>登录你的校园博客账号</p>
+      </div>
+
+      <!-- Form -->
+      <form class="auth-form" @submit.prevent="handleLogin" novalidate>
+        <div class="form-field">
+          <label class="form-label" for="login-account">用户名 / 邮箱</label>
+          <div class="input-wrap">
+            <input
+              id="login-account"
+              v-model="form.account"
+              type="text"
               class="form-input"
               placeholder="请输入用户名或邮箱"
+              autocomplete="username"
               required
             />
           </div>
-          
-          <div class="form-group">
-            <label class="form-label">密码</label>
-            <div class="password-input-wrapper">
-              <input 
-                v-model="form.password" 
-                :type="showPassword ? 'text' : 'password'" 
-                class="form-input"
-                placeholder="请输入密码"
-                required
-                minlength="8"
-              />
-              <button type="button" class="password-toggle" @click="showPassword = !showPassword"
-                      :aria-label="showPassword ? '隐藏密码' : '显示密码'">
-                <svg v-if="!showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-                <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                  <line x1="1" y1="1" x2="23" y2="23"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-          
-          <div class="form-options">
-            <label class="remember-me">
-              <input type="checkbox" v-model="form.remember" />
-              <span class="checkmark"></span>
-              <span>记住我</span>
-            </label>
-            <router-link to="/password-reset" class="forgot-link">
-              忘记密码？
-            </router-link>
-          </div>
-          
-          <button type="submit" class="btn btn-primary btn-block" :disabled="loading">
-            <span v-if="loading" class="loading-spinner"></span>
-            <span v-else>登录</span>
-          </button>
-        </form>
-        
-        <div class="auth-footer">
-          <p>还没有账号？<router-link to="/register">立即注册</router-link></p>
         </div>
+
+        <div class="form-field">
+          <label class="form-label" for="login-password">密码</label>
+          <div class="input-wrap">
+            <input
+              id="login-password"
+              v-model="form.password"
+              :type="showPassword ? 'text' : 'password'"
+              class="form-input form-input--password"
+              placeholder="请输入密码"
+              autocomplete="current-password"
+              required
+              minlength="8"
+            />
+            <button
+              type="button"
+              class="input-toggle"
+              @click="showPassword = !showPassword"
+              :aria-label="showPassword ? '隐藏密码' : '显示密码'"
+              tabindex="-1"
+            >
+              <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="check-label">
+            <input type="checkbox" v-model="form.remember" class="check-input" />
+            <span class="check-box">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="2 6 5 9 10 3" />
+              </svg>
+            </span>
+            <span class="check-text">记住我</span>
+          </label>
+          <router-link to="/password-reset" class="link-subtle">忘记密码？</router-link>
+        </div>
+
+        <button type="submit" class="btn-primary" :disabled="loading">
+          <transition name="fade-swap" mode="out-in">
+            <span v-if="loading" key="spinner" class="btn-loading">
+              <span class="spinner"></span>
+              <span>登录中...</span>
+            </span>
+            <span v-else key="text">登录</span>
+          </transition>
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="auth-divider">
+        <span>或</span>
+      </div>
+
+      <!-- Switch -->
+      <div class="auth-footer">
+        <p>还没有账号？<router-link to="/register" class="link-primary">立即注册</router-link></p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '../../stores/user'
 import { useLogger } from '../../utils/logger'
@@ -93,13 +136,20 @@ const logger = useLogger('Login')
 
 const loading = ref(false)
 const showPassword = ref(false)
+const mounted = ref(false)
+
 const form = reactive({
   account: '',
   password: '',
   remember: false
 })
 
-// 判断输入是邮箱还是用户名
+onMounted(() => {
+  requestAnimationFrame(() => {
+    mounted.value = true
+  })
+})
+
 const isEmail = (str: string) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str)
 }
@@ -113,7 +163,6 @@ const handleLogin = async () => {
   const accountTrimmed = form.account.trim()
   const accountIsEmail = isEmail(accountTrimmed)
 
-  // 用户名格式校验（如果不是邮箱格式）
   if (!accountIsEmail && (accountTrimmed.length < 3 || accountTrimmed.length > 20)) {
     toast.error('用户名长度应为3-20个字符')
     return
@@ -125,7 +174,7 @@ const handleLogin = async () => {
   }
 
   loading.value = true
-  
+
   try {
     const loginData: LoginRequest = {
       username: '',
@@ -133,7 +182,6 @@ const handleLogin = async () => {
       remember: form.remember
     }
 
-    // 根据输入类型选择登录字段
     if (accountIsEmail) {
       loginData.email = accountTrimmed
     } else {
@@ -141,7 +189,7 @@ const handleLogin = async () => {
     }
 
     const result = await userStore.login(loginData)
-    
+
     if (result.success) {
       logger.info('Login successful')
       const redirect = (route.query.redirect as string) || '/'
@@ -161,6 +209,7 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
+/* ===== Page ===== */
 .auth-page {
   min-height: 100vh;
   display: flex;
@@ -169,358 +218,474 @@ const handleLogin = async () => {
   padding: var(--spacing-lg);
   background: var(--background-gradient);
   position: relative;
-  overflow: hidden;
 }
 
-.auth-bg-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.5;
-  animation: orb-float 20s ease-in-out infinite;
+/* Subtle grid pattern for depth */
+.auth-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.015) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
 }
 
-.orb-1 {
-  width: 400px;
-  height: 400px;
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-  top: -10%;
-  left: -10%;
-  animation-delay: 0s;
-}
-
-.orb-2 {
-  width: 300px;
-  height: 300px;
-  background: linear-gradient(135deg, var(--accent), var(--primary-end));
-  bottom: -5%;
-  right: -5%;
-  animation-delay: -7s;
-}
-
-.orb-3 {
-  width: 250px;
-  height: 250px;
-  background: linear-gradient(135deg, var(--info), var(--primary-start));
-  top: 50%;
-  left: 60%;
-  animation-delay: -14s;
-}
-
-@keyframes orb-float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(30px, -30px) scale(1.1); }
-  50% { transform: translate(-20px, 20px) scale(0.95); }
-  75% { transform: translate(20px, 10px) scale(1.05); }
-}
-
-.auth-container {
-  width: 100%;
-  max-width: 480px;
+/* ===== Card — Faux-OS Window ===== */
+.auth-card {
   position: relative;
   z-index: 1;
-}
-
-.auth-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-wet);
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface-solid);
+  border: 1px solid var(--border-solid);
   border-radius: var(--radius-xl);
-  box-shadow: var(--glass-shadow-wet);
-  padding: var(--spacing-2xl);
-  transition: all var(--transition-slow);
-  position: relative;
-  overflow: hidden;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.06);
+  padding: 0 var(--spacing-xl) var(--spacing-xl);
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.auth-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+.auth-card.card-enter {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.auth-card:hover {
-  box-shadow: var(--shadow-lg), var(--glass-shadow-wet);
+/* ===== Window Chrome Bar ===== */
+.chrome-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--spacing-md) 0;
+  margin-bottom: var(--spacing-xs);
 }
 
-.auth-header {
-  text-align: center;
+.chrome-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.chrome-dot--red    { background: #FF5F57; }
+.chrome-dot--yellow { background: #FEBC2E; }
+.chrome-dot--green  { background: #28C840; }
+
+/* ===== Brand ===== */
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
   margin-bottom: var(--spacing-xl);
 }
 
-.auth-icon {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto var(--spacing-md);
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-  border-radius: 50%;
+.brand-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  box-shadow: 0 8px 24px var(--primary-glow);
+}
+
+.brand-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.brand-name {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.2;
+}
+
+.brand-tagline {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+/* ===== Header ===== */
+.auth-header {
+  margin-bottom: var(--spacing-xl);
 }
 
 .auth-header h1 {
-  font-size: 1.875rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
   color: var(--text-primary);
-  margin-bottom: var(--spacing-xs);
   letter-spacing: -0.02em;
+  line-height: var(--leading-tight);
+  margin-bottom: var(--spacing-1);
 }
 
 .auth-header p {
-  font-size: 0.9375rem;
-  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
 }
 
+/* ===== Form ===== */
 .auth-form {
-  margin-bottom: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
 }
 
-.form-group {
-  margin-bottom: var(--spacing-md);
+/* ===== Form Field ===== */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1_5);
 }
 
 .form-label {
-  display: block;
-  margin-bottom: var(--spacing-xs);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-primary);
+  font-size: 0.6875rem;
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.input-wrap {
+  position: relative;
 }
 
 .form-input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  font-size: 0.9375rem;
-  font-family: inherit;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
+  height: 44px;
+  padding: 0 var(--spacing-md);
+  font-size: var(--text-base);
+  font-family: var(--font-sans);
+  background: var(--gray-50);
+  border: 1px solid var(--border-solid);
   border-radius: var(--radius);
   color: var(--text-primary);
-  transition: all var(--transition);
-  box-shadow: var(--glass-shadow);
-}
-
-.form-input:hover:not(:disabled):not(:focus) {
-  border-color: var(--text-muted);
-}
-
-.form-input:focus {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
-  background: var(--glass-hover);
+  transition:
+    border-color var(--duration-fast) var(--ease-default),
+    box-shadow var(--duration-fast) var(--ease-default);
+  box-sizing: border-box;
+}
+
+.form-input--password {
+  padding-right: 44px;
 }
 
 .form-input::placeholder {
   color: var(--text-muted);
+  font-size: var(--text-sm);
 }
 
-.password-input-wrapper {
-  position: relative;
+.form-input:hover {
+  border-color: var(--gray-300);
 }
 
-.password-input-wrapper .form-input {
-  padding-right: 40px;
+.form-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+  background: var(--surface-solid);
 }
 
-.password-toggle {
+/* Password toggle */
+.input-toggle {
   position: absolute;
-  right: 12px;
+  right: 4px;
   top: 50%;
   transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
+  border-radius: var(--radius-sm);
+  transition:
+    color var(--duration-fast) var(--ease-default),
+    background var(--duration-fast) var(--ease-default);
 }
 
-.password-toggle:hover {
-  color: var(--primary);
+.input-toggle:hover {
+  color: var(--text-secondary);
+  background: var(--gray-100);
 }
 
-.form-options {
+/* ===== Row: checkbox + link ===== */
+.form-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--spacing-lg);
 }
 
-.remember-me {
+.check-label {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  font-size: 0.875rem;
-  color: var(--text-secondary);
   cursor: pointer;
-  position: relative;
+  user-select: none;
 }
 
-.remember-me input {
+.check-input {
   position: absolute;
   opacity: 0;
   width: 0;
   height: 0;
+  pointer-events: none;
 }
 
-.checkmark {
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--glass-border);
-  border-radius: var(--radius-xs);
-  display: inline-flex;
+.check-box {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast);
-  background: var(--glass-bg);
-  flex-shrink: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xs);
+  background: var(--surface-solid);
+  color: transparent;
+  transition:
+    background var(--duration-fast) var(--ease-default),
+    border-color var(--duration-fast) var(--ease-default),
+    color var(--duration-fast) var(--ease-default);
 }
 
-.remember-me input:checked + .checkmark {
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+.check-input:checked + .check-box {
+  background: var(--primary);
   border-color: var(--primary);
+  color: white;
 }
 
-.remember-me input:checked + .checkmark::after {
-  content: '';
-  width: 5px;
-  height: 10px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-  margin-top: -2px;
+.check-input:focus-visible + .check-box {
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
-.forgot-link {
-  font-size: 0.875rem;
-  color: var(--primary);
+.check-text {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.link-subtle {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
   text-decoration: none;
-  font-weight: 500;
-  transition: all var(--transition-fast);
+  transition: color var(--duration-fast) var(--ease-default);
 }
 
-.forgot-link:hover {
-  color: var(--primary-hover);
-  text-decoration: underline;
+.link-subtle:hover {
+  color: var(--primary);
 }
 
-.btn-block {
+/* ===== Primary Button ===== */
+.btn-primary {
   width: 100%;
-  padding: 0.875rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: var(--radius);
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-  color: var(--text-inverse);
-  border: none;
-  cursor: pointer;
-  transition: all var(--transition);
-  box-shadow: var(--shadow-sm);
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
+  padding: 0 var(--spacing-xl);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  font-family: var(--font-sans);
+  background: var(--gray-900);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-default),
+    transform var(--duration-instant) var(--ease-default),
+    box-shadow var(--duration-fast) var(--ease-default);
 }
 
-.btn-block:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md), var(--shadow-glow-primary);
+.btn-primary:hover:not(:disabled) {
+  background: var(--gray-800);
 }
 
-.btn-block:active:not(:disabled) {
-  transform: translateY(0);
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
-.btn-block:disabled {
-  opacity: 0.7;
+.btn-primary:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-.loading-spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+.btn-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
   border-top-color: white;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.65s linear infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
+/* ===== Divider ===== */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin: var(--spacing-xl) 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-solid);
+}
+
+.auth-divider span {
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: var(--font-medium);
+}
+
+/* ===== Footer Switch ===== */
 .auth-footer {
   text-align: center;
-  padding-top: var(--spacing-lg);
-  border-top: 1px solid var(--glass-border);
 }
 
 .auth-footer p {
-  font-size: 0.9375rem;
+  font-size: var(--text-sm);
   color: var(--text-secondary);
+  margin: 0;
 }
 
-.auth-footer a {
+.link-primary {
   color: var(--primary);
   text-decoration: none;
-  font-weight: 600;
-  transition: all var(--transition-fast);
+  font-weight: var(--font-semibold);
+  transition: color var(--duration-fast) var(--ease-default);
 }
 
-.auth-footer a:hover {
+.link-primary:hover {
   color: var(--primary-hover);
-  text-decoration: underline;
 }
 
+/* ===== Transition ===== */
+.fade-swap-enter-active,
+.fade-swap-leave-active {
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.fade-swap-enter-from {
+  opacity: 0;
+  transform: scale(0.92);
+}
+
+.fade-swap-leave-to {
+  opacity: 0;
+  transform: scale(0.92);
+}
+
+/* ===== Mobile ===== */
 @media (max-width: 640px) {
   .auth-page {
-    padding: var(--spacing-md);
+    padding: 0;
+    align-items: stretch;
   }
-  
+
   .auth-card {
-    padding: var(--spacing-xl);
-    border-radius: var(--radius-lg);
-  }
-  
-  .auth-header h1 {
-    font-size: 1.5rem;
-  }
-  
-  .auth-icon {
-    width: 60px;
-    height: 60px;
-  }
-  
-  .auth-icon svg {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .form-options {
+    max-width: none;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm);
-    align-items: flex-start;
+    justify-content: center;
+    padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-2xl);
   }
-  
-  .orb-1, .orb-2, .orb-3 {
-    filter: blur(60px);
-    opacity: 0.3;
+
+  .chrome-bar {
+    justify-content: center;
+    padding-top: var(--spacing-xl);
+    margin-bottom: var(--spacing-md);
   }
-  
-  .orb-1 { width: 250px; height: 250px; }
-  .orb-2 { width: 200px; height: 200px; }
-  .orb-3 { width: 180px; height: 180px; }
+
+  .auth-brand {
+    justify-content: center;
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .auth-header {
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .form-input {
+    height: 48px;
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+
+  .btn-primary {
+    height: 48px;
+    font-size: 1rem;
+  }
+
+  .input-toggle {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ===== Accessibility ===== */
+@media (prefers-reduced-motion: reduce) {
+  .auth-card {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .btn-primary:active:not(:disabled) {
+    transform: none;
+  }
+
+  .fade-swap-enter-active,
+  .fade-swap-leave-active {
+    transition: none;
+  }
+
+  .spinner {
+    animation: none;
+    border-color: rgba(255, 255, 255, 0.5);
+  }
 }
 </style>

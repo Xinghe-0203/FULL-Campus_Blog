@@ -6,6 +6,7 @@ import api, { getToken } from './index'
 import { STORAGE_KEY_PREFIX } from '@/constants'
 import type {
   ApiResponse,
+  PaginatedResponse,
   LoginRequest,
   LoginResponse,
   RegisterRequest,
@@ -13,8 +14,7 @@ import type {
   ResetPasswordRequest,
   UpdateProfileRequest,
   UserSearchParams,
-  User,
-  DeviceInfo
+  User
 } from '@/types'
 
 export const userApi = {
@@ -66,7 +66,7 @@ export const userApi = {
   /**
    * 搜索用户
    */
-  searchUsers(params: UserSearchParams): Promise<ApiResponse<User[]>> {
+  searchUsers(params: UserSearchParams): Promise<PaginatedResponse<User>> {
     return api.get('/user/search', { params })
   },
 
@@ -129,7 +129,7 @@ export const userApi = {
   /**
    * 获取设备数量
    */
-  getDevices(): Promise<ApiResponse<DeviceInfo[]>> {
+  getDevices(): Promise<ApiResponse<number>> {
     return api.get('/user/devices')
   }
 }

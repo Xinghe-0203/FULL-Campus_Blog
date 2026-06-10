@@ -11,6 +11,24 @@ export type UserStatus = 0 | 1 // 0=禁用, 1=正常
 /** 性别 */
 export type Gender = 0 | 1 | 2 // 0=未知, 1=男, 2=女
 
+/** 用户信息 VO - 对应 UserVO.java（脱敏，后端返回用） */
+export interface UserVO {
+  id: number
+  username: string
+  nickname: string
+  avatar?: string
+  coverImage?: string
+  bio?: string
+  email?: string
+  role?: string
+  status?: number
+  createTime?: string
+  updateTime?: string
+  followerCount?: number
+  followingCount?: number
+  isFollowing?: boolean
+}
+
 /** 用户信息 */
 export interface User {
   id: number

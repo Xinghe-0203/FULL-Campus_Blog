@@ -3,7 +3,7 @@
  */
 
 import api from './index'
-import type { ApiResponse } from '@/types'
+import type { ApiResponse, PaginatedResponse, Post } from '@/types'
 
 export const likeApi = {
   /**
@@ -30,7 +30,7 @@ export const likeApi = {
   /**
    * 获取我的点赞
    */
-  getMyLikes(params: { pageNum?: number; pageSize?: number }): Promise<ApiResponse> {
+  getMyLikes(params: { pageNum?: number; pageSize?: number }): Promise<PaginatedResponse<Post>> {
     return api.get('/like/my', { params })
   }
 }

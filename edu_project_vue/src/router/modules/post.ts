@@ -24,10 +24,10 @@ const postRoutes: RouteRecordRaw[] = [
     meta: { title: '编辑文章', requiresAuth: true }
   },
   {
-    path: '/post-search',
-    name: 'PostSearch',
-    component: lazyLoad(() => import('@/views/post/PostSearch.vue')),
-    meta: { title: '文章搜索' }
+    path: '/hot-posts',
+    name: 'HotPosts',
+    component: lazyLoad(() => import('@/views/post/HotPosts.vue')),
+    meta: { title: '热门文章' }
   }
 ]
 

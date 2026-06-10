@@ -1,4 +1,4 @@
-/* ==================== 基础重置 ==================== */
+/* ==================== Base Reset ==================== */
 *,
 *::before,
 *::after {
@@ -11,14 +11,17 @@ html {
   font-size: 16px;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  color-scheme: light dark;
 }
 
 body {
   font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
   background: var(--background-gradient);
   background-attachment: fixed;
+  background-color: var(--bg-primary);
   color: var(--text-primary);
-  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background var(--transition-slow), color var(--transition-slow);
@@ -27,22 +30,10 @@ body {
   position: relative;
 }
 
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: 
-    radial-gradient(ellipse at 20% 50%, rgba(174, 194, 224, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(174, 194, 224, 0.1) 0%, transparent 50%),
-    radial-gradient(ellipse at 40% 80%, rgba(174, 194, 224, 0.12) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* 滚动条美化 */
+/* ==================== Scrollbar — Minimal ==================== */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -50,22 +41,34 @@ body::before {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--text-muted);
+  background: var(--gray-300);
   border-radius: var(--radius-full);
   transition: background var(--transition);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: var(--gray-400);
 }
 
-/* 选中文本 */
+.dark-mode ::-webkit-scrollbar-thumb {
+  background: var(--gray-600);
+}
+
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
+}
+
+/* ==================== Text Selection ==================== */
 ::selection {
-  background: var(--primary);
-  color: var(--text-inverse);
+  background: rgba(31, 108, 159, 0.15);
+  color: var(--text-primary);
 }
 
-/* ==================== 图片加载增强 ==================== */
+.dark-mode ::selection {
+  background: rgba(31, 108, 159, 0.30);
+}
+
+/* ==================== Image Loading ==================== */
 img {
   transition: opacity 0.3s ease;
 }
@@ -77,4 +80,33 @@ img[loading="lazy"] {
 img[loading="lazy"].loaded,
 img[loading="lazy"]:not([src=""]) {
   opacity: 1;
+}
+
+/* ==================== Form Base ==================== */
+input,
+button,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* ==================== Responsive Base Font Size ==================== */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1600px) {
+  html {
+    font-size: 17px;
+  }
 }

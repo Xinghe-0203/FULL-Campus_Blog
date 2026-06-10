@@ -1,76 +1,74 @@
 <template>
   <div class="tag-detail-page">
-    <button class="back-btn" @click="router.back()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-      返回
+    <button class="back-link" @click="router.back()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      <span>返回</span>
     </button>
 
-    <div v-if="loading" class="loading-state">
+    <!-- Loading -->
+    <div v-if="loading" class="state-block">
       <div class="loading-spinner"></div>
-      <p>加载中...</p>
     </div>
 
-    <div v-else-if="error" class="error-state">
-      <p>{{ error }}</p>
-      <button class="btn btn-primary" @click="fetchTagDetail">重试</button>
+    <!-- Error -->
+    <div v-else-if="error" class="state-block">
+      <p class="state-error-text">{{ error }}</p>
+      <button class="btn btn-primary btn-sm" @click="fetchTagDetail">重试</button>
     </div>
 
     <template v-else-if="tag">
-      <div class="tag-header glass">
-        <div class="tag-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-        </div>
-        <div class="tag-info">
-          <h1 class="tag-name">{{ tag.name }}</h1>
-          <div class="tag-stats">
-            <span>{{ totalPosts }} 篇文章</span>
-          </div>
-        </div>
-      </div>
+      <!-- Tag header -->
+      <header class="tag-head">
+        <h1 class="tag-name">{{ tag.name }}</h1>
+        <p class="tag-count">{{ totalPosts }} 篇文章</p>
+      </header>
 
-      <div class="tag-posts">
-        <div v-if="postsLoading" class="loading-state">
+      <!-- Posts list -->
+      <div class="posts-area">
+        <div v-if="postsLoading && posts.length === 0" class="state-block">
           <div class="loading-spinner"></div>
-          <p>加载文章中...</p>
         </div>
-        <div v-else-if="posts.length === 0" class="empty-state">
-          <p>暂无相关文章</p>
+
+        <div v-else-if="posts.length === 0" class="state-block state-empty">
+          <p class="state-empty-text">暂无相关文章</p>
         </div>
-        <div v-else class="posts-list">
-          <div v-for="item in posts" :key="item.id" class="post-item card">
-            <img v-if="item.coverImage" :src="getSafeImageUrl(item.coverImage)" alt="" class="post-cover" />
-            <div class="post-body">
-              <h2 class="post-title">
-                <router-link :to="`/post/${item.id}`">{{ item.title }}</router-link>
-              </h2>
-              <p class="post-excerpt">{{ truncateText(item.summary || item.content, 150) }}</p>
-              <div class="post-tags" v-if="item.tags && item.tags.length">
-                <span v-for="t in item.tags" :key="t.id" class="tag-badge">{{ t.name }}</span>
+
+        <div v-else class="post-stack">
+          <router-link
+            v-for="item in posts"
+            :key="item.id"
+            :to="`/post/${item.id}`"
+            class="post-row"
+          >
+            <div v-if="item.coverImage" class="post-row-cover">
+              <img :src="getSafeImageUrl(item.coverImage)" alt="" />
+            </div>
+            <div class="post-row-body">
+              <h2 class="post-row-title">{{ item.title }}</h2>
+              <p class="post-row-excerpt">{{ truncateText(item.summary || item.content, 120) }}</p>
+              <div class="post-row-meta">
+                <img :src="item.avatar || defaultAvatar" :alt="item.nickname || item.username" class="post-row-avatar" />
+                <span class="post-row-author">{{ item.nickname || item.username || '匿名' }}</span>
+                <span class="meta-dot">&middot;</span>
+                <span class="post-row-time">{{ formatRelativeTime(item.createTime) }}</span>
+                <span class="meta-dot">&middot;</span>
+                <span class="post-row-stat">{{ item.viewCount || 0 }} 阅读</span>
               </div>
-              <div class="post-meta">
-                <span class="post-author">
-                  <img :src="item.avatar || defaultAvatar" :alt="item.nickname || item.username" class="author-avatar" />
-                  <router-link :to="`/user/${item.userId}`" class="author-name">{{ item.nickname || item.username || '匿名' }}</router-link>
-                </span>
-                <span class="post-time">{{ formatRelativeTime(item.createTime) }}</span>
-                <div class="post-stats">
-                  <span>{{ item.viewCount || 0 }} 阅读</span>
-                  <span>{{ item.likeCount || 0 }} 点赞</span>
-                </div>
+              <div v-if="item.tags && item.tags.length" class="post-row-tags">
+                <span v-for="t in item.tags" :key="t.id" class="mini-tag">{{ t.name }}</span>
               </div>
             </div>
-          </div>
+          </router-link>
         </div>
 
-        <div v-if="hasMore" class="load-more">
+        <!-- Load more -->
+        <div v-if="hasMore" class="load-more-row">
           <button class="btn btn-secondary" @click="loadMore" :disabled="postsLoading">
             {{ postsLoading ? '加载中...' : '加载更多' }}
           </button>
         </div>
 
-        <div v-else-if="posts.length > 0" class="no-more-state">
-          <p>没有更多文章了</p>
-        </div>
+        <p v-else-if="posts.length > 0" class="state-end">已显示全部文章</p>
       </div>
     </template>
   </div>
@@ -154,210 +152,243 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* =====================================================
+   Tag Detail — Typography-Forward Minimalist
+   ===================================================== */
+
 .tag-detail-page {
-  max-width: 900px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: var(--spacing-lg);
+  padding: var(--spacing-xl) var(--spacing-lg);
 }
 
-.back-btn {
+/* ---------- Back link ---------- */
+
+.back-link {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-  color: var(--text-secondary);
+  gap: var(--spacing-1_5);
+  padding: var(--spacing-2) 0;
+  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  font-weight: var(--font-medium);
+  color: var(--text-muted);
+  background: none;
+  border: none;
   cursor: pointer;
-  margin-bottom: var(--spacing-md);
-  transition: all var(--transition);
-}
-
-.back-btn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.loading-state, .error-state {
-  text-align: center;
-  padding: var(--spacing-3xl);
-}
-
-.error-state {
-  color: var(--error);
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--glass-border);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto var(--spacing-md);
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.tag-header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-xl);
-  border-radius: var(--radius-lg);
+  transition: color var(--transition-fast);
   margin-bottom: var(--spacing-lg);
 }
 
-.tag-icon {
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-  color: white;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-glow-primary);
+.back-link:hover {
+  color: var(--primary);
 }
 
-.tag-info {
-  flex: 1;
+/* ---------- Tag header ---------- */
+
+.tag-head {
+  padding-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  border-bottom: 1px solid var(--border-solid);
 }
 
 .tag-name {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: var(--text-5xl);
+  font-weight: var(--font-extrabold);
   color: var(--text-primary);
-  margin-bottom: var(--spacing-xs);
+  letter-spacing: -0.035em;
+  line-height: var(--leading-tight);
+  margin: 0 0 var(--spacing-2);
 }
 
-.tag-stats {
-  font-size: 0.85rem;
+.tag-count {
+  font-size: var(--text-base);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ---------- Posts ---------- */
+
+.post-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.post-row {
+  display: flex;
+  gap: var(--spacing-5);
+  padding: var(--spacing-5) 0;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition-fast);
+}
+
+.post-row:last-child {
+  border-bottom: none;
+}
+
+.post-row:hover {
+  background: var(--primary-subtle);
+}
+
+.post-row-cover {
+  width: 140px;
+  height: 96px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.post-row-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.post-row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.post-row-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0;
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.post-row:hover .post-row-title {
+  color: var(--primary);
+}
+
+.post-row-excerpt {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.post-row-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--text-xs);
   color: var(--text-muted);
 }
 
-.posts-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.post-item {
-  display: flex;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-}
-
-.post-cover {
-  width: 120px;
-  height: 80px;
+.post-row-avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
   object-fit: cover;
-  border-radius: var(--radius);
   flex-shrink: 0;
 }
 
-.post-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.post-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.post-title a {
-  color: var(--text-primary);
-}
-
-.post-title a:hover {
-  color: var(--primary);
-}
-
-.post-excerpt {
-  font-size: 0.85rem;
+.post-row-author {
+  font-weight: var(--font-medium);
   color: var(--text-secondary);
-  line-height: 1.5;
-  margin: 0;
 }
 
-.post-tags {
+.meta-dot {
+  opacity: 0.35;
+}
+
+.post-row-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-1_5);
+  margin-top: var(--spacing-1);
 }
 
-.tag-badge {
-  font-size: 0.75rem;
-  padding: 2px 8px;
+.mini-tag {
+  font-size: 0.6875rem;
+  font-weight: var(--font-medium);
+  color: var(--primary);
   background: var(--primary-light);
-  color: var(--primary);
-  border-radius: var(--radius-full);
+  padding: 1px var(--spacing-2);
+  border-radius: var(--radius-sm);
+  line-height: 1.5;
 }
 
-.post-meta {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: auto;
-}
+/* ---------- States ---------- */
 
-.post-author {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.author-avatar {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.author-name {
-  color: var(--primary);
-}
-
-.author-name:hover {
-  text-decoration: underline;
-}
-
-.post-stats {
-  display: flex;
-  gap: var(--spacing-sm);
-}
-
-.load-more {
+.state-block {
   text-align: center;
-  padding: var(--spacing-lg);
+  padding: var(--spacing-3xl) var(--spacing-lg);
 }
 
-.no-more-state {
-  text-align: center;
-  padding: var(--spacing-lg);
-  color: var(--text-muted);
-  font-size: 0.875rem;
+.state-error-text {
+  font-size: var(--text-sm);
+  color: var(--error);
+  margin-bottom: var(--spacing-md);
 }
 
-.empty-state {
-  text-align: center;
-  padding: var(--spacing-3xl);
+.state-empty-text {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
   color: var(--text-muted);
 }
+
+.state-end {
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  padding: var(--spacing-lg) 0;
+}
+
+.load-more-row {
+  text-align: center;
+  padding: var(--spacing-lg) 0;
+}
+
+/* ---------- Responsive ---------- */
 
 @media (max-width: 768px) {
-  .tag-detail-page { padding: var(--spacing-md); }
-  .tag-header { flex-direction: column; text-align: center; }
-  .post-item { flex-direction: column; }
-  .post-cover { width: 100%; height: 150px; }
+  .tag-detail-page {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+
+  .tag-name {
+    font-size: var(--text-4xl);
+  }
+
+  .post-row {
+    flex-direction: column;
+    gap: var(--spacing-3);
+    padding: var(--spacing-4) 0;
+  }
+
+  .post-row-cover {
+    width: 100%;
+    height: 160px;
+    order: -1;
+  }
+
+  .post-row-title {
+    font-size: var(--text-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .tag-name {
+    font-size: var(--text-3xl);
+  }
 }
 </style>

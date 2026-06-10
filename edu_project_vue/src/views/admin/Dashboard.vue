@@ -1,239 +1,87 @@
 <template>
   <div class="admin-dashboard">
-    <div class="admin-container">
-      <div class="admin-header">
-        <div>
-          <h1>仪表盘</h1>
-          <p class="header-subtitle">校园博客论坛管理系统</p>
-        </div>
-        <div class="refresh-indicator" :class="{ refreshing: loading }">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <header class="dashboard-header">
+      <div class="header-title">
+        <h1>仪表盘</h1>
+        <span class="header-sub">校园博客论坛管理系统</span>
+      </div>
+      <div class="header-meta">
+        <span class="auto-refresh" :class="{ active: loading }">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="23 4 23 10 17 10"/>
             <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
           </svg>
-          <span>{{ loading ? '刷新中...' : '自动刷新 60s' }}</span>
-        </div>
+          {{ loading ? '刷新中' : '60s 自动刷新' }}
+        </span>
       </div>
+    </header>
 
-      <div v-if="loading" class="loading-skeleton">
-        <div class="stats-grid">
-          <div v-for="i in 8" :key="i" class="stat-card glass">
-            <div class="stat-icon-skeleton"></div>
-            <div class="stat-info">
-              <div class="skeleton-value"></div>
-              <div class="skeleton-label"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div v-else-if="error" class="error-state glass">
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        <h3>{{ error }}</h3>
-        <button class="btn btn-primary" @click="fetchStats">重试</button>
-      </div>
-
-      <div v-else>
-        <div class="stats-grid">
-          <div class="stat-card glass stat-users gradient-border-blue">
-            <div class="stat-icon gradient-info">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-              </svg>
-            </div>
-            <div class="stat-info">
-              <span class="stat-value">{{ formatNumber(stats.userCount || 0) }}</span>
-              <span class="stat-label">用户总数</span>
-            </div>
-          </div>
-
-          <div class="stat-card glass stat-posts gradient-border-green">
-            <div class="stat-icon gradient-success">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-              </svg>
-            </div>
-            <div class="stat-info">
-              <span class="stat-value">{{ formatNumber(stats.postCount || 0) }}</span>
-              <span class="stat-label">文章总数</span>
-            </div>
-          </div>
-
-          <div class="stat-card glass gradient-border-purple">
-            <div class="stat-icon" style="background: linear-gradient(135deg, var(--purple), #7C3AED);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
-            </div>
-            <div class="stat-info">
-              <span class="stat-value">{{ formatNumber(stats.circlePostCount || 0) }}</span>
-              <span class="stat-label">校友圈动态</span>
-            </div>
-          </div>
-
-          <div class="stat-card glass gradient-border-purple">
-            <div class="stat-icon gradient-warning">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                <line x1="12" y1="7" x2="12" y2="13"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
-            </div>
-            <div class="stat-info">
-              <span class="stat-value">{{ formatNumber(stats.commentCount || 0) }}</span>
-              <span class="stat-label">评论总数</span>
-            </div>
-          </div>
-
-          <div class="stat-card glass gradient-border-blue">
-            <div class="stat-icon" style="background: linear-gradient(135deg, var(--info), #2563EB);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                <line x1="7" y1="7" x2="7.01" y2="7"/>
-              </svg>
-            </div>
-            <div class="stat-info">
-              <span class="stat-value">{{ formatNumber(stats.tagCount || 0) }}</span>
-              <span class="stat-label">标签总数</span>
-            </div>
-          </div>
-
-          <div class="stat-card glass gradient-border-orange">
-            <div class="stat-icon" style="background: linear-gradient(135deg, var(--orange), #EA580C);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M2 12h20"/>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-              </svg>
-            </div>
-            <div class="stat-info">
-              <span class="stat-value">{{ formatNumber(stats.topicCount || 0) }}</span>
-              <span class="stat-label">话题总数</span>
-            </div>
-          </div>
-
-          <div class="stat-card glass gradient-border-red">
-            <div class="stat-icon gradient-error">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-              </svg>
-            </div>
-            <div class="stat-info">
-              <span class="stat-value">{{ formatNumber(stats.pendingReportCount || 0) }}</span>
-              <span class="stat-label">待处理举报</span>
-            </div>
-          </div>
-
-          <div class="stat-card glass gradient-border-green">
-            <div class="stat-icon gradient-success">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-            </div>
-            <div class="stat-info">
-              <span class="stat-value">{{ formatNumber(stats.userStats?.activeUsers || 0) }}</span>
-              <span class="stat-label">活跃用户</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="dashboard-grid">
-          <div class="glass quick-actions">
-            <h3 class="section-title">快捷操作</h3>
-            <div class="action-grid">
-              <router-link to="/admin/users" class="action-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                </svg>
-                <span>用户管理</span>
-              </router-link>
-              <router-link to="/admin/posts" class="action-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                </svg>
-                <span>文章管理</span>
-              </router-link>
-              <router-link to="/admin/circle" class="action-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-                <span>校友圈</span>
-              </router-link>
-              <router-link to="/admin/tags" class="action-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                  <line x1="7" y1="7" x2="7.01" y2="7"/>
-                </svg>
-                <span>标签管理</span>
-              </router-link>
-              <router-link to="/admin/topics" class="action-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <path d="M2 12h20"/>
-                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                </svg>
-                <span>话题管理</span>
-              </router-link>
-              <router-link to="/admin/reports" class="action-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                  <line x1="12" y1="9" x2="12" y2="13"/>
-                </svg>
-                <span>举报管理</span>
-              </router-link>
-            </div>
-          </div>
-
-          <div class="glass today-overview">
-            <h3 class="section-title">今日概览</h3>
-            <div class="today-list">
-              <div class="today-item">
-                <div class="today-dot info"></div>
-                <div class="today-content">
-                  <span class="today-text">今日新增用户</span>
-                  <span class="today-value text-info">+{{ stats.userStats?.todayNewUsers || 0 }}</span>
-                </div>
-              </div>
-              <div class="today-item">
-                <div class="today-dot success"></div>
-                <div class="today-content">
-                  <span class="today-text">今日新增文章</span>
-                  <span class="today-value text-success">+{{ stats.postStats?.todayNewPosts || 0 }}</span>
-                </div>
-              </div>
-              <div class="today-item">
-                <div class="today-dot" style="background: var(--purple);"></div>
-                <div class="today-content">
-                  <span class="today-text">今日新增动态</span>
-                  <span class="today-value" style="color: var(--purple);">+{{ stats.circleStats?.todayNewPosts || 0 }}</span>
-                </div>
-              </div>
-              <div class="today-item">
-                <div class="today-dot error"></div>
-                <div class="today-content">
-                  <span class="today-text">待处理举报</span>
-                  <span class="today-value text-error">{{ stats.pendingReportCount || 0 }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+    <!-- Loading skeleton -->
+    <div v-if="loading" class="stats-grid">
+      <div v-for="i in 8" :key="i" class="stat-card skeleton-card">
+        <div class="skel-icon"></div>
+        <div class="skel-text">
+          <div class="skel-line skel-num"></div>
+          <div class="skel-line skel-label"></div>
         </div>
       </div>
     </div>
+
+    <!-- Error -->
+    <div v-else-if="error" class="error-block">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p>{{ error }}</p>
+      <button class="btn btn-sm btn-primary" @click="fetchStats">重试</button>
+    </div>
+
+    <!-- Content -->
+    <template v-else>
+      <!-- Stats cards -->
+      <div class="stats-grid">
+        <div class="stat-card" v-for="card in statCards" :key="card.label">
+          <div class="stat-icon" :style="{ background: card.bg, color: card.fg }">
+            <component :is="card.icon" />
+          </div>
+          <div class="stat-body">
+            <span class="stat-value">{{ formatNumber(card.value) }}</span>
+            <span class="stat-label">{{ card.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom panels -->
+      <div class="panels-grid">
+        <!-- Quick actions -->
+        <section class="panel">
+          <h3 class="panel-title">快捷操作</h3>
+          <div class="actions-row">
+            <router-link v-for="action in quickActions" :key="action.label" :to="action.to" class="action-chip">
+              <component :is="action.icon" />
+              <span>{{ action.label }}</span>
+            </router-link>
+          </div>
+        </section>
+
+        <!-- Today overview -->
+        <section class="panel">
+          <h3 class="panel-title">今日概览</h3>
+          <div class="today-rows">
+            <div v-for="item in todayItems" :key="item.label" class="today-row">
+              <span class="today-dot" :style="{ background: item.color }"></span>
+              <span class="today-label">{{ item.label }}</span>
+              <span class="today-value" :style="{ color: item.color }">{{ item.value }}</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, h, onMounted, onUnmounted } from 'vue'
 import { adminApi } from '../../api/admin'
 import { formatNumber } from '../../utils'
 import { useLogger } from '../../utils/logger'
@@ -266,6 +114,76 @@ onMounted(() => {
 onUnmounted(() => {
   if (refreshTimer) clearInterval(refreshTimer)
 })
+
+// Inline SVG icon components
+const IconUsers = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
+  h('path', { d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2' }),
+  h('circle', { cx: 9, cy: 7, r: 4 })
+])
+
+const IconPosts = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
+  h('path', { d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' }),
+  h('polyline', { points: '14 2 14 8 20 8' })
+])
+
+const IconCircle = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
+  h('path', { d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' })
+])
+
+const IconComment = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
+  h('path', { d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' }),
+  h('line', { x1: 12, y1: 7, x2: 12, y2: 13 }),
+  h('line', { x1: 12, y1: 17, x2: 12.01, y2: 17 })
+])
+
+const IconTag = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
+  h('path', { d: 'M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z' }),
+  h('line', { x1: 7, y1: 7, x2: 7.01, y2: 7 })
+])
+
+const IconTopic = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
+  h('circle', { cx: 12, cy: 12, r: 10 }),
+  h('path', { d: 'M2 12h20' }),
+  h('path', { d: 'M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z' })
+])
+
+const IconAlert = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
+  h('path', { d: 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z' })
+])
+
+const IconActiveUser = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
+  h('path', { d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2' }),
+  h('circle', { cx: 9, cy: 7, r: 4 }),
+  h('path', { d: 'M23 21v-2a4 4 0 0 0-3-3.87' }),
+  h('path', { d: 'M16 3.13a4 4 0 0 1 0 7.75' })
+])
+
+const statCards = computed(() => [
+  { label: '用户总数', value: stats.value.userCount || 0, icon: IconUsers, bg: 'rgba(13, 148, 136, 0.1)', fg: '#0D9488' },
+  { label: '文章总数', value: stats.value.postCount || 0, icon: IconPosts, bg: 'rgba(5, 150, 105, 0.1)', fg: '#059669' },
+  { label: '校友圈动态', value: stats.value.circlePostCount || 0, icon: IconCircle, bg: 'rgba(139, 92, 246, 0.1)', fg: '#8B5CF6' },
+  { label: '评论总数', value: stats.value.commentCount || 0, icon: IconComment, bg: 'rgba(217, 119, 6, 0.1)', fg: '#D97706' },
+  { label: '标签总数', value: stats.value.tagCount || 0, icon: IconTag, bg: 'rgba(37, 99, 235, 0.1)', fg: '#2563EB' },
+  { label: '话题总数', value: stats.value.topicCount || 0, icon: IconTopic, bg: 'rgba(249, 115, 22, 0.1)', fg: '#F97316' },
+  { label: '待处理举报', value: stats.value.pendingReportCount || 0, icon: IconAlert, bg: 'rgba(220, 38, 38, 0.1)', fg: '#DC2626' },
+  { label: '活跃用户', value: stats.value.userStats?.activeUsers || 0, icon: IconActiveUser, bg: 'rgba(5, 150, 105, 0.1)', fg: '#059669' },
+])
+
+const quickActions = [
+  { label: '用户管理', to: '/admin/users', icon: IconUsers },
+  { label: '文章管理', to: '/admin/posts', icon: IconPosts },
+  { label: '校友圈', to: '/admin/circle', icon: IconCircle },
+  { label: '标签管理', to: '/admin/tags', icon: IconTag },
+  { label: '话题管理', to: '/admin/topics', icon: IconTopic },
+  { label: '举报管理', to: '/admin/reports', icon: IconAlert },
+]
+
+const todayItems = computed(() => [
+  { label: '今日新增用户', value: `+${stats.value.userStats?.todayNewUsers || 0}`, color: '#2563EB' },
+  { label: '今日新增文章', value: `+${stats.value.postStats?.todayNewPosts || 0}`, color: '#059669' },
+  { label: '今日新增动态', value: `+${stats.value.circleStats?.todayNewPosts || 0}`, color: '#8B5CF6' },
+  { label: '待处理举报', value: `${stats.value.pendingReportCount || 0}`, color: '#DC2626' },
+])
 </script>
 
 <style scoped>
@@ -274,41 +192,47 @@ onUnmounted(() => {
   margin: 0 auto;
 }
 
-.admin-header {
+/* Header */
+.dashboard-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-lg);
+  align-items: flex-end;
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--border-solid);
 }
 
-.admin-header h1 {
-  font-size: 1.75rem;
+.header-title h1 {
+  font-family: var(--font-sans);
+  font-size: 1.375rem;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.2;
 }
 
-.header-subtitle {
-  font-size: 0.875rem;
+.header-sub {
+  font-size: var(--text-xs);
   color: var(--text-muted);
-  margin-top: 0.25rem;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  margin-top: 2px;
+  display: block;
 }
 
-.refresh-indicator {
-  display: flex;
+.auto-refresh {
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  font-size: 0.75rem;
+  gap: 6px;
+  font-size: var(--text-xs);
   color: var(--text-muted);
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: 4px 10px;
   border-radius: var(--radius-full);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--border-solid);
+  background: var(--surface-solid);
 }
 
-.refresh-indicator.refreshing svg {
+.auto-refresh.active svg {
   animation: spin 1s linear infinite;
 }
 
@@ -316,10 +240,15 @@ onUnmounted(() => {
   to { transform: rotate(360deg); }
 }
 
+/* Stats grid */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-md);
+  gap: 1px;
+  background: var(--border-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-md);
+  overflow: hidden;
   margin-bottom: var(--spacing-xl);
 }
 
@@ -327,236 +256,235 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  padding: var(--spacing-lg);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-wet);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--glass-shadow-wet);
-  transition: all var(--transition-slow);
-  position: relative;
-  overflow: hidden;
-}
-
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  pointer-events: none;
+  padding: var(--spacing-lg) var(--spacing-lg);
+  background: var(--surface-solid);
+  transition: background var(--duration-fast) var(--ease-default);
 }
 
 .stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg), var(--glass-shadow-wet);
+  background: var(--gray-50);
 }
 
 .stat-icon {
-  width: 52px;
-  height: 52px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-md);
-  color: white;
+  border-radius: var(--radius);
   flex-shrink: 0;
 }
 
-.stat-info {
+.stat-body {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .stat-value {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
-  line-height: 1.2;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-tight);
 }
 
 .stat-label {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--text-muted);
-  margin-top: 0.25rem;
+  margin-top: 2px;
 }
 
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-md);
-}
-
-.glass {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-wet);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--glass-shadow-wet);
-  padding: var(--spacing-lg);
-  position: relative;
-  overflow: hidden;
-}
-
-.glass::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+/* Skeleton */
+.skeleton-card {
   pointer-events: none;
 }
 
-.section-title {
-  font-size: 1rem;
+.skel-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  background: var(--gray-200);
+  flex-shrink: 0;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skel-text {
+  flex: 1;
+}
+
+.skel-line {
+  border-radius: var(--radius-xs);
+  background: var(--gray-200);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skel-num {
+  width: 50%;
+  height: 22px;
+  margin-bottom: 6px;
+}
+
+.skel-label {
+  width: 65%;
+  height: 12px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Panels */
+.panels-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xl);
+}
+
+.panel {
+  background: var(--surface-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+}
+
+.panel-title {
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: var(--spacing-md);
   padding-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border-solid);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
 }
 
-.action-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-sm);
-}
-
-.action-btn {
+/* Actions */
+.actions-row {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-wrap: wrap;
   gap: var(--spacing-sm);
-  padding: var(--spacing-md);
-  background: var(--primary-light);
-  border: 1px solid transparent;
-  border-radius: var(--radius);
-  color: var(--primary);
-  text-decoration: none;
-  font-size: 0.875rem;
+}
+
+.action-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: var(--text-sm);
   font-weight: 500;
-  transition: all var(--transition);
+  color: var(--text-secondary);
+  background: var(--gray-50);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition: all var(--duration-fast) var(--ease-default);
 }
 
-.action-btn:hover {
-  background: var(--glass-hover);
+.action-chip:hover {
+  color: var(--primary);
   border-color: var(--primary);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  background: var(--primary-light);
 }
 
-.today-list {
+/* Today overview */
+.today-rows {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
 }
 
-.today-item {
+.today-row {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-sm) 0;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.today-row:last-child {
+  border-bottom: none;
 }
 
 .today-dot {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
   border-radius: var(--radius-full);
   flex-shrink: 0;
 }
 
-.today-dot.info { background: var(--info); }
-.today-dot.success { background: var(--success); }
-.today-dot.error { background: var(--error); }
-
-.today-content {
-  display: flex;
-  justify-content: space-between;
+.today-label {
   flex: 1;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-}
-
-.today-text {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--text-secondary);
 }
 
 .today-value {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
-.text-info { color: var(--info); }
-.text-success { color: var(--success); }
-.text-error { color: var(--error); }
+/* Error */
+.error-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-3xl);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.error-block p {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 
 @media (max-width: 768px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .dashboard-grid {
+  .panels-grid {
     grid-template-columns: 1fr;
   }
 
-  .action-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .admin-header {
+  .dashboard-header {
     flex-direction: column;
+    align-items: flex-start;
     gap: var(--spacing-sm);
   }
+
+  .stat-card {
+    padding: var(--spacing-md);
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+  }
 }
 
-.loading-skeleton {
-  padding: var(--spacing-lg) 0;
-}
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 
-.stat-icon-skeleton {
-  width: 52px;
-  height: 52px;
-  border-radius: var(--radius-md);
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
+  .actions-row {
+    gap: 6px;
+  }
 
-.skeleton-value {
-  width: 60px;
-  height: 28px;
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 4px;
-  margin-bottom: 4px;
-}
-
-.skeleton-label {
-  width: 80px;
-  height: 12px;
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 4px;
-}
-
-.error-state {
-  text-align: center;
-  padding: var(--spacing-3xl);
-  color: var(--text-secondary);
-}
-
-.error-state h3 {
-  margin: var(--spacing-md) 0 var(--spacing-lg);
-  font-size: 1rem;
+  .action-chip {
+    padding: 6px 10px;
+    font-size: var(--text-xs);
+  }
 }
 </style>
