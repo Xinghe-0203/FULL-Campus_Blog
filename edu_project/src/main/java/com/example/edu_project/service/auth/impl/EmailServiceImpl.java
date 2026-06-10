@@ -225,6 +225,14 @@ public class EmailServiceImpl implements EmailService {
             // 不删除 verificationStore，允许用户在开发模式使用控制台打印的验证码
             log.info("邮件发送失败但验证码仍有效（可用于开发测试）: {} -> {}", to, code);
             throw e;
+        } catch (Exception e) {
+            // 捕获其他异常（如 MailException、MessagingException 逃逸或运行时异常）
+            log.error("发送邮件时发生未预期异常: {}", e.getMessage());
+            // 清理验证码存储，防止内存泄漏
+            verificationStore.remove(key);
+            sendTimeStore.remove(key);
+            log.info("邮件发送失败但验证码仍有效（可用于开发测试）: {} -> {}", to, code);
+            throw new BusinessException(500, "邮件发送失败，请检查SMTP配置。开发模式验证码已打印在控制台。");
         }
     }
 
