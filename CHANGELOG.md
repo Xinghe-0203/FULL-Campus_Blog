@@ -4,6 +4,15 @@
 
 ---
 
+## v2.0.18 (2026-06-24)
+
+### 后端修复
+
+- **热搜榜单文章重复显示**: `BlogTrendingMapper.selectHotPosts` 查询最近7天的 `blog_trending` 记录时未按 `post_id` 去重，导致同一篇文章在运行时间较长后出现多次。修改为使用子查询按 `post_id` + `MAX(date)` 去重，只取每篇文章最近日期的记录
+- **影响文件**: `edu_project/src/main/resources/mapper/BlogTrendingMapper.xml`
+
+---
+
 ## v2.0.17 (2026-06-03)
 
 ### 后端修复

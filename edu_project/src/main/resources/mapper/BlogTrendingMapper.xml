@@ -22,11 +22,17 @@
     </select>
 
     <!-- 获取热门文章列表（按热度评分降序） -->
+    <!-- 修复：按 post_id 去重，只取每篇文章最近日期的记录，避免同一篇文章在7天内出现多次 -->
     <select id="selectHotPosts" resultType="com.example.edu_project.entity.BlogTrending">
-        SELECT * FROM blog_trending
-        WHERE date >= #{dateStart}
-          AND date &lt; #{dateEnd}
-        ORDER BY score DESC
+        SELECT bt.* FROM blog_trending bt
+        INNER JOIN (
+            SELECT post_id, MAX(date) as max_date
+            FROM blog_trending
+            WHERE date >= #{dateStart}
+              AND date < #{dateEnd}
+            GROUP BY post_id
+        ) latest ON bt.post_id = latest.post_id AND bt.date = latest.max_date
+        ORDER BY bt.score DESC
     </select>
 
     <!-- 插入或更新趋势记录（使用 ON DUPLICATE KEY UPDATE 实现 upsert） -->
