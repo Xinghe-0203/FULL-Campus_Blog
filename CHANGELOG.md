@@ -4,6 +4,28 @@
 
 ---
 
+## v2.0.24 (2026-06-24)
+
+### Bug 修复
+
+- **热度榜单同一文章重复占位**: `selectHotPosts` SQL 查询 7 天数据时，`blog_trending` 表按 `(post_id, date)` 每天存一条记录，导致同一篇文章最多出现 7 次。改为自连接 + `MAX(date)` 去重，每个文章只返回最近日期的记录
+- **校友圈热门动态无时间范围过滤**: `getHotContent()` 查询热门校友圈动态时缺少时间范围限制，与文章的 7 天窗口不一致。增加 `createTime >= dateStart` 过滤条件
+- **SQLite 不支持 GREATEST 函数**: 3 处 Mapper XML 使用 MySQL 特有的 `GREATEST()` 函数但缺少 SQLite 方言变体，导致运行时 `SQLITE_ERROR: no such function: GREATEST`。拆分为 MySQL/SQLite/H2 三种变体：
+  - `TopicMapper.xml#decrementPostCount` — MySQL 用 `GREATEST()`, SQLite 用 `MAX()`, H2 用 `CASE WHEN`
+  - `SysUserMapper.xml#decrementFollowerCount` — 同上
+  - `SysUserMapper.xml#decrementFollowingCount` — 同上
+
+### 影响文件
+
+| 文件 | 改动类型 |
+|------|----------|
+| `edu_project/src/main/resources/mapper/BlogTrendingMapper.xml` | selectHotPosts 自连接去重 |
+| `edu_project/src/main/java/.../service/content/impl/TrendingServiceImpl.java` | circle 帖子加时间范围过滤 |
+| `edu_project/src/main/resources/mapper/TopicMapper.xml` | decrementPostCount 拆分 MySQL/SQLite/H2 变体 |
+| `edu_project/src/main/resources/mapper/SysUserMapper.xml` | decrementFollowerCount/decrementFollowingCount 拆分 MySQL/SQLite/H2 变体 |
+
+---
+
 ## v2.0.23 (2026-06-10)
 
 ### 新功能

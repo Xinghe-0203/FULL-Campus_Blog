@@ -2,7 +2,7 @@
 
 Spring Boot 3 backend service providing RESTful APIs for the Campus Blog platform.
 
-**Version**: v2.0.22 | **Java**: 21 | **Spring Boot**: 3.3.13
+**Version**: v2.0.24 | **Java**: 21 | **Spring Boot**: 3.3.13
 
 ## Tech Stack
 

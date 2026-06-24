@@ -126,10 +126,11 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
         IPage<BlogTrending> trendingPage = baseMapper.selectHotPosts(articlePage, dateStart, now);
         List<HotContentVO> articleVOs = convertArticlesToHotContent(trendingPage.getRecords());
 
-        // 2. 获取热门校友圈动态（按互动量排序）
+        // 2. 获取热门校友圈动态（按互动量排序，限制在最近7天内）
         LambdaQueryWrapper<CirclePost> circleWrapper = new LambdaQueryWrapper<>();
         circleWrapper.eq(CirclePost::getStatus, 1)
                 .eq(CirclePost::getVisibility, 0)
+                .ge(CirclePost::getCreateTime, dateStart)
                 .orderByDesc(CirclePost::getLikeCount)
                 .orderByDesc(CirclePost::getCommentCount)
                 .orderByDesc(CirclePost::getRepostCount)

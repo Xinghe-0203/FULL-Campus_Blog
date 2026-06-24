@@ -7,9 +7,19 @@
         UPDATE blog_topic SET post_count = post_count + 1, trending_score = trending_score + 1 WHERE id = #{topicId}
     </update>
 
-    <!-- 原子性减少动态数 -->
-    <update id="decrementPostCount">
+    <!-- MySQL: 原子性减少动态数 -->
+    <update id="decrementPostCount" databaseId="mysql">
         UPDATE blog_topic SET post_count = GREATEST(post_count - 1, 0), trending_score = GREATEST(trending_score - 1, 0) WHERE id = #{topicId}
+    </update>
+
+    <!-- SQLite: 原子性减少动态数 -->
+    <update id="decrementPostCount" databaseId="sqlite">
+        UPDATE blog_topic SET post_count = MAX(post_count - 1, 0), trending_score = MAX(trending_score - 1, 0) WHERE id = #{topicId}
+    </update>
+
+    <!-- 默认（H2兼容）: 原子性减少动态数 -->
+    <update id="decrementPostCount">
+        UPDATE blog_topic SET post_count = CASE WHEN post_count - 1 &gt; 0 THEN post_count - 1 ELSE 0 END, trending_score = CASE WHEN trending_score - 1 &gt; 0 THEN trending_score - 1 ELSE 0 END WHERE id = #{topicId}
     </update>
 
     <!-- 增加热度分数 -->

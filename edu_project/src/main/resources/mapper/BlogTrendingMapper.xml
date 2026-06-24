@@ -21,12 +21,17 @@
           AND date &lt; #{dateEnd}
     </select>
 
-    <!-- 获取热门文章列表（按热度评分降序） -->
+    <!-- 获取热门文章列表（按热度评分降序，每个文章只返回最近日期的记录，避免重复） -->
     <select id="selectHotPosts" resultType="com.example.edu_project.entity.BlogTrending">
-        SELECT * FROM blog_trending
-        WHERE date &gt;= #{dateStart}
-          AND date &lt; #{dateEnd}
-        ORDER BY score DESC
+        SELECT bt.* FROM blog_trending bt
+        INNER JOIN (
+            SELECT post_id, MAX(date) as max_date
+            FROM blog_trending
+            WHERE date &gt;= #{dateStart} AND date &lt; #{dateEnd}
+            GROUP BY post_id
+        ) latest ON bt.post_id = latest.post_id AND bt.date = latest.max_date
+        WHERE bt.date &gt;= #{dateStart} AND bt.date &lt; #{dateEnd}
+        ORDER BY bt.score DESC
     </select>
 
     <!-- MySQL: 插入或更新趋势记录（ON DUPLICATE KEY UPDATE） -->

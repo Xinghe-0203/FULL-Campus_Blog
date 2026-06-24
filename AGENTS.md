@@ -1,6 +1,6 @@
 # AGENTS.md — Campus Blog Forum System
 
-> Spring Boot 3 + Vue 3 full-stack project. Current version v2.0.23.
+> Spring Boot 3 + Vue 3 full-stack project. Current version v2.0.24.
 
 ## Project Structure
 

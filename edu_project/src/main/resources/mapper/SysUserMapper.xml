@@ -31,9 +31,19 @@
         UPDATE sys_user SET follower_count = follower_count + 1 WHERE id = #{userId}
     </update>
 
-    <!-- 原子性减少粉丝数 -->
-    <update id="decrementFollowerCount">
+    <!-- MySQL: 原子性减少粉丝数 -->
+    <update id="decrementFollowerCount" databaseId="mysql">
         UPDATE sys_user SET follower_count = GREATEST(follower_count - 1, 0) WHERE id = #{userId}
+    </update>
+
+    <!-- SQLite: 原子性减少粉丝数 -->
+    <update id="decrementFollowerCount" databaseId="sqlite">
+        UPDATE sys_user SET follower_count = MAX(follower_count - 1, 0) WHERE id = #{userId}
+    </update>
+
+    <!-- 默认（H2兼容）: 原子性减少粉丝数 -->
+    <update id="decrementFollowerCount">
+        UPDATE sys_user SET follower_count = CASE WHEN follower_count - 1 &gt; 0 THEN follower_count - 1 ELSE 0 END WHERE id = #{userId}
     </update>
 
     <!-- 原子性增加关注数 -->
@@ -41,9 +51,19 @@
         UPDATE sys_user SET following_count = following_count + 1 WHERE id = #{userId}
     </update>
 
-    <!-- 原子性减少关注数 -->
-    <update id="decrementFollowingCount">
+    <!-- MySQL: 原子性减少关注数 -->
+    <update id="decrementFollowingCount" databaseId="mysql">
         UPDATE sys_user SET following_count = GREATEST(following_count - 1, 0) WHERE id = #{userId}
+    </update>
+
+    <!-- SQLite: 原子性减少关注数 -->
+    <update id="decrementFollowingCount" databaseId="sqlite">
+        UPDATE sys_user SET following_count = MAX(following_count - 1, 0) WHERE id = #{userId}
+    </update>
+
+    <!-- 默认（H2兼容）: 原子性减少关注数 -->
+    <update id="decrementFollowingCount">
+        UPDATE sys_user SET following_count = CASE WHEN following_count - 1 &gt; 0 THEN following_count - 1 ELSE 0 END WHERE id = #{userId}
     </update>
 
     <!-- 批量统计每日新增用户数 -->
