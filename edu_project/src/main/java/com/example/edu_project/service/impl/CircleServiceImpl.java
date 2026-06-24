@@ -1214,8 +1214,9 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                 .and(w -> w.eq(CirclePost::getVisibility, 0) // 公开
                         .or(currentUserId != null, w2 -> w2
                                 .eq(CirclePost::getUserId, currentUserId)))
-                // 关联话题查询（通过 topicIds JSON 字段，精确匹配）
-                .apply("JSON_CONTAINS(JSON_UNQUOTE(topic_ids), CAST({0} AS JSON))", topicId)
+                // 关联话题查询（通过 topicIds JSON 字段，SQLite 兼容的 LIKE 匹配）
+                .and(w -> w.like(CirclePost::getTopicIds, "\"" + topicId + "\"")
+                        .or().like(CirclePost::getTopicIds, String.valueOf(topicId)))
                 .orderByDesc(CirclePost::getIsTop)
                 .orderByDesc(CirclePost::getCreateTime);
 

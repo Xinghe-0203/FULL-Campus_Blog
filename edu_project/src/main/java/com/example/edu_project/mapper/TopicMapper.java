@@ -25,7 +25,7 @@ public interface TopicMapper extends BaseMapper<Topic> {
      * @param topicId 话题ID
      * @return 影响的行数
      */
-    @Update("UPDATE blog_topic SET post_count = GREATEST(post_count - 1, 0), trending_score = GREATEST(trending_score - 1, 0) WHERE id = #{topicId}")
+    @Update("UPDATE blog_topic SET post_count = CASE WHEN post_count > 0 THEN post_count - 1 ELSE 0 END, trending_score = CASE WHEN trending_score > 0 THEN trending_score - 1 ELSE 0 END WHERE id = #{topicId}")
     int decrementPostCount(@Param("topicId") Long topicId);
 
     /**
@@ -41,14 +41,14 @@ public interface TopicMapper extends BaseMapper<Topic> {
      * 重新计算所有话题的热度分数（基于关联的已发布文章和校友圈动态数）
      */
     @Update("UPDATE blog_topic t SET t.trending_score = " +
-            "COALESCE((SELECT COUNT(*) FROM blog_post p WHERE JSON_CONTAINS(p.topic_ids, CAST(t.id AS JSON)) AND p.is_deleted = 0 AND p.status = 1), 0) + " +
-            "COALESCE((SELECT COUNT(*) FROM blog_circle_post cp WHERE JSON_CONTAINS(cp.topic_ids, CAST(t.id AS JSON)) AND cp.is_deleted = 0 AND cp.status = 1), 0)")
+            "COALESCE((SELECT COUNT(*) FROM blog_post p WHERE (p.topic_ids LIKE '%\"' || t.id || '\"%' OR p.topic_ids LIKE '%' || t.id || '%') AND p.is_deleted = 0 AND p.status = 1), 0) + " +
+            "COALESCE((SELECT COUNT(*) FROM blog_circle_post cp WHERE (cp.topic_ids LIKE '%\"' || t.id || '\"%' OR cp.topic_ids LIKE '%' || t.id || '%') AND cp.is_deleted = 0 AND cp.status = 1), 0)")
     void recalculateAllTrendingScore();
 
     /**
      * 重新计算所有话题的关联动态数（基于 blog_circle_post）
      */
     @Update("UPDATE blog_topic t SET t.post_count = " +
-            "COALESCE((SELECT COUNT(*) FROM blog_circle_post cp WHERE JSON_CONTAINS(cp.topic_ids, CAST(t.id AS JSON)) AND cp.is_deleted = 0 AND cp.status = 1), 0)")
+            "COALESCE((SELECT COUNT(*) FROM blog_circle_post cp WHERE (cp.topic_ids LIKE '%\"' || t.id || '\"%' OR cp.topic_ids LIKE '%' || t.id || '%') AND cp.is_deleted = 0 AND cp.status = 1), 0)")
     void recalculateAllPostCount();
 }

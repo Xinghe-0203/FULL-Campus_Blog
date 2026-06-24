@@ -4,6 +4,32 @@
 
 ---
 
+## v2.0.18b (2026-06-24)
+
+### 后端修复 — SQLite 兼容性
+
+- **`GREATEST` 函数导致后端崩溃**: SQLite 不支持 `GREATEST`，删除校友圈动态时触发 `org.sqlite.SQLiteException: no such function: GREATEST`。将 `SysUserMapper.decrementFollowerCount`/`decrementFollowingCount` 和 `TopicMapper.decrementPostCount` 中的 `GREATEST(x - 1, 0)` 替换为 `CASE WHEN x > 0 THEN x - 1 ELSE 0 END`
+- **`LEAST` + `TIMESTAMPADD` + `NOW()` 函数不兼容**: `SysUserMapper.incrementLoginFailCount` 使用 `LEAST`、`TIMESTAMPADD` 和 `NOW()`。替换为：
+  - `LEAST(x, 2147483647)` → `CASE WHEN x > 2147483647 THEN 2147483647 ELSE x END`
+  - `TIMESTAMPADD('MINUTE', n, NOW())` → `datetime('now', '+' || n || ' minutes')`
+  - `NOW()` → `datetime('now')`
+- **`JSON_CONTAINS` / `JSON_TABLE` / `JSON_UNQUOTE` 函数不兼容**: SQLite 不支持这些 JSON 函数。
+  - `CirclePostMapper.countByTopicId`: 改用 `LIKE` 匹配 `topic_ids` 字段
+  - `CirclePostMapper.countByTopicIds`: 移除 `JSON_TABLE`，改为查询所有 `topic_ids` 后在 Java 层解析 JSON 数组并统计
+  - `TopicMapper.recalculateAllTrendingScore` / `recalculateAllPostCount`: 将 `JSON_CONTAINS` 替换为 `LIKE` 匹配
+  - `CircleServiceImpl.getTopicPosts`: 将 `.apply("JSON_CONTAINS(...)")` 替换为 MyBatis Plus 的 `.like(...)` 条件组合
+
+### 影响文件
+
+| 文件 | 改动类型 |
+|------|----------|
+| `edu_project/src/main/java/.../mapper/SysUserMapper.java` | SQL 兼容性修复 |
+| `edu_project/src/main/java/.../mapper/CirclePostMapper.java` | SQL 兼容性修复 |
+| `edu_project/src/main/java/.../mapper/TopicMapper.java` | SQL 兼容性修复 |
+| `edu_project/src/main/java/.../service/impl/CircleServiceImpl.java` | 查询条件修复 |
+
+---
+
 ## v2.0.18 (2026-06-24)
 
 ### 后端修复

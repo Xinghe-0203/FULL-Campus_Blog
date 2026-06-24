@@ -25,10 +25,10 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      * @param lockMinutes 锁定分钟数
      * @return 影响的行数
      */
-    @Update("UPDATE sys_user SET login_fail_count = LEAST(login_fail_count + 1, 2147483647), " +
+    @Update("UPDATE sys_user SET login_fail_count = CASE WHEN login_fail_count + 1 > 2147483647 THEN 2147483647 ELSE login_fail_count + 1 END, " +
             "lock_until = CASE WHEN login_fail_count + 1 >= #{maxFailCount} " +
-            "THEN TIMESTAMPADD('MINUTE', #{lockMinutes}, NOW()) ELSE lock_until END " +
-            "WHERE id = #{userId} AND (lock_until IS NULL OR lock_until <= NOW())")
+            "THEN datetime('now', '+' || #{lockMinutes} || ' minutes') ELSE lock_until END " +
+            "WHERE id = #{userId} AND (lock_until IS NULL OR lock_until <= datetime('now'))")
     int incrementLoginFailCount(@Param("userId") Long userId, @Param("maxFailCount") int maxFailCount, @Param("lockMinutes") int lockMinutes);
 
     /**
@@ -44,7 +44,7 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      * @param userId 用户ID
      * @return 影响的行数
      */
-    @Update("UPDATE sys_user SET follower_count = GREATEST(follower_count - 1, 0) WHERE id = #{userId}")
+    @Update("UPDATE sys_user SET follower_count = CASE WHEN follower_count > 0 THEN follower_count - 1 ELSE 0 END WHERE id = #{userId}")
     int decrementFollowerCount(@Param("userId") Long userId);
 
     /**
@@ -60,7 +60,7 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      * @param userId 用户ID
      * @return 影响的行数
      */
-    @Update("UPDATE sys_user SET following_count = GREATEST(following_count - 1, 0) WHERE id = #{userId}")
+    @Update("UPDATE sys_user SET following_count = CASE WHEN following_count > 0 THEN following_count - 1 ELSE 0 END WHERE id = #{userId}")
     int decrementFollowingCount(@Param("userId") Long userId);
 
     /**

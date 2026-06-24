@@ -36,24 +36,41 @@ public interface CirclePostMapper extends BaseMapper<CirclePost> {
     @Update("UPDATE blog_circle_post SET repost_count = repost_count - 1 WHERE id = #{id} AND is_deleted = 0 AND repost_count > 0")
     void decrementRepostCount(@Param("id") Long id);
 
-    @Select("SELECT COUNT(*) FROM blog_circle_post WHERE JSON_CONTAINS(JSON_UNQUOTE(topic_ids), CAST(#{topicId} AS JSON)) AND status = 1 AND is_deleted = 0")
+    @Select("SELECT COUNT(*) FROM blog_circle_post WHERE (topic_ids LIKE '%' || #{topicId} || '%' OR topic_ids LIKE '%\"' || #{topicId} || \"%') AND status = 1 AND is_deleted = 0")
     Long countByTopicId(@Param("topicId") Long topicId);
 
     @Select("<script>" +
-            "SELECT jt.topicId, COUNT(*) as cnt FROM blog_circle_post " +
-            "CROSS JOIN JSON_TABLE(JSON_UNQUOTE(topic_ids), '$[*]' COLUMNS(topicId BIGINT PATH '$')) AS jt " +
-            "WHERE jt.topicId IN (<foreach collection='topicIds' item='id' separator=','>#{id}</foreach>) " +
-            "AND status = 1 AND is_deleted = 0 GROUP BY jt.topicId" +
+            "SELECT id, topic_ids FROM blog_circle_post " +
+            "WHERE topic_ids IS NOT NULL AND topic_ids != '' AND topic_ids != '[]' " +
+            "AND status = 1 AND is_deleted = 0" +
             "</script>")
-    java.util.List<java.util.Map<String, Object>> countByTopicIdsRaw(@Param("topicIds") java.util.List<Long> topicIds);
+    java.util.List<java.util.Map<String, Object>> selectTopicIdsRaw();
 
     default java.util.Map<Long, Long> countByTopicIds(java.util.List<Long> topicIds) {
         if (topicIds == null || topicIds.isEmpty()) return new java.util.HashMap<>();
-        return countByTopicIdsRaw(topicIds).stream()
-                .collect(java.util.stream.Collectors.toMap(
-                        m -> ((Number) m.get("topicId")).longValue(),
-                        m -> ((Number) m.get("cnt")).longValue(),
-                        (a, b) -> a
-                ));
+        java.util.Map<Long, Long> result = new java.util.HashMap<>();
+        for (Long id : topicIds) result.put(id, 0L);
+        java.util.List<java.util.Map<String, Object>> rows = selectTopicIdsRaw();
+        for (java.util.Map<String, Object> row : rows) {
+            String json = (String) row.get("topic_ids");
+            if (json == null || json.isEmpty()) continue;
+            try {
+                json = json.trim();
+                if (json.startsWith("[") && json.endsWith("]")) {
+                    String inner = json.substring(1, json.length() - 1);
+                    if (inner.isEmpty()) continue;
+                    for (String s : inner.split(",")) {
+                        s = s.trim();
+                        if (s.isEmpty()) continue;
+                        if (s.startsWith("\"") && s.endsWith("\"")) s = s.substring(1, s.length() - 1);
+                        try {
+                            Long tid = Long.parseLong(s);
+                            if (result.containsKey(tid)) result.put(tid, result.get(tid) + 1);
+                        } catch (NumberFormatException ignored) {}
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+        return result;
     }
 }
