@@ -11,3 +11,5 @@ chore(activity): sync blog content 2026-06-27 #05
 chore(activity): sync blog content 2026-06-27 #06
 
 chore(activity): sync blog content 2026-06-27 #07
+
+chore(activity): sync blog content 2026-06-27 #08
