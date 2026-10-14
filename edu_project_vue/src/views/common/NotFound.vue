@@ -25,17 +25,46 @@
               @keyup.enter="doSearch"
             />
             <button class="search-btn" @click="doSearch">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
             </button>
           </div>
         </div>
         <div class="error-actions">
           <router-link to="/" class="btn btn-primary btn-lg">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
             返回首页
           </router-link>
           <button class="btn btn-secondary btn-lg" @click="goBack">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
             返回上一页
           </button>
         </div>
@@ -96,7 +125,7 @@ const doSearch = () => {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
   pointer-events: none;
   z-index: 1;
 }
@@ -146,18 +175,33 @@ const doSearch = () => {
 }
 
 @keyframes float1 {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  50% { transform: translate(15px, -20px) rotate(180deg); }
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(15px, -20px) rotate(180deg);
+  }
 }
 
 @keyframes float2 {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  50% { transform: translate(-10px, 15px) rotate(-180deg); }
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(-10px, 15px) rotate(-180deg);
+  }
 }
 
 @keyframes float3 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(20px, -10px) scale(1.2); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(20px, -10px) scale(1.2);
+  }
 }
 
 .error-code {
@@ -179,13 +223,24 @@ const doSearch = () => {
   animation: pulse 3s ease-in-out infinite;
 }
 
-.digit-1 { animation-delay: 0s; }
-.digit-0 { animation-delay: 0.5s; }
-.digit-2 { animation-delay: 1s; }
+.digit-1 {
+  animation-delay: 0s;
+}
+.digit-0 {
+  animation-delay: 0.5s;
+}
+.digit-2 {
+  animation-delay: 1s;
+}
 
 @keyframes pulse {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .error-title {
@@ -221,7 +276,9 @@ const doSearch = () => {
 
 .search-box:focus-within {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
+  box-shadow:
+    0 0 0 3px var(--primary-light),
+    var(--glass-shadow);
 }
 
 .search-box input {
@@ -264,12 +321,26 @@ const doSearch = () => {
 }
 
 @media (max-width: 600px) {
-  .not-found-page { padding: var(--spacing-md); }
-  .not-found-content { padding: var(--spacing-xl) var(--spacing-md); }
-  .error-code { font-size: 5rem; }
-  .error-title { font-size: 1.25rem; }
-  .error-actions { flex-direction: column; }
-  .error-actions .btn { width: 100%; }
-  .search-box { max-width: 100%; }
+  .not-found-page {
+    padding: var(--spacing-md);
+  }
+  .not-found-content {
+    padding: var(--spacing-xl) var(--spacing-md);
+  }
+  .error-code {
+    font-size: 5rem;
+  }
+  .error-title {
+    font-size: 1.25rem;
+  }
+  .error-actions {
+    flex-direction: column;
+  }
+  .error-actions .btn {
+    width: 100%;
+  }
+  .search-box {
+    max-width: 100%;
+  }
 }
 </style>

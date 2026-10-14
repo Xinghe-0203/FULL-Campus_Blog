@@ -6,18 +6,21 @@ import { likeApi } from '@/api/like'
 import { useLogger } from '@/utils/logger'
 import { toast } from '@/utils/toast'
 
-const props = withDefaults(defineProps<{
-  postId: number | string
-  initialLiked?: boolean
-  initialCount?: number
-  size?: 'sm' | 'md' | 'lg'
-  type?: 'post' | 'circle'
-}>(), {
-  initialLiked: false,
-  initialCount: 0,
-  size: 'md',
-  type: 'post'
-})
+const props = withDefaults(
+  defineProps<{
+    postId: number | string
+    initialLiked?: boolean
+    initialCount?: number
+    size?: 'sm' | 'md' | 'lg'
+    type?: 'post' | 'circle'
+  }>(),
+  {
+    initialLiked: false,
+    initialCount: 0,
+    size: 'md',
+    type: 'post'
+  }
+)
 
 const emit = defineEmits<{
   toggled: [isLiked: boolean, count: number]
@@ -31,8 +34,18 @@ const isLiked = ref(props.initialLiked)
 const likeCount = ref(props.initialCount)
 const isToggling = ref(false)
 
-watch(() => props.initialLiked, (val) => { isLiked.value = val })
-watch(() => props.initialCount, (val) => { likeCount.value = val })
+watch(
+  () => props.initialLiked,
+  (val) => {
+    isLiked.value = val
+  }
+)
+watch(
+  () => props.initialCount,
+  (val) => {
+    likeCount.value = val
+  }
+)
 
 const iconSize = { sm: 14, md: 18, lg: 22 }[props.size]
 
@@ -87,8 +100,17 @@ const toggleLike = async () => {
     @click="toggleLike"
   >
     <slot :is-liked="isLiked" :count="likeCount">
-      <svg :width="iconSize" :height="iconSize" viewBox="0 0 24 24" :fill="isLiked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      <svg
+        :width="iconSize"
+        :height="iconSize"
+        viewBox="0 0 24 24"
+        :fill="isLiked ? 'currentColor' : 'none'"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path
+          d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+        />
       </svg>
       <span class="like-btn__count">{{ likeCount }}</span>
     </slot>
@@ -156,9 +178,17 @@ const toggleLike = async () => {
 }
 
 @keyframes heart-pop {
-  0% { transform: scale(1); }
-  30% { transform: scale(1.35); }
-  60% { transform: scale(0.9); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.35);
+  }
+  60% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 </style>

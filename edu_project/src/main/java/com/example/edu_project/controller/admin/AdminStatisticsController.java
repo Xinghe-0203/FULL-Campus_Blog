@@ -9,7 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * 管理员数据统计控制器
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/admin/statistics")
 @PreAuthorize("hasRole('admin')")
 @RequiredArgsConstructor
+@Validated
 public class AdminStatisticsController {
 
     private final StatisticsService statisticsService;
@@ -28,8 +33,9 @@ public class AdminStatisticsController {
      */
     @Operation(summary = "获取平台统计数据")
     @GetMapping
-    public Result<StatisticsVO> getPlatformStatistics() {
-        StatisticsVO statistics = statisticsService.getPlatformStatistics();
+    public Result<StatisticsVO> getPlatformStatistics(
+            @RequestParam(defaultValue = "30") @Min(7) @Max(365) int days) {
+        StatisticsVO statistics = statisticsService.getPlatformStatistics(days);
         return Result.success(statistics);
     }
 }

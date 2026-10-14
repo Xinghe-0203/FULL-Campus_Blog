@@ -2,6 +2,8 @@ package com.example.edu_project;
 
 import com.example.edu_project.config.DotenvConfig;
 import com.example.edu_project.config.security.SecurityConfig;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.servers.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -19,6 +21,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     SecurityAutoConfiguration.class,
     UserDetailsServiceAutoConfiguration.class
 })
+@OpenAPIDefinition(servers = @Server(url = "/api", description = "校园博客 API"))
 @Import(SecurityConfig.class)
 @EnableScheduling
 public class EduProjectApplication {

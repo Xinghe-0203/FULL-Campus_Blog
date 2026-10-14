@@ -5,6 +5,23 @@
 /** 存储键前缀 */
 export const STORAGE_KEY_PREFIX = 'edu_'
 
+/** Frontend assets are served from the application root in every deployment mode. */
+export const DEFAULT_AVATAR_URL = `${import.meta.env.BASE_URL}default-avatar.png`
+export const DEFAULT_COVER_URL = `${import.meta.env.BASE_URL}default-cover.jpg`
+export const DEFAULT_IMAGE_URL = `${import.meta.env.BASE_URL}default-image.png`
+
+/** Keep the stable /api/uploads URL for media served by the backend. */
+export function resolveAssetUrl(url: string | null | undefined): string {
+  if (!url) return ''
+  if (url === '/uploads' || url.startsWith('/uploads/')) return `/api${url}`
+  return url
+}
+
+/** 修正文章 HTML/Markdown 中保存的旧上传路径，不修改数据库中的原始内容。 */
+export function resolveEmbeddedAssetUrls(content: string): string {
+  return content.replace(/(^|[\s"'(=])\/uploads(?=\/)/g, '$1/api/uploads')
+}
+
 /** API 超时时间 (ms) */
 export const API_TIMEOUT = 15000
 export const UPLOAD_TIMEOUT = 300000
@@ -26,15 +43,15 @@ export const TOAST_ERROR_DURATION = 5000
 
 /** 缓存时间 (ms) */
 export const CACHE_TIME = {
-  SHORT: 5 * 60 * 1000,      // 5分钟
-  MEDIUM: 30 * 60 * 1000,    // 30分钟
-  LONG: 24 * 60 * 60 * 1000  // 24小时
+  SHORT: 5 * 60 * 1000, // 5分钟
+  MEDIUM: 30 * 60 * 1000, // 30分钟
+  LONG: 24 * 60 * 60 * 1000 // 24小时
 } as const
 
 /** 文件上传限制 */
 export const FILE_LIMITS = {
-  MAX_IMAGE_SIZE: 10 * 1024 * 1024,   // 10MB
-  MAX_VIDEO_SIZE: 100 * 1024 * 1024,  // 100MB
+  MAX_IMAGE_SIZE: 10 * 1024 * 1024, // 10MB
+  MAX_VIDEO_SIZE: 100 * 1024 * 1024, // 100MB
   MAX_FILES: 10,
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
   ALLOWED_VIDEO_TYPES: ['video/mp4', 'video/webm']

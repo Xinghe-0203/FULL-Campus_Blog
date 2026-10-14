@@ -4,9 +4,12 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.edu_project.controller.social.MessageController;
 import com.example.edu_project.service.social.MessageService;
+import com.example.edu_project.service.social.MessageRealtimeService;
+import com.example.edu_project.vo.social.ConversationVO;
 import com.example.edu_project.utils.JwtUtils;
 import com.example.edu_project.utils.UserContext;
 import com.example.edu_project.vo.social.MessageVO;
+import com.example.edu_project.vo.social.PresenceVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,6 +41,9 @@ class MessageControllerTest {
 
     @MockBean
     private MessageService messageService;
+
+    @MockBean
+    private MessageRealtimeService messageRealtimeService;
 
     @MockBean
     private JwtUtils jwtUtils;
@@ -157,5 +163,32 @@ class MessageControllerTest {
         mockMvc.perform(get("/message/conversation/2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200));
+    }
+
+    @Test
+    @DisplayName("只允许查询已有会话伙伴的在线状态")
+    void getPresence_ExistingConversationPartner_Success() throws Exception {
+        setUpSecurityContext(1L);
+        ConversationVO conversation = new ConversationVO();
+        conversation.setConversationId(2L);
+        when(messageService.getConversations(1L)).thenReturn(List.of(conversation));
+        when(messageRealtimeService.getPresence(1L, 2L)).thenReturn(new PresenceVO(2L, true, null));
+
+        mockMvc.perform(get("/message/presence/2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.userId").value(2))
+                .andExpect(jsonPath("$.data.online").value(true));
+    }
+
+    @Test
+    @DisplayName("拒绝查询非会话伙伴的在线状态")
+    void getPresence_UnrelatedUser_Forbidden() throws Exception {
+        setUpSecurityContext(1L);
+        when(messageService.getConversations(1L)).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/message/presence/2"))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(messageRealtimeService);
     }
 }

@@ -115,10 +115,7 @@ export const adminApi = {
   /**
    * 获取待审核文章
    */
-  getReviewList(params: {
-    pageNum?: number
-    pageSize?: number
-  }): Promise<PaginatedResponse<Post>> {
+  getReviewList(params: { pageNum?: number; pageSize?: number }): Promise<PaginatedResponse<Post>> {
     return api.get('/admin/post/review-list', { params })
   },
 
@@ -139,12 +136,16 @@ export const adminApi = {
   /**
    * 获取统计数据
    */
-  getStatistics(): Promise<ApiResponse<AdminStatistics>> {
-    return api.get('/admin/statistics')
+  getStatistics(params: { days?: number } = {}): Promise<ApiResponse<AdminStatistics>> {
+    return api.get('/admin/statistics', { params })
   },
 
   // Comment management
-  getCommentList(params: { pageNum?: number; pageSize?: number; postId?: number }): Promise<PaginatedResponse<Comment>> {
+  getCommentList(params: {
+    pageNum?: number
+    pageSize?: number
+    postId?: number
+  }): Promise<PaginatedResponse<Comment>> {
     return api.get('/admin/comment/list', { params })
   },
 

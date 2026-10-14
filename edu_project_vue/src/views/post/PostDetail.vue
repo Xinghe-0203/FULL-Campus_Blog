@@ -6,7 +6,7 @@
     <!-- Hero cover - full width, parallax -->
     <div v-if="post?.coverImage && !isLoading" class="hero-cover" ref="heroCoverRef">
       <div class="hero-cover-inner" :style="{ transform: `translateY(${parallaxOffset}px)` }">
-        <img :src="post.coverImage" :alt="post.title" />
+        <img :src="resolveAssetUrl(post.coverImage)" :alt="post.title" />
       </div>
       <div class="hero-cover-overlay"></div>
       <div class="hero-cover-grain"></div>
@@ -18,7 +18,16 @@
       <main class="post-main">
         <!-- Back button -->
         <button class="back-btn" @click="router.back()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
           <span>返回</span>
         </button>
 
@@ -31,14 +40,30 @@
               <div class="skeleton-circle"></div>
               <div class="skeleton-line skeleton-name"></div>
             </div>
-            <div class="skeleton-line" v-for="i in 8" :key="i" :style="{ width: `${70 + Math.random() * 30}%` }"></div>
+            <div
+              class="skeleton-line"
+              v-for="i in 8"
+              :key="i"
+              :style="{ width: `${70 + Math.random() * 30}%` }"
+            ></div>
           </div>
         </div>
 
         <!-- Error State -->
         <div v-else-if="error && !post" class="error-state">
           <div class="error-icon-wrap">
-            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <svg
+              width="56"
+              height="56"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
           </div>
           <h2>{{ error }}</h2>
           <div class="error-actions">
@@ -57,7 +82,7 @@
                 v-for="(tag, idx) in post.tags"
                 :key="tag.id"
                 class="tag-pill"
-                :style="{ animationDelay: (Number(idx) * 60) + 'ms' }"
+                :style="{ animationDelay: Number(idx) * 60 + 'ms' }"
               >
                 {{ tag.name }}
               </span>
@@ -68,17 +93,47 @@
             <!-- Meta row: time, views, reading time -->
             <div class="post-meta-row">
               <span class="meta-item">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
                 {{ formatRelativeTime(post.createTime) }}
               </span>
               <span class="meta-dot"></span>
               <span class="meta-item">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
                 {{ post.viewCount || 0 }} 阅读
               </span>
               <span class="meta-dot"></span>
               <span class="meta-item reading-time">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg>
                 约 {{ estimatedReadTime }} 分钟
               </span>
             </div>
@@ -88,7 +143,11 @@
           <div class="author-card animate-in" style="animation-delay: 100ms">
             <router-link :to="`/user/${post.userId}`" class="author-info">
               <div class="author-avatar-wrap">
-                <img :src="post.avatar || '/default-avatar.png'" :alt="post.username" class="author-avatar" />
+                <img
+                  :src="resolveAssetUrl(post.avatar) || DEFAULT_AVATAR_URL"
+                  :alt="post.username"
+                  class="author-avatar"
+                />
               </div>
               <div class="author-meta">
                 <span class="author-name">{{ post.nickname || post.username }}</span>
@@ -103,8 +162,33 @@
                 @click="toggleFollow"
                 :disabled="isTogglingFollow"
               >
-                <svg v-if="!isFollowing" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-                <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+                <svg
+                  v-if="!isFollowing"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="8.5" cy="7" r="4" />
+                  <line x1="20" y1="8" x2="20" y2="14" />
+                  <line x1="23" y1="11" x2="17" y2="11" />
+                </svg>
+                <svg
+                  v-else
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="8.5" cy="7" r="4" />
+                  <polyline points="17 11 19 13 23 9" />
+                </svg>
                 {{ isFollowing ? '已关注' : '关注' }}
               </button>
               <router-link
@@ -112,11 +196,35 @@
                 :to="`/messages?userId=${post.userId}`"
                 class="btn btn-ghost btn-sm"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M22 2L11 13" />
+                  <path d="M22 2l-7 20-4-9-9-4 20-7z" />
+                </svg>
                 私信
               </router-link>
-              <router-link v-if="userStore.isLoggedIn && userStore.userId === post.userId" :to="`/post-edit/${post.id}`" class="btn btn-ghost btn-sm">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <router-link
+                v-if="userStore.isLoggedIn && userStore.userId === post.userId"
+                :to="`/post-edit/${post.id}`"
+                class="btn btn-ghost btn-sm"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
                 编辑
               </router-link>
             </div>
@@ -131,11 +239,7 @@
           <footer class="post-footer animate-in" style="animation-delay: 300ms">
             <!-- Bottom tags -->
             <div v-if="post.tags && post.tags.length" class="post-tags-bottom">
-              <span
-                v-for="tag in post.tags"
-                :key="tag.id"
-                class="tag-pill tag-pill-ghost"
-              >
+              <span v-for="tag in post.tags" :key="tag.id" class="tag-pill tag-pill-ghost">
                 #{{ tag.name }}
               </span>
             </div>
@@ -149,8 +253,17 @@
                 :disabled="!userStore.isLoggedIn || isTogglingLike"
               >
                 <span class="action-icon-wrap">
-                  <svg width="20" height="20" viewBox="0 0 24 24" :fill="isLiked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    :fill="isLiked ? 'currentColor' : 'none'"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                    />
                   </svg>
                 </span>
                 <span class="action-label">{{ post.likeCount || 0 }}</span>
@@ -162,20 +275,34 @@
                 :disabled="!userStore.isLoggedIn || isTogglingCollect"
               >
                 <span class="action-icon-wrap">
-                  <svg width="20" height="20" viewBox="0 0 24 24" :fill="isCollected ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    :fill="isCollected ? 'currentColor' : 'none'"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                   </svg>
                 </span>
                 <span class="action-label">{{ post.collectCount || 0 }}</span>
               </button>
               <button class="action-btn" @click="sharePost">
                 <span class="action-icon-wrap">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="18" cy="5" r="3"/>
-                    <circle cx="6" cy="12" r="3"/>
-                    <circle cx="18" cy="19" r="3"/>
-                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                   </svg>
                 </span>
                 <span class="action-label">{{ post.shareCount || 0 }}</span>
@@ -183,7 +310,17 @@
               <div class="action-divider"></div>
               <button class="action-btn action-btn-report" @click="openReport" title="举报">
                 <span class="action-icon-wrap">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                    <line x1="4" y1="22" x2="4" y2="15" />
+                  </svg>
                 </span>
               </button>
             </div>
@@ -194,7 +331,16 @@
         <section v-if="post" class="comment-section animate-in" style="animation-delay: 400ms">
           <div class="comment-header-bar">
             <h3 class="section-title">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
               评论
             </h3>
             <span class="comment-count-badge">{{ comments.length }}</span>
@@ -204,11 +350,33 @@
           <div v-if="userStore.isLoggedIn" class="comment-input-wrap">
             <div v-if="replyingTo" class="reply-indicator">
               <div class="reply-indicator-content">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
-                <span>回复 <strong>@{{ replyingTo.nickname || replyingTo.username }}</strong></span>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="9 17 4 12 9 7" />
+                  <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+                </svg>
+                <span
+                  >回复 <strong>@{{ replyingTo.nickname || replyingTo.username }}</strong></span
+                >
               </div>
               <button @click="cancelReply" class="cancel-reply-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
             <textarea
@@ -219,19 +387,42 @@
               class="comment-textarea"
             ></textarea>
             <div class="comment-input-footer">
-              <span class="char-count" :class="{ 'near-limit': commentContent.length > 900 }">{{ commentContent.length }}/1000</span>
+              <span class="char-count" :class="{ 'near-limit': commentContent.length > 900 }"
+                >{{ commentContent.length }}/1000</span
+              >
               <button
                 class="btn btn-primary btn-sm"
                 @click="submitComment"
                 :disabled="!commentContent.trim()"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
                 {{ replyingTo ? '发表回复' : '发表评论' }}
               </button>
             </div>
           </div>
           <div v-else class="login-hint">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            <svg
+              width="40"
+              height="40"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+              <polyline points="10 17 15 12 10 7" />
+              <line x1="15" y1="12" x2="3" y2="12" />
+            </svg>
             <div class="login-hint-text">
               <router-link to="/login" class="login-link">登录</router-link>
               <span>后参与评论互动</span>
@@ -241,18 +432,42 @@
           <!-- Comment list -->
           <div class="comment-list">
             <div v-if="commentsError" class="empty-hint error-hint">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
               <p>评论加载失败，请稍后重试</p>
               <button @click="fetchComments" class="btn btn-sm btn-outline">点击重试</button>
             </div>
             <div v-else-if="comments.length === 0" class="empty-hint">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
               <p>暂无评论，快来抢沙发吧</p>
             </div>
             <TransitionGroup name="comment-list" tag="div" class="comment-items">
               <div v-for="comment in comments" :key="comment.id" class="comment-item">
                 <router-link :to="`/user/${comment.userId}`" class="comment-avatar-link">
-                  <img :src="comment.userAvatar || '/default-avatar.png'" :alt="comment.username" class="comment-avatar" />
+                  <img
+                    :src="resolveAssetUrl(comment.userAvatar) || DEFAULT_AVATAR_URL"
+                    :alt="comment.username"
+                    class="comment-avatar"
+                  />
                 </router-link>
                 <div class="comment-body">
                   <div class="comment-header-row">
@@ -270,15 +485,40 @@
                       class="comment-action-btn"
                       @click="replyTo(comment)"
                     >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                      <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <polyline points="9 17 4 12 9 7" />
+                        <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+                      </svg>
                       回复
                     </button>
                     <button
-                      v-if="userStore.isLoggedIn && (userStore.userId === comment.userId || userStore.isAdmin)"
+                      v-if="
+                        userStore.isLoggedIn &&
+                        (userStore.userId === comment.userId || userStore.isAdmin)
+                      "
                       class="comment-action-btn comment-action-delete"
                       @click="deleteComment(comment.id)"
                     >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                      <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <polyline points="3 6 5 6 21 6" />
+                        <path
+                          d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                        />
+                      </svg>
                       删除
                     </button>
                   </div>
@@ -287,7 +527,11 @@
                   <div v-if="comment.replies && comment.replies.length" class="reply-list">
                     <div v-for="reply in comment.replies" :key="reply.id" class="reply-item">
                       <router-link :to="`/user/${reply.userId}`" class="reply-avatar-link">
-                        <img :src="reply.userAvatar || '/default-avatar.png'" :alt="reply.username" class="reply-avatar" />
+                        <img
+                          :src="resolveAssetUrl(reply.userAvatar) || DEFAULT_AVATAR_URL"
+                          :alt="reply.username"
+                          class="reply-avatar"
+                        />
                       </router-link>
                       <div class="reply-body">
                         <div class="reply-header-row">
@@ -318,8 +562,17 @@
             :disabled="!userStore.isLoggedIn || isTogglingLike"
             title="点赞"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" :fill="isLiked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              :fill="isLiked ? 'currentColor' : 'none'"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+              />
             </svg>
             <span class="sidebar-action-count">{{ post?.likeCount || 0 }}</span>
           </button>
@@ -330,21 +583,47 @@
             :disabled="!userStore.isLoggedIn || isTogglingCollect"
             title="收藏"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" :fill="isCollected ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              :fill="isCollected ? 'currentColor' : 'none'"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
             </svg>
             <span class="sidebar-action-count">{{ post?.collectCount || 0 }}</span>
           </button>
           <button class="sidebar-action-btn" @click="sharePost" title="分享">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
             </svg>
             <span class="sidebar-action-count">{{ post?.shareCount || 0 }}</span>
           </button>
           <div class="sidebar-action-divider"></div>
           <button class="sidebar-action-btn" @click="scrollToComments" title="评论">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
             <span class="sidebar-action-count">{{ post?.commentCount || 0 }}</span>
           </button>
         </div>
@@ -352,7 +631,21 @@
         <!-- Table of contents -->
         <div v-if="toc.length > 0" class="toc-card">
           <h3 class="sidebar-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
             目录
           </h3>
           <nav class="toc-nav">
@@ -373,7 +666,18 @@
         <!-- Article info card -->
         <div class="info-card">
           <h3 class="sidebar-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
             文章信息
           </h3>
           <div class="info-grid">
@@ -400,27 +704,72 @@
 
     <!-- Mobile floating action bar -->
     <div v-if="post && !isLoading" class="mobile-actions" :class="{ visible: showMobileActions }">
-      <button class="mobile-action-btn" :class="{ active: isLiked }" @click="toggleLike" :disabled="!userStore.isLoggedIn || isTogglingLike">
-        <svg width="18" height="18" viewBox="0 0 24 24" :fill="isLiked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      <button
+        class="mobile-action-btn"
+        :class="{ active: isLiked }"
+        @click="toggleLike"
+        :disabled="!userStore.isLoggedIn || isTogglingLike"
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          :fill="isLiked ? 'currentColor' : 'none'"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+          />
         </svg>
         <span>{{ post?.likeCount || 0 }}</span>
       </button>
-      <button class="mobile-action-btn" :class="{ active: isCollected }" @click="toggleCollect" :disabled="!userStore.isLoggedIn || isTogglingCollect">
-        <svg width="18" height="18" viewBox="0 0 24 24" :fill="isCollected ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+      <button
+        class="mobile-action-btn"
+        :class="{ active: isCollected }"
+        @click="toggleCollect"
+        :disabled="!userStore.isLoggedIn || isTogglingCollect"
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          :fill="isCollected ? 'currentColor' : 'none'"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
         </svg>
         <span>{{ post?.collectCount || 0 }}</span>
       </button>
       <button class="mobile-action-btn" @click="sharePost">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="18" cy="5" r="3" />
+          <circle cx="6" cy="12" r="3" />
+          <circle cx="18" cy="19" r="3" />
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
         </svg>
         <span>分享</span>
       </button>
       <button class="mobile-action-btn" @click="scrollToComments">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
         <span>{{ comments.length }}</span>
       </button>
     </div>
@@ -430,6 +779,7 @@
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl, resolveEmbeddedAssetUrls } from '@/constants'
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { marked } from 'marked'
@@ -481,14 +831,15 @@ const estimatedReadTime = computed(() => {
 // Render Markdown content
 const renderedContent = computed(() => {
   if (!post.value?.content) return ''
-  const rawHtml = marked.parse(post.value.content) as string
+  const rawHtml = marked.parse(resolveEmbeddedAssetUrls(post.value.content)) as string
   const sanitized = DOMPurify.sanitize(rawHtml, {
     USE_PROFILES: { html: true },
     ADD_ATTR: ['target', 'referrerpolicy'],
     FORBID_TAGS: ['style', 'script', 'iframe', 'form'],
     FORBID_ATTR: ['onerror', 'onload', 'onclick']
   })
-  return sanitized.replace(/<a\s/g, '<a target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" ')
+  return sanitized
+    .replace(/<a\s/g, '<a target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" ')
     .replace(/<img\s/g, '<img referrerpolicy="no-referrer" loading="lazy" ')
 })
 
@@ -516,7 +867,9 @@ const extractTocFromMarkdown = (markdown: string) => {
 
 // Add IDs to DOM headings
 const addHeadingIds = () => {
-  const headings = document.querySelectorAll('.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4')
+  const headings = document.querySelectorAll(
+    '.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4'
+  )
   headings.forEach((el, index) => {
     if (!el.id) el.id = `heading-${index}`
   })
@@ -524,7 +877,9 @@ const addHeadingIds = () => {
 
 // Scroll to heading
 const scrollToHeading = (index: number) => {
-  const headings = document.querySelectorAll('.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4')
+  const headings = document.querySelectorAll(
+    '.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4'
+  )
   const target = headings[index]
   if (target) {
     const offset = 80
@@ -554,10 +909,12 @@ const handleCodeCopyClick = async (e: Event) => {
   const code = block.querySelector('code')?.textContent || block.textContent
   try {
     await navigator.clipboard.writeText(code)
-    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>已复制'
+    btn.innerHTML =
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>已复制'
     btn.classList.add('copied')
     setTimeout(() => {
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>复制'
+      btn.innerHTML =
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>复制'
       btn.classList.remove('copied')
     }, 2000)
   } catch {
@@ -576,7 +933,8 @@ const addCodeCopyButtons = () => {
     if (block.querySelector('.copy-btn')) return
     const btn = document.createElement('button')
     btn.className = 'copy-btn'
-    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>复制'
+    btn.innerHTML =
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>复制'
     block.appendChild(btn)
   })
 }
@@ -598,11 +956,7 @@ const fetchPost = async () => {
 
     if (userStore.isLoggedIn) {
       try {
-        await Promise.all([
-          checkLikeStatus(),
-          checkCollectStatus(),
-          checkFollowStatus()
-        ])
+        await Promise.all([checkLikeStatus(), checkCollectStatus(), checkFollowStatus()])
       } catch (err: any) {
         logger.warn('Failed to fetch initial status', { error: err.message })
       }
@@ -629,14 +983,17 @@ const fetchPost = async () => {
 }
 
 // Extract TOC after content loads
-watch(() => post.value?.content, async (content) => {
-  toc.value = content ? extractTocFromMarkdown(content) : []
-  if (content) {
-    await nextTick()
-    addHeadingIds()
-    addCodeCopyButtons()
+watch(
+  () => post.value?.content,
+  async (content) => {
+    toc.value = content ? extractTocFromMarkdown(content) : []
+    if (content) {
+      await nextTick()
+      addHeadingIds()
+      addCodeCopyButtons()
+    }
   }
-})
+)
 
 // Fetch comments
 const fetchComments = async () => {
@@ -827,7 +1184,9 @@ const deleteComment = async (commentId: number | string) => {
 const replyTo = (comment: any) => {
   replyingTo.value = comment
   commentContent.value = `@${comment.nickname || comment.username} `
-  document.querySelector('.comment-input-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  document
+    .querySelector('.comment-input-wrap')
+    ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
 // Cancel reply
@@ -868,7 +1227,9 @@ const handleScroll = () => {
   showMobileActions.value = scrollTop > 300
 
   // TOC active heading
-  const headings = document.querySelectorAll('.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4')
+  const headings = document.querySelectorAll(
+    '.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4'
+  )
   let currentId = ''
   headings.forEach((heading: Element) => {
     if (heading.getBoundingClientRect().top <= 100) {
@@ -893,23 +1254,26 @@ onUnmounted(() => {
   }
 })
 
-watch(() => route.params.id, () => {
-  post.value = null
-  comments.value = []
-  toc.value = []
-  error.value = false
-  isLoading.value = true
-  commentContent.value = ''
-  replyingTo.value = null
-  isLiked.value = false
-  isCollected.value = false
-  isFollowing.value = false
-  commentsError.value = false
-  parallaxOffset.value = 0
-  window.scrollTo({ top: 0 })
-  fetchPost()
-  fetchComments()
-})
+watch(
+  () => route.params.id,
+  () => {
+    post.value = null
+    comments.value = []
+    toc.value = []
+    error.value = false
+    isLoading.value = true
+    commentContent.value = ''
+    replyingTo.value = null
+    isLiked.value = false
+    isCollected.value = false
+    isFollowing.value = false
+    commentsError.value = false
+    parallaxOffset.value = 0
+    window.scrollTo({ top: 0 })
+    fetchPost()
+    fetchComments()
+  }
+)
 </script>
 
 <style scoped>
@@ -2148,9 +2512,15 @@ watch(() => route.params.id, () => {
   height: 100%;
 }
 
-.toc-link.level-2 { padding-left: var(--spacing-md); }
-.toc-link.level-3 { padding-left: var(--spacing-lg); }
-.toc-link.level-4 { padding-left: var(--spacing-xl); }
+.toc-link.level-2 {
+  padding-left: var(--spacing-md);
+}
+.toc-link.level-3 {
+  padding-left: var(--spacing-lg);
+}
+.toc-link.level-4 {
+  padding-left: var(--spacing-xl);
+}
 
 /* Info card grid */
 .info-grid {
@@ -2255,7 +2625,12 @@ watch(() => route.params.id, () => {
 
 .skeleton-line {
   height: 16px;
-  background: linear-gradient(90deg, var(--skeleton-base) 0%, var(--skeleton-highlight) 50%, var(--skeleton-base) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 0%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 100%
+  );
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s ease-in-out infinite;
   border-radius: var(--radius-sm);
@@ -2284,7 +2659,12 @@ watch(() => route.params.id, () => {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(90deg, var(--skeleton-base) 0%, var(--skeleton-highlight) 50%, var(--skeleton-base) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 0%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 100%
+  );
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s ease-in-out infinite;
   flex-shrink: 0;
@@ -2296,8 +2676,12 @@ watch(() => route.params.id, () => {
 }
 
 @keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* ========================================
@@ -2330,8 +2714,13 @@ watch(() => route.params.id, () => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .error-state h2 {

@@ -1,13 +1,34 @@
 <template>
   <div class="profile-page">
     <button class="back-btn" @click="goBack" aria-label="返回">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
       <span>返回</span>
     </button>
 
     <div v-if="pageError" class="error-card">
       <div class="error-card-body">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="error-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <svg
+          width="48"
+          height="48"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          class="error-icon"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
         <p>{{ pageError }}</p>
         <button class="btn btn-primary" @click="initLoad">重新加载</button>
       </div>
@@ -19,7 +40,7 @@
         <!-- Cover -->
         <div class="hero-cover">
           <img
-            :src="getSafeImageUrl(user?.coverImage, '/default-cover.jpg')"
+            :src="getSafeImageUrl(user?.coverImage, DEFAULT_COVER_URL)"
             alt=""
             class="cover-image"
             loading="eager"
@@ -32,9 +53,18 @@
             :disabled="coverUploading"
             aria-label="更换封面图"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-              <circle cx="12" cy="13" r="4"/>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+              />
+              <circle cx="12" cy="13" r="4" />
             </svg>
             <span class="cover-edit-label">更换封面</span>
           </button>
@@ -64,14 +94,18 @@
             <div class="hero-avatar-area">
               <div class="squircle-avatar-wrap">
                 <img
-                  :src="user?.avatar || '/default-avatar.png'"
+                  :src="resolveAssetUrl(user?.avatar) || DEFAULT_AVATAR_URL"
                   :alt="user?.nickname"
                   class="squircle-avatar"
                   @error="onAvatarError"
                 />
               </div>
               <span class="admin-badge" v-if="user?.role === 'ROLE_ADMIN'">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                  />
+                </svg>
                 管理员
               </span>
             </div>
@@ -97,10 +131,22 @@
               <!-- Actions -->
               <div class="hero-actions">
                 <router-link to="/profile-edit" class="btn btn-primary btn-sm">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
                   编辑资料
                 </router-link>
-                <router-link to="/password-change" class="btn btn-ghost btn-sm">修改密码</router-link>
+                <router-link to="/password-change" class="btn btn-ghost btn-sm"
+                  >修改密码</router-link
+                >
               </div>
             </div>
           </template>
@@ -113,7 +159,11 @@
           <button
             v-for="(tab, i) in tabs"
             :key="tab.key"
-            :ref="(el: any) => { if (el) tabEls[i] = el }"
+            :ref="
+              (el: any) => {
+                if (el) tabEls[i] = el
+              }
+            "
             class="tab-btn"
             :class="{ active: activeTab === tab.key }"
             :aria-selected="activeTab === tab.key"
@@ -139,13 +189,37 @@
               </div>
             </div>
             <div v-else-if="postsError" class="tab-error">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <svg
+                width="36"
+                height="36"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
               <p>{{ postsError }}</p>
               <button class="btn btn-sm btn-primary" @click="fetchPosts">重试</button>
             </div>
             <div v-else-if="posts.length === 0" class="empty-state">
               <div class="empty-icon">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.75"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                <svg
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="0.75"
+                >
+                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>
               </div>
               <p class="empty-title">还没有发表文章</p>
               <p class="empty-desc">写下你的第一篇博客，分享你的想法</p>
@@ -166,39 +240,151 @@
                 </div>
                 <div class="post-row-meta">
                   <span class="meta-pill">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
                     {{ formatRelativeTime(post.createTime) }}
                   </span>
                   <span class="meta-pill views-pill">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
                     {{ post.viewCount || 0 }}
                   </span>
                   <span class="meta-pill like-pill">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                      />
+                    </svg>
                     {{ post.likeCount || 0 }}
                   </span>
                   <span class="meta-pill comment-pill">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
                     {{ post.commentCount || 0 }}
                   </span>
                 </div>
                 <div class="post-row-actions">
-                  <router-link :to="`/post-edit/${post.id}`" class="icon-btn" title="编辑" aria-label="编辑文章">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  <router-link
+                    :to="`/post-edit/${post.id}`"
+                    class="icon-btn"
+                    title="编辑"
+                    aria-label="编辑文章"
+                  >
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
                   </router-link>
-                  <button class="icon-btn danger" title="删除" aria-label="删除文章" @click="openConfirm('删除文章', `确定删除「${post.title}」吗？删除后不可恢复。`, () => deletePost(post.id))">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  <button
+                    class="icon-btn danger"
+                    title="删除"
+                    aria-label="删除文章"
+                    @click="
+                      openConfirm('删除文章', `确定删除「${post.title}」吗？删除后不可恢复。`, () =>
+                        deletePost(post.id)
+                      )
+                    "
+                  >
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="3 6 5 6 21 6" />
+                      <path
+                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                      />
+                    </svg>
                   </button>
                 </div>
               </article>
               <div v-if="postsTotalPages > 1" class="pagination-bar">
                 <div class="pagination">
-                  <button class="pagination-btn" :disabled="postsPage <= 1" @click="postsPage--; fetchPosts()" aria-label="上一页">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                  <button
+                    class="pagination-btn"
+                    :disabled="postsPage <= 1"
+                    @click="(postsPage--, fetchPosts())"
+                    aria-label="上一页"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
                   </button>
-                  <button v-for="p in postsTotalPages" :key="p" class="pagination-btn" :class="{ active: p === postsPage }" @click="postsPage = p; fetchPosts()">{{ p }}</button>
-                  <button class="pagination-btn" :disabled="postsPage >= postsTotalPages" @click="postsPage++; fetchPosts()" aria-label="下一页">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  <button
+                    v-for="p in postsTotalPages"
+                    :key="p"
+                    class="pagination-btn"
+                    :class="{ active: p === postsPage }"
+                    @click="((postsPage = p), fetchPosts())"
+                  >
+                    {{ p }}
+                  </button>
+                  <button
+                    class="pagination-btn"
+                    :disabled="postsPage >= postsTotalPages"
+                    @click="(postsPage++, fetchPosts())"
+                    aria-label="下一页"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
                   </button>
                 </div>
                 <span class="pagination-info">共 {{ postsTotal }} 篇</span>
@@ -216,13 +402,33 @@
               </div>
             </div>
             <div v-else-if="circlesError" class="tab-error">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <svg
+                width="36"
+                height="36"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
               <p>{{ circlesError }}</p>
               <button class="btn btn-sm btn-primary" @click="fetchCircles">重试</button>
             </div>
             <div v-else-if="circles.length === 0" class="empty-state">
               <div class="empty-icon">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.75"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <svg
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="0.75"
+                >
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
               </div>
               <p class="empty-title">还没有发布校友圈动态</p>
               <p class="empty-desc">分享你的校园生活点滴</p>
@@ -240,11 +446,31 @@
                 </div>
                 <div class="post-row-meta">
                   <span class="meta-pill like-pill">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                      />
+                    </svg>
                     {{ post.likeCount || 0 }}
                   </span>
                   <span class="meta-pill comment-pill">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
                     {{ post.commentCount || 0 }}
                   </span>
                   <span class="meta-pill">
@@ -253,17 +479,62 @@
                 </div>
                 <router-link :to="`/circle/${post.id}`" class="detail-link">
                   查看
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
                 </router-link>
               </article>
               <div v-if="circlesTotalPages > 1" class="pagination-bar">
                 <div class="pagination">
-                  <button class="pagination-btn" :disabled="circlesPage <= 1" @click="circlesPage--; fetchCircles()" aria-label="上一页">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                  <button
+                    class="pagination-btn"
+                    :disabled="circlesPage <= 1"
+                    @click="(circlesPage--, fetchCircles())"
+                    aria-label="上一页"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
                   </button>
-                  <button v-for="p in circlesTotalPages" :key="p" class="pagination-btn" :class="{ active: p === circlesPage }" @click="circlesPage = p; fetchCircles()">{{ p }}</button>
-                  <button class="pagination-btn" :disabled="circlesPage >= circlesTotalPages" @click="circlesPage++; fetchCircles()" aria-label="下一页">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  <button
+                    v-for="p in circlesTotalPages"
+                    :key="p"
+                    class="pagination-btn"
+                    :class="{ active: p === circlesPage }"
+                    @click="((circlesPage = p), fetchCircles())"
+                  >
+                    {{ p }}
+                  </button>
+                  <button
+                    class="pagination-btn"
+                    :disabled="circlesPage >= circlesTotalPages"
+                    @click="(circlesPage++, fetchCircles())"
+                    aria-label="下一页"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
                   </button>
                 </div>
                 <span class="pagination-info">共 {{ circlesTotal }} 条</span>
@@ -281,13 +552,35 @@
               </div>
             </div>
             <div v-else-if="likesError" class="tab-error">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <svg
+                width="36"
+                height="36"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
               <p>{{ likesError }}</p>
               <button class="btn btn-sm btn-primary" @click="fetchLikes">重试</button>
             </div>
             <div v-else-if="likes.length === 0" class="empty-state">
               <div class="empty-icon">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.75"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <svg
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="0.75"
+                >
+                  <path
+                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                  />
+                </svg>
               </div>
               <p class="empty-title">还没有点赞过文章</p>
               <p class="empty-desc">浏览文章，为你喜欢的内容点赞</p>
@@ -308,19 +601,66 @@
                 </div>
                 <div class="post-row-meta">
                   <span class="meta-pill like-pill">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                      />
+                    </svg>
                     点赞于 {{ formatRelativeTime(like.likeTime) }}
                   </span>
                 </div>
               </article>
               <div v-if="likesTotalPages > 1" class="pagination-bar">
                 <div class="pagination">
-                  <button class="pagination-btn" :disabled="likesPage <= 1" @click="likesPage--; fetchLikes()" aria-label="上一页">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                  <button
+                    class="pagination-btn"
+                    :disabled="likesPage <= 1"
+                    @click="(likesPage--, fetchLikes())"
+                    aria-label="上一页"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
                   </button>
-                  <button v-for="p in likesTotalPages" :key="p" class="pagination-btn" :class="{ active: p === likesPage }" @click="likesPage = p; fetchLikes()">{{ p }}</button>
-                  <button class="pagination-btn" :disabled="likesPage >= likesTotalPages" @click="likesPage++; fetchLikes()" aria-label="下一页">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  <button
+                    v-for="p in likesTotalPages"
+                    :key="p"
+                    class="pagination-btn"
+                    :class="{ active: p === likesPage }"
+                    @click="((likesPage = p), fetchLikes())"
+                  >
+                    {{ p }}
+                  </button>
+                  <button
+                    class="pagination-btn"
+                    :disabled="likesPage >= likesTotalPages"
+                    @click="(likesPage++, fetchLikes())"
+                    aria-label="下一页"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
                   </button>
                 </div>
                 <span class="pagination-info">共 {{ likesTotal }} 条</span>
@@ -338,13 +678,33 @@
               </div>
             </div>
             <div v-else-if="commentsError" class="tab-error">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <svg
+                width="36"
+                height="36"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
               <p>{{ commentsError }}</p>
               <button class="btn btn-sm btn-primary" @click="fetchComments">重试</button>
             </div>
             <div v-else-if="comments.length === 0" class="empty-state">
               <div class="empty-icon">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.75"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <svg
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="0.75"
+                >
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
               </div>
               <p class="empty-title">还没有发表过评论</p>
               <p class="empty-desc">在文章下方留下你的见解</p>
@@ -361,7 +721,9 @@
                   <p class="comment-text">{{ comment.content }}</p>
                   <div class="comment-meta-line">
                     <span>评论于</span>
-                    <router-link :to="`/post/${comment.postId}`" class="comment-post-link">{{ comment.postTitle }}</router-link>
+                    <router-link :to="`/post/${comment.postId}`" class="comment-post-link">{{
+                      comment.postTitle
+                    }}</router-link>
                     <span class="comment-sep">&middot;</span>
                     <span class="comment-time">{{ formatRelativeTime(comment.createTime) }}</span>
                   </div>
@@ -369,12 +731,48 @@
               </article>
               <div v-if="commentsTotalPages > 1" class="pagination-bar">
                 <div class="pagination">
-                  <button class="pagination-btn" :disabled="commentsPage <= 1" @click="commentsPage--; fetchComments()" aria-label="上一页">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                  <button
+                    class="pagination-btn"
+                    :disabled="commentsPage <= 1"
+                    @click="(commentsPage--, fetchComments())"
+                    aria-label="上一页"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
                   </button>
-                  <button v-for="p in commentsTotalPages" :key="p" class="pagination-btn" :class="{ active: p === commentsPage }" @click="commentsPage = p; fetchComments()">{{ p }}</button>
-                  <button class="pagination-btn" :disabled="commentsPage >= commentsTotalPages" @click="commentsPage++; fetchComments()" aria-label="下一页">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  <button
+                    v-for="p in commentsTotalPages"
+                    :key="p"
+                    class="pagination-btn"
+                    :class="{ active: p === commentsPage }"
+                    @click="((commentsPage = p), fetchComments())"
+                  >
+                    {{ p }}
+                  </button>
+                  <button
+                    class="pagination-btn"
+                    :disabled="commentsPage >= commentsTotalPages"
+                    @click="(commentsPage++, fetchComments())"
+                    aria-label="下一页"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
                   </button>
                 </div>
                 <span class="pagination-info">共 {{ commentsTotal }} 条</span>
@@ -390,6 +788,7 @@
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, DEFAULT_COVER_URL, resolveAssetUrl } from '@/constants'
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/user'
@@ -424,7 +823,13 @@ const stats = ref<Record<string, any>>({})
 const coverUploading = ref(false)
 const coverInputRef = ref<HTMLInputElement | null>(null)
 
-const loading = reactive({ user: false, posts: false, likes: false, comments: false, circles: false })
+const loading = reactive({
+  user: false,
+  posts: false,
+  likes: false,
+  comments: false,
+  circles: false
+})
 
 const posts = ref<any[]>([])
 const likes = ref<any[]>([])
@@ -465,10 +870,30 @@ const statItems = computed(() => [
 ])
 
 const tabs = computed(() => [
-  { key: 'posts', label: '文章', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>', count: stats.value.postCount },
-  { key: 'circle', label: '校友圈', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', count: undefined },
-  { key: 'likes', label: '点赞', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>', count: stats.value.likeCount },
-  { key: 'comments', label: '评论', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', count: undefined }
+  {
+    key: 'posts',
+    label: '文章',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>',
+    count: stats.value.postCount
+  },
+  {
+    key: 'circle',
+    label: '校友圈',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+    count: undefined
+  },
+  {
+    key: 'likes',
+    label: '点赞',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+    count: stats.value.likeCount
+  },
+  {
+    key: 'comments',
+    label: '评论',
+    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+    count: undefined
+  }
 ])
 
 const { confirm, ConfirmDialog } = useConfirm()
@@ -484,7 +909,7 @@ const indicatorStyle = computed(() => {
 })
 
 function onAvatarError(e: Event) {
-  (e.target as HTMLImageElement).src = '/default-avatar.png'
+  ;(e.target as HTMLImageElement).src = DEFAULT_AVATAR_URL
 }
 
 const triggerCoverUpload = () => {
@@ -543,11 +968,15 @@ async function initLoad() {
     try {
       const postsResp = await postApi.getMyPosts({ pageNum: 1, pageSize: 1 })
       postCount = (postsResp.data as any)?.total || 0
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     try {
       const likesResp = await likeApi.getMyLikes({ pageNum: 1, pageSize: 1 })
       likeCount = (likesResp.data as any)?.total || 0
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     stats.value = {
       postCount,
       likeCount,
@@ -617,7 +1046,10 @@ const fetchCircles = async () => {
   loading.circles = true
   circlesError.value = ''
   try {
-    const res = await circleApi.getUserPosts(user.value.id, { pageNum: circlesPage.value, pageSize })
+    const res = await circleApi.getUserPosts(user.value.id, {
+      pageNum: circlesPage.value,
+      pageSize
+    })
     const data = res.data || {}
     if (Array.isArray(data)) {
       circles.value = data
@@ -640,7 +1072,7 @@ const fetchCircles = async () => {
 async function deletePost(postId: number) {
   try {
     await postApi.deletePost(postId)
-    posts.value = posts.value.filter(p => p.id !== postId)
+    posts.value = posts.value.filter((p) => p.id !== postId)
     postsTotal.value = Math.max(0, postsTotal.value - 1)
     if (posts.value.length === 0 && postsPage.value > 1) {
       postsPage.value--
@@ -1214,13 +1646,13 @@ a.stat-cell[href] {
 .like-pill {
   background: rgba(236, 72, 153, 0.06);
   border-color: rgba(236, 72, 153, 0.12);
-  color: #DB2777;
+  color: #db2777;
 }
 
 .comment-pill {
   background: rgba(59, 130, 246, 0.06);
   border-color: rgba(59, 130, 246, 0.12);
-  color: #2563EB;
+  color: #2563eb;
 }
 
 .views-pill {
@@ -1232,19 +1664,19 @@ a.stat-cell[href] {
 .dark-mode .like-pill {
   background: rgba(244, 114, 182, 0.1);
   border-color: rgba(244, 114, 182, 0.18);
-  color: #F472B6;
+  color: #f472b6;
 }
 
 .dark-mode .comment-pill {
   background: rgba(96, 165, 250, 0.1);
   border-color: rgba(96, 165, 250, 0.18);
-  color: #60A5FA;
+  color: #60a5fa;
 }
 
 .dark-mode .views-pill {
   background: rgba(45, 212, 191, 0.1);
   border-color: rgba(45, 212, 191, 0.18);
-  color: #2DD4BF;
+  color: #2dd4bf;
 }
 
 .post-row-actions {
@@ -1383,8 +1815,13 @@ a.stat-cell[href] {
 }
 
 @keyframes gentleFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 .empty-title {

@@ -12,6 +12,10 @@
 - `.env.example` 同时配置文件和 multipart 请求大小，修复单文件上限大于请求上限的问题；Vite 配置改用 ESM 文件 URL 解析路径。
 - 删除无路由引用且与 `HotPosts.vue` 重复的 `PostSearch.vue`；清理未使用的前端环境变量声明。
 - 删除未被使用的分页 composable、后端响应类型副本及路由辅助函数的冗余导出。
+- 增加 `single-jar` Maven 构建 profile，将 Vue 前端嵌入 Spring Boot JAR；域名根路径直接提供 SPA，通过内部 URL 适配保持 `/api/*` API 地址和既有控制器映射不变。
+- 私信加入带 Bearer Token 的 SSE 实时推送、在线/最近在线状态和断线重连；LocalDateTime 按本地时间解析，避免消息时间偏移。
+- 管理统计趋势筛选支持 7/30/90/365 天；修复活跃人数去重计算、数据库日期别名大小写兼容，统计缓存改为短时刷新。
+- 提供 Maven 隔离构建目录参数，验证与打包无需触碰现有生产 `target/` 中的 `.env` 和 SQLite 文件；无数据库结构迁移。
 - 更新 Vue/Vite/Vitest 依赖以处理已知 npm 安全告警，并补齐覆盖率和 Vitest UI 脚本依赖。
 - 精简并更正重复、过时的项目说明与部署指南；`CLAUDE.md` 保留为 `AGENTS.md` 指引。
 

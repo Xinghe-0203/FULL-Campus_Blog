@@ -1,7 +1,16 @@
 <template>
   <div class="notifications-page">
     <button class="back-btn" @click="router.back()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
       返回
     </button>
 
@@ -12,15 +21,33 @@
         <span v-else class="all-read">全部已读</span>
       </div>
       <button v-if="notifications.length > 0" class="btn btn-sm btn-ghost" @click="markAllAsRead()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
         全部已读
       </button>
     </header>
 
     <!-- Error -->
     <div v-if="error" class="error-block">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      <svg
+        width="36"
+        height="36"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
       </svg>
       <p>{{ error }}</p>
       <button class="btn btn-sm btn-primary" @click="fetchNotifications()">重新加载</button>
@@ -32,8 +59,8 @@
         <div class="skel-circle"></div>
         <div class="skel-avatar"></div>
         <div class="skel-body">
-          <div class="skel-line" style="width:60%"></div>
-          <div class="skel-line" style="width:35%;height:10px;margin-top:6px"></div>
+          <div class="skel-line" style="width: 60%"></div>
+          <div class="skel-line" style="width: 35%; height: 10px; margin-top: 6px"></div>
         </div>
       </div>
     </div>
@@ -51,7 +78,7 @@
         <div v-else class="unread-dot-placeholder"></div>
 
         <img
-          :src="notification.fromUser?.avatar || '/default-avatar.png'"
+          :src="resolveAssetUrl(notification.fromUser?.avatar) || defaultAvatar"
           :alt="notification.fromUser?.nickname || notification.fromUser?.username"
           class="notif-avatar"
           @error="onAvatarError"
@@ -59,23 +86,47 @@
 
         <div class="notif-body">
           <p class="notif-text">
-            <strong class="notif-sender">{{ notification.fromUser?.nickname || notification.fromUser?.username }}</strong>
+            <strong class="notif-sender">{{
+              notification.fromUser?.nickname || notification.fromUser?.username
+            }}</strong>
             {{ getNotificationText(notification.type) }}
             <span v-if="notification.content" class="notif-target">{{ notification.content }}</span>
           </p>
-          <span class="notif-time">{{ notification.timeAgo || formatRelativeTime(notification.createTime) }}</span>
+          <span class="notif-time">{{
+            notification.timeAgo || formatRelativeTime(notification.createTime)
+          }}</span>
         </div>
 
         <button class="notif-delete" @click.stop="deleteNotification(notification.id)" title="删除">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
       </div>
 
       <div v-if="hasMore" class="load-more">
         <button class="btn btn-sm btn-ghost" @click="loadMore" :disabled="loading">
-          <svg v-if="loading" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <svg
+            v-if="loading"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            class="spin"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 6v6l4 2" />
+          </svg>
           {{ loading ? '加载中...' : '加载更多' }}
         </button>
       </div>
@@ -83,8 +134,17 @@
 
     <!-- Empty -->
     <div v-else class="empty-block">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon">
-        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      <svg
+        width="48"
+        height="48"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1"
+        class="empty-icon"
+      >
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
       </svg>
       <p class="empty-title">暂无通知</p>
       <p class="empty-desc">当有人与你互动时，通知会出现在这里</p>
@@ -93,6 +153,7 @@
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { notificationApi } from '../../api/notification'
@@ -112,7 +173,7 @@ const hasMore = ref(false)
 const pageSize = 20
 let pollingInterval: ReturnType<typeof setInterval> | null = null
 
-const defaultAvatar = '/default-avatar.png'
+const defaultAvatar = DEFAULT_AVATAR_URL
 
 const onAvatarError = (e: Event) => {
   const target = e.target as HTMLImageElement
@@ -121,13 +182,16 @@ const onAvatarError = (e: Event) => {
   }
 }
 
-const unreadCount = computed(() => notifications.value.filter(n => !n.isRead).length)
+const unreadCount = computed(() => notifications.value.filter((n) => !n.isRead).length)
 
 const fetchNotifications = async (silent = false) => {
   if (!silent) loading.value = true
   error.value = ''
   try {
-    const response = await notificationApi.getNotifications({ pageNum: currentPage.value, pageSize: pageSize })
+    const response = await notificationApi.getNotifications({
+      pageNum: currentPage.value,
+      pageSize: pageSize
+    })
     const pageData = response.data || {}
     if (currentPage.value === 1) {
       notifications.value = pageData.records || []
@@ -157,8 +221,8 @@ const startPolling = () => {
       const response = await notificationApi.getNotifications({ pageNum: 1, pageSize: pageSize })
       const pageData = response.data || {}
       const newRecords = pageData.records || []
-      const existingIds = new Set(notifications.value.map(n => n.id))
-      const trulyNew = newRecords.filter(n => !existingIds.has(n.id))
+      const existingIds = new Set(notifications.value.map((n) => n.id))
+      const trulyNew = newRecords.filter((n) => !existingIds.has(n.id))
       if (trulyNew.length > 0) {
         notifications.value = [...trulyNew, ...notifications.value]
       }
@@ -242,7 +306,7 @@ const handleNotification = async (notification: any) => {
 const markAllAsRead = async () => {
   try {
     await notificationApi.markAllAsRead()
-    notifications.value.forEach(n => n.isRead = true)
+    notifications.value.forEach((n) => (n.isRead = true))
     toast.success('已全部标记为已读')
   } catch (error: any) {
     logger.error('Failed to mark all as read', { error: error.message })
@@ -253,7 +317,7 @@ const markAllAsRead = async () => {
 const deleteNotification = async (id: number) => {
   try {
     await notificationApi.deleteNotification(id)
-    notifications.value = notifications.value.filter(n => n.id !== id)
+    notifications.value = notifications.value.filter((n) => n.id !== id)
     toast.success('通知已删除')
   } catch (error: any) {
     logger.error('Failed to delete notification', { error: error.message })
@@ -475,8 +539,13 @@ onUnmounted(() => {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 /* Load more */
@@ -534,7 +603,9 @@ onUnmounted(() => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive */

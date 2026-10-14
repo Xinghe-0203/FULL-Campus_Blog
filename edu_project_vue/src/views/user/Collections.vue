@@ -1,22 +1,77 @@
 <template>
   <div class="collections-page">
     <button class="back-btn" @click="router.back()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
       返回
     </button>
     <div class="page-header">
       <h1>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="header-icon"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          class="header-icon"
+        >
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+        </svg>
         我的收藏
       </h1>
       <div class="header-actions">
         <span class="page-count">{{ total }} 篇</span>
         <div class="view-toggle">
-          <button class="toggle-btn" :class="{ active: viewMode === 'list' }" @click="viewMode = 'list'" title="列表视图">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <button
+            class="toggle-btn"
+            :class="{ active: viewMode === 'list' }"
+            @click="viewMode = 'list'"
+            title="列表视图"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
           </button>
-          <button class="toggle-btn" :class="{ active: viewMode === 'grid' }" @click="viewMode = 'grid'" title="网格视图">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <button
+            class="toggle-btn"
+            :class="{ active: viewMode === 'grid' }"
+            @click="viewMode = 'grid'"
+            title="网格视图"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
           </button>
         </div>
       </div>
@@ -37,7 +92,17 @@
     </div>
 
     <div v-else-if="collections.length === 0" class="empty-state card">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      <svg
+        width="64"
+        height="64"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1"
+        class="empty-icon"
+      >
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+      </svg>
       <p class="empty-title">还没有收藏文章</p>
       <p class="empty-text">浏览文章，收藏感兴趣的内容</p>
       <router-link to="/" class="btn btn-primary">去发现</router-link>
@@ -49,14 +114,35 @@
           <h3 class="collection-title">
             <router-link :to="`/post/${item.postId}`">{{ item.title }}</router-link>
           </h3>
-          <p v-if="item.summary" class="collection-excerpt">{{ truncateText(item.summary, 120) }}</p>
+          <p v-if="item.summary" class="collection-excerpt">
+            {{ truncateText(item.summary, 120) }}
+          </p>
           <div class="collection-meta">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
             收藏于 {{ formatRelativeTime(item.collectTime) }}
           </div>
         </div>
         <button class="btn btn-sm btn-ghost collection-remove-btn" @click="confirmRemove(item)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
           取消收藏
         </button>
       </div>
@@ -64,9 +150,25 @@
 
     <div v-if="totalPages > 1" class="pagination-section">
       <div class="pagination">
-        <button class="pagination-btn" :disabled="page <= 1" @click="page--; fetchCollections()">上一页</button>
-        <button v-for="p in totalPages" :key="p" class="pagination-btn" :class="{ active: p === page }" @click="page = p; fetchCollections()">{{ p }}</button>
-        <button class="pagination-btn" :disabled="page >= totalPages" @click="page++; fetchCollections()">下一页</button>
+        <button class="pagination-btn" :disabled="page <= 1" @click="(page--, fetchCollections())">
+          上一页
+        </button>
+        <button
+          v-for="p in totalPages"
+          :key="p"
+          class="pagination-btn"
+          :class="{ active: p === page }"
+          @click="((page = p), fetchCollections())"
+        >
+          {{ p }}
+        </button>
+        <button
+          class="pagination-btn"
+          :disabled="page >= totalPages"
+          @click="(page++, fetchCollections())"
+        >
+          下一页
+        </button>
       </div>
       <span class="pagination-info">共 {{ total }} 篇</span>
     </div>
@@ -121,7 +223,7 @@ async function fetchCollections() {
 async function removeCollection(postId: number | string) {
   try {
     await collectApi.toggleCollect(postId)
-    collections.value = collections.value.filter(c => c.postId !== postId)
+    collections.value = collections.value.filter((c) => c.postId !== postId)
     total.value = Math.max(0, total.value - 1)
     toast.success('已取消收藏')
     if (collections.value.length === 0 && page.value > 1) {
@@ -303,7 +405,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
   pointer-events: none;
 }
 

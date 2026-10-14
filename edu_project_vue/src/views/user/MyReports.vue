@@ -1,12 +1,34 @@
 <template>
   <div class="my-reports-page">
     <button class="back-btn" @click="router.back()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
       返回
     </button>
     <div class="page-header">
       <h1>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="header-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="16" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="8" r="1"/></svg>
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          class="header-icon"
+        >
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <circle cx="12" cy="16" r="1" />
+          <circle cx="12" cy="12" r="1" />
+          <circle cx="12" cy="8" r="1" />
+        </svg>
         我的举报
       </h1>
       <span class="page-count">{{ total }} 条</span>
@@ -20,12 +42,37 @@
       </div>
     </div>
     <div v-else-if="error" class="error-card card">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="error-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <svg
+        width="48"
+        height="48"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        class="error-icon"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
       <p>{{ error }}</p>
       <button class="btn btn-primary" @click="fetchReports">重新加载</button>
     </div>
     <div v-else-if="reports.length === 0" class="empty-state card">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="16" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="8" r="1"/></svg>
+      <svg
+        width="64"
+        height="64"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1"
+        class="empty-icon"
+      >
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <circle cx="12" cy="16" r="1" />
+        <circle cx="12" cy="12" r="1" />
+        <circle cx="12" cy="8" r="1" />
+      </svg>
       <p class="empty-title">还没有举报记录</p>
       <p class="empty-text">遇到违规内容时可以使用举报功能</p>
     </div>
@@ -33,8 +80,21 @@
       <div v-for="report in reports" :key="report.id" class="report-item card">
         <div class="report-header">
           <div class="report-header-left">
-            <span class="report-type" :class="report.targetType">{{ report.targetType === 'post' ? '文章' : report.targetType === 'comment' ? '评论' : report.targetType === 'user' ? '用户' : report.targetType }}</span>
-            <span class="report-status" :class="report.status === 0 ? 'pending' : report.status === 2 ? 'resolved' : 'rejected'">
+            <span class="report-type" :class="report.targetType">{{
+              report.targetType === 'post'
+                ? '文章'
+                : report.targetType === 'comment'
+                  ? '评论'
+                  : report.targetType === 'user'
+                    ? '用户'
+                    : report.targetType
+            }}</span>
+            <span
+              class="report-status"
+              :class="
+                report.status === 0 ? 'pending' : report.status === 2 ? 'resolved' : 'rejected'
+              "
+            >
               <span class="status-dot"></span>
               {{ report.status === 0 ? '待处理' : report.status === 2 ? '已处理' : '已驳回' }}
             </span>
@@ -45,9 +105,25 @@
       </div>
       <div v-if="totalPages > 1" class="pagination-section">
         <div class="pagination">
-          <button class="pagination-btn" :disabled="page <= 1" @click="page--; fetchReports()">上一页</button>
-          <button v-for="p in totalPages" :key="p" class="pagination-btn" :class="{ active: p === page }" @click="page = p; fetchReports()">{{ p }}</button>
-          <button class="pagination-btn" :disabled="page >= totalPages" @click="page++; fetchReports()">下一页</button>
+          <button class="pagination-btn" :disabled="page <= 1" @click="(page--, fetchReports())">
+            上一页
+          </button>
+          <button
+            v-for="p in totalPages"
+            :key="p"
+            class="pagination-btn"
+            :class="{ active: p === page }"
+            @click="((page = p), fetchReports())"
+          >
+            {{ p }}
+          </button>
+          <button
+            class="pagination-btn"
+            :disabled="page >= totalPages"
+            @click="(page++, fetchReports())"
+          >
+            下一页
+          </button>
         </div>
         <span class="pagination-info">共 {{ total }} 条</span>
       </div>
@@ -207,7 +283,7 @@ onMounted(() => fetchReports())
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
   pointer-events: none;
 }
 

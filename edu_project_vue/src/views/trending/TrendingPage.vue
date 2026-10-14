@@ -3,8 +3,15 @@
     <div class="trending-container">
       <div class="page-header glass">
         <div class="header-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
           </svg>
         </div>
         <div>
@@ -25,16 +32,32 @@
         </div>
 
         <div v-else-if="error" class="error-state glass">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          <svg
+            width="60"
+            height="60"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
           <h3>{{ error }}</h3>
           <button class="btn btn-primary" @click="retryLoad">重新加载</button>
         </div>
 
         <div v-else-if="hotContent.length === 0" class="empty-state glass">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          <svg
+            width="60"
+            height="60"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.2"
+          >
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
           </svg>
           <p class="empty-title">暂无热门内容</p>
           <p class="empty-text">精彩内容正在路上，请稍后再来</p>
@@ -51,13 +74,25 @@
             >
               <div class="rank-number" :class="getRankClass(index)">
                 <template v-if="index === 0">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#F59E0B" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#F59E0B" stroke="none">
+                    <path
+                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                    />
+                  </svg>
                 </template>
                 <template v-else-if="index === 1">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#94A3B8" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#94A3B8" stroke="none">
+                    <path
+                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                    />
+                  </svg>
                 </template>
                 <template v-else-if="index === 2">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#CD7F32" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#CD7F32" stroke="none">
+                    <path
+                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                    />
+                  </svg>
                 </template>
                 <span v-else class="num">{{ index + 1 }}</span>
               </div>
@@ -69,50 +104,92 @@
                   <span v-if="item.type === 0" class="title-text">{{ item.title }}</span>
                   <span v-else class="content-text">{{ truncateContent(item.content) }}</span>
                   <span class="rank-badge hot" v-if="index < 3">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      stroke="none"
+                    >
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
                     热
                   </span>
                   <span class="rank-badge new" v-else-if="index < 5">新</span>
                 </div>
                 <div class="rank-user">
                   <img
-                    :src="item.avatar || '/default-avatar.png'"
+                    :src="resolveAssetUrl(item.avatar) || DEFAULT_AVATAR_URL"
                     class="user-avatar"
-                    @error="e => (e.target as HTMLImageElement).src = '/default-avatar.png'"
+                    @error="(e) => ((e.target as HTMLImageElement).src = DEFAULT_AVATAR_URL)"
                   />
                   <span class="user-nickname">{{ item.nickname || item.username }}</span>
                 </div>
-                <div v-if="item.type === 1 && item.topics && item.topics.length > 0" class="rank-topics">
-                  <span v-for="topic in item.topics" :key="topic" class="topic-tag">#{{ topic }}</span>
+                <div
+                  v-if="item.type === 1 && item.topics && item.topics.length > 0"
+                  class="rank-topics"
+                >
+                  <span v-for="topic in item.topics" :key="topic" class="topic-tag"
+                    >#{{ topic }}</span
+                  >
                 </div>
-                <div v-if="item.type === 1 && item.images && item.images.length > 0" class="rank-images">
+                <div
+                  v-if="item.type === 1 && item.images && item.images.length > 0"
+                  class="rank-images"
+                >
                   <div class="image-row">
                     <img
                       v-for="(img, i) in item.images.slice(0, 4)"
                       :key="i"
-                      :src="img"
+                      :src="resolveAssetUrl(img)"
                       class="thumb-img"
-                      @error="e => (e.target as HTMLImageElement).style.display = 'none'"
+                      @error="(e) => ((e.target as HTMLImageElement).style.display = 'none')"
                     />
-                    <span v-if="item.images.length > 4" class="more-images">+{{ item.images.length - 4 }}</span>
+                    <span v-if="item.images.length > 4" class="more-images"
+                      >+{{ item.images.length - 4 }}</span
+                    >
                   </div>
                 </div>
                 <div class="rank-meta">
                   <span class="rank-score">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      stroke="none"
+                    >
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
                     {{ formatScore(item.score) }}
                   </span>
-                  <span v-if="item.type === 0" class="rank-views">{{ item.viewCount || 0 }} 阅读</span>
+                  <span v-if="item.type === 0" class="rank-views"
+                    >{{ item.viewCount || 0 }} 阅读</span
+                  >
                   <span class="rank-likes">{{ item.likeCount || 0 }} 赞</span>
                   <span class="rank-comments">{{ item.commentCount || 0 }} 评论</span>
-                  <span v-if="item.type === 1" class="rank-shares">{{ item.shareCount || 0 }} 分享</span>
+                  <span v-if="item.type === 1" class="rank-shares"
+                    >{{ item.shareCount || 0 }} 分享</span
+                  >
                 </div>
               </div>
             </div>
           </transition-group>
           <div v-if="hasMoreContent" class="load-more">
             <button class="btn btn-secondary" @click="loadMoreContent" :disabled="loadingMore">
-              <svg v-if="loadingMore" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              <svg
+                v-if="loadingMore"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                class="spin"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
               {{ loadingMore ? '加载中...' : '加载更多' }}
             </button>
           </div>
@@ -123,6 +200,7 @@
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { trendingApi } from '../../api/trending'
@@ -173,7 +251,10 @@ const fetchHotContent = async (reset = false) => {
     hasMoreContent.value = true
   }
   try {
-    const res = await trendingApi.getHotContent({ pageNum: currentContentPage.value, pageSize: PAGE_SIZE })
+    const res = await trendingApi.getHotContent({
+      pageNum: currentContentPage.value,
+      pageSize: PAGE_SIZE
+    })
     const data = res.data
     const records = data?.records || []
     hotContent.value = reset ? records : [...hotContent.value, ...records]
@@ -234,8 +315,14 @@ onMounted(() => {
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .page-header {
@@ -261,7 +348,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   pointer-events: none;
 }
 
@@ -306,7 +393,12 @@ onMounted(() => {
 .skeleton-rank {
   width: 32px;
   height: 32px;
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-sm);
@@ -319,7 +411,12 @@ onMounted(() => {
 
 .skeleton-title {
   height: 16px;
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 4px;
@@ -329,7 +426,12 @@ onMounted(() => {
 
 .skeleton-meta {
   height: 12px;
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 4px;
@@ -414,19 +516,19 @@ onMounted(() => {
 }
 
 .rank-gold {
-  background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
   border-color: rgba(245, 158, 11, 0.3);
   box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
 }
 
 .rank-silver {
-  background: linear-gradient(135deg, #F1F5F9, #E2E8F0);
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
   border-color: rgba(148, 163, 184, 0.3);
   box-shadow: 0 2px 8px rgba(148, 163, 184, 0.2);
 }
 
 .rank-bronze {
-  background: linear-gradient(135deg, #FED7AA, #FDBA74);
+  background: linear-gradient(135deg, #fed7aa, #fdba74);
   border-color: rgba(249, 115, 22, 0.3);
   box-shadow: 0 2px 8px rgba(249, 115, 22, 0.2);
 }
@@ -462,12 +564,12 @@ onMounted(() => {
 }
 
 .rank-badge.hot {
-  background: linear-gradient(135deg, var(--warning), #DC2626);
+  background: linear-gradient(135deg, var(--warning), #dc2626);
   box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
 }
 
 .rank-badge.new {
-  background: linear-gradient(135deg, var(--info), #2563EB);
+  background: linear-gradient(135deg, var(--info), #2563eb);
   box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
@@ -579,7 +681,9 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .type-badge {
@@ -626,11 +730,24 @@ onMounted(() => {
 }
 
 @media (max-width: 600px) {
-  .trending-page { padding: var(--spacing-md); }
-  .page-header { padding: var(--spacing-md); }
-  .page-header h1 { font-size: 1.25rem; }
-  .header-icon { width: 44px; height: 44px; }
-  .rank-item { padding: var(--spacing-md); }
-  .rank-title { font-size: 14px; }
+  .trending-page {
+    padding: var(--spacing-md);
+  }
+  .page-header {
+    padding: var(--spacing-md);
+  }
+  .page-header h1 {
+    font-size: 1.25rem;
+  }
+  .header-icon {
+    width: 44px;
+    height: 44px;
+  }
+  .rank-item {
+    padding: var(--spacing-md);
+  }
+  .rank-title {
+    font-size: 14px;
+  }
 }
 </style>

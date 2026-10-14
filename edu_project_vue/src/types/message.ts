@@ -6,13 +6,7 @@ import type { ID } from './common'
 import type { User } from './user'
 
 /** 通知类型 */
-export type NotificationType =
-  | 'like'
-  | 'comment'
-  | 'follow'
-  | 'collect'
-  | 'system'
-  | 'mention'
+export type NotificationType = 'like' | 'comment' | 'follow' | 'collect' | 'system' | 'mention'
 
 /** 通知信息 */
 export interface Notification {
@@ -30,22 +24,33 @@ export interface Notification {
 
 /** 私信信息 */
 export interface Message {
-  id: number
+  id: number | string
   senderId: number
   receiverId: number
   content: string
-  isRead: boolean
+  isRead: boolean | number
   sender?: User
   receiver?: User
-  createdAt: string
+  createTime: string
+  timeAgo?: string
 }
 
 /** 会话信息 */
 export interface Conversation {
-  partnerUserId: number
-  partnerUser?: User
-  lastMessage: Message
+  conversationId: number | string | null
+  user?: User
+  lastMessage: string
+  lastMessageTime: string | null
   unreadCount: number
+  messageCount?: number
+  timeAgo?: string
+}
+
+/** 私信用户在线状态 */
+export interface MessagePresence {
+  userId: number
+  online: boolean
+  lastOnlineAt?: string | null
 }
 
 /** 发送私信请求 */

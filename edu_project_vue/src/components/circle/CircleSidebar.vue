@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { circleApi } from '../../api/circle'
 import { topicApi } from '../../api/topic'
@@ -17,13 +18,21 @@ const refreshSidebarData = async () => {
   try {
     const res = await topicApi.getHotTopics()
     const data = res.data
-    hotTopics.value = Array.isArray(data) ? data : ((data as any)?.records || [])
-  } catch { /* ignore */ } finally { hotTopicsLoading.value = false }
+    hotTopics.value = Array.isArray(data) ? data : (data as any)?.records || []
+  } catch {
+    /* ignore */
+  } finally {
+    hotTopicsLoading.value = false
+  }
   try {
     const res = await circleApi.getRecommendFeed({ pageNum: 1, pageSize: 5 })
-    const list = Array.isArray(res.data) ? res.data : (res.data?.records || [])
+    const list = Array.isArray(res.data) ? res.data : res.data?.records || []
     hotPosts.value = list.slice(0, 5)
-  } catch { /* ignore */ } finally { hotPostsLoading.value = false }
+  } catch {
+    /* ignore */
+  } finally {
+    hotPostsLoading.value = false
+  }
 }
 
 onMounted(async () => {
@@ -41,7 +50,16 @@ onBeforeUnmount(() => {
     <!-- Hot Topics -->
     <section class="sidebar__section">
       <h3 class="sidebar__title">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h16M4 15h16M10 3l-2 6M14 15l-2 6M14 3l2 6M10 15l-2 6"/></svg>
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M4 9h16M4 15h16M10 3l-2 6M14 15l-2 6M14 3l2 6M10 15l-2 6" />
+        </svg>
         热门话题
       </h3>
       <div v-if="hotTopicsLoading" class="sidebar__loading">
@@ -65,7 +83,18 @@ onBeforeUnmount(() => {
     <!-- Hot Posts -->
     <section class="sidebar__section">
       <h3 class="sidebar__title">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+          />
+        </svg>
         热门动态
       </h3>
       <div v-if="hotPostsLoading" class="sidebar__loading">
@@ -80,10 +109,16 @@ onBeforeUnmount(() => {
           class="sidebar__post-item"
         >
           <div class="sidebar__post-row">
-            <img :src="hp.userAvatar || '/default-avatar.png'" :alt="hp.userNickname" class="sidebar__post-avatar" />
+            <img
+              :src="resolveAssetUrl(hp.userAvatar) || DEFAULT_AVATAR_URL"
+              :alt="hp.userNickname"
+              class="sidebar__post-avatar"
+            />
             <span class="sidebar__post-name">{{ hp.userNickname || hp.userUsername }}</span>
           </div>
-          <p class="sidebar__post-text">{{ hp.content?.substring(0, 48) }}{{ hp.content?.length > 48 ? '...' : '' }}</p>
+          <p class="sidebar__post-text">
+            {{ hp.content?.substring(0, 48) }}{{ hp.content?.length > 48 ? '...' : '' }}
+          </p>
           <div class="sidebar__post-stats">
             <span>{{ formatNumber(hp.likeCount || 0) }} 赞</span>
             <span>{{ formatNumber(hp.commentCount || 0) }} 评</span>
@@ -253,7 +288,9 @@ onBeforeUnmount(() => {
 }
 
 @keyframes sidebarSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 640px) {

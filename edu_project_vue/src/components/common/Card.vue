@@ -28,7 +28,7 @@ const props = withDefaults(defineProps<CardProps>(), {
   size: 'md',
   hoverable: false,
   padding: true,
-  tag: 'div',
+  tag: 'div'
 })
 
 const classes = computed(() => [
@@ -37,8 +37,8 @@ const classes = computed(() => [
   `card--${props.size}`,
   {
     'card--hoverable': props.hoverable,
-    'card--no-pad': !props.padding,
-  },
+    'card--no-pad': !props.padding
+  }
 ])
 </script>
 
@@ -142,8 +142,8 @@ const classes = computed(() => [
 
 /* ==================== FLAT — Solid surface, thin border ==================== */
 .card--flat {
-  background: var(--surface-solid, #FFFFFF);
-  border: 1px solid var(--border-solid, #E7E5E4);
+  background: var(--surface-solid, #ffffff);
+  border: 1px solid var(--border-solid, #e7e5e4);
   box-shadow: none;
 }
 
@@ -156,7 +156,7 @@ const classes = computed(() => [
 
 /* ==================== ELEVATED — Shadow, no border ==================== */
 .card--elevated {
-  background: var(--surface-solid, #FFFFFF);
+  background: var(--surface-solid, #ffffff);
   border: none;
   box-shadow:
     0 4px 6px rgba(0, 0, 0, 0.05),
@@ -165,7 +165,7 @@ const classes = computed(() => [
 
 .card--elevated.card--hoverable:hover {
   box-shadow:
-    0 15px 30px rgba(0, 0, 0, 0.10),
+    0 15px 30px rgba(0, 0, 0, 0.1),
     0 5px 15px rgba(0, 0, 0, 0.04);
   transform: translateY(-4px);
 }
@@ -175,7 +175,7 @@ const classes = computed(() => [
   background: var(--glass-bg, rgba(255, 255, 255, 0.78));
   backdrop-filter: var(--glass-blur, blur(12px));
   -webkit-backdrop-filter: var(--glass-blur, blur(12px));
-  border: 1px solid var(--glass-border-frost, rgba(200, 200, 210, 0.30));
+  border: 1px solid var(--glass-border-frost, rgba(200, 200, 210, 0.3));
   box-shadow:
     0 4px 24px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.7);
@@ -184,7 +184,7 @@ const classes = computed(() => [
 .card--frosted.card--hoverable:hover {
   background: var(--glass-hover, rgba(255, 255, 255, 0.92));
   box-shadow:
-    0 15px 30px rgba(0, 0, 0, 0.10),
+    0 15px 30px rgba(0, 0, 0, 0.1),
     0 5px 15px rgba(0, 0, 0, 0.04),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   transform: translateY(-2px);

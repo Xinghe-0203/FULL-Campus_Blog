@@ -2,26 +2,68 @@
   <div class="profile-edit-page">
     <div class="edit-hero card">
       <div class="edit-cover">
-        <img :src="getSafeImageUrl(coverPreview, '/default-cover.jpg')" alt="" />
+        <img :src="getSafeImageUrl(coverPreview, DEFAULT_COVER_URL)" alt="" />
         <div class="cover-gradient"></div>
-        <button class="cover-upload-btn" title="更换封面图" @click="triggerCoverUpload" :disabled="uploading">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-            <circle cx="12" cy="13" r="4"/>
+        <button
+          class="cover-upload-btn"
+          title="更换封面图"
+          @click="triggerCoverUpload"
+          :disabled="uploading"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+            />
+            <circle cx="12" cy="13" r="4" />
           </svg>
         </button>
-        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" ref="coverInputRef" hidden @change="handleCoverUpload" />
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp"
+          ref="coverInputRef"
+          hidden
+          @change="handleCoverUpload"
+        />
       </div>
       <div class="edit-avatar-section">
         <div class="avatar-upload" @click="triggerAvatarUpload">
           <div class="avatar-preview-wrapper">
-            <img :src="getSafeImageUrl(form.avatar, '/default-avatar.png')" alt="头像" class="avatar-preview" />
+            <img
+              :src="getSafeImageUrl(form.avatar, DEFAULT_AVATAR_URL)"
+              alt="头像"
+              class="avatar-preview"
+            />
             <div class="avatar-overlay">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+                />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
               <span>{{ uploading ? '上传中...' : '更换头像' }}</span>
             </div>
           </div>
-          <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" @change="handleAvatarUpload" ref="avatarInput" hidden />
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            @change="handleAvatarUpload"
+            ref="avatarInput"
+            hidden
+          />
         </div>
         <p class="upload-tip">支持 jpg、png、gif、webp，最大 10MB</p>
       </div>
@@ -35,21 +77,47 @@
 
       <form class="edit-form" @submit.prevent="handleSubmit">
         <div class="form-group float-label-group">
-          <input v-model="form.nickname" type="text" class="form-input" :class="{ error: errors.nickname }" placeholder=" " maxlength="20" @input="validateNickname" />
+          <input
+            v-model="form.nickname"
+            type="text"
+            class="form-input"
+            :class="{ error: errors.nickname }"
+            placeholder=" "
+            maxlength="20"
+            @input="validateNickname"
+          />
           <label class="float-label">昵称</label>
-          <span class="char-count-top" :class="{ warn: (form.nickname || '').length >= 18 }">{{ (form.nickname || '').length }}/20</span>
+          <span class="char-count-top" :class="{ warn: (form.nickname || '').length >= 18 }"
+            >{{ (form.nickname || '').length }}/20</span
+          >
           <span v-if="errors.nickname" class="form-error">{{ errors.nickname }}</span>
         </div>
 
         <div class="form-group float-label-group">
-          <textarea v-model="form.bio" class="form-input" :class="{ error: errors.bio }" placeholder=" " rows="4" maxlength="200" @input="validateBio"></textarea>
+          <textarea
+            v-model="form.bio"
+            class="form-input"
+            :class="{ error: errors.bio }"
+            placeholder=" "
+            rows="4"
+            maxlength="200"
+            @input="validateBio"
+          ></textarea>
           <label class="float-label">个人简介</label>
-          <span class="char-count-bottom" :class="{ warn: (form.bio || '').length >= 180 }">{{ (form.bio || '').length }}/200</span>
+          <span class="char-count-bottom" :class="{ warn: (form.bio || '').length >= 180 }"
+            >{{ (form.bio || '').length }}/200</span
+          >
           <span v-if="errors.bio" class="form-error">{{ errors.bio }}</span>
         </div>
 
         <div class="form-group float-label-group">
-          <input :value="userStore.user?.email" type="email" class="form-input" disabled placeholder=" " />
+          <input
+            :value="userStore.user?.email"
+            type="email"
+            class="form-input"
+            disabled
+            placeholder=" "
+          />
           <label class="float-label">邮箱</label>
           <span class="form-hint">邮箱不可修改</span>
         </div>
@@ -62,7 +130,18 @@
               保存中...
             </template>
             <template v-else>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                <polyline points="17 21 17 13 7 13 7 21" />
+                <polyline points="7 3 7 8 15 8" />
+              </svg>
               保存修改
             </template>
           </button>
@@ -74,6 +153,7 @@
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, DEFAULT_COVER_URL } from '@/constants'
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useUserStore } from '../../stores/user'
@@ -258,7 +338,7 @@ async function handleSubmit() {
 .cover-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.5));
+  background: linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.5));
 }
 
 .cover-upload-btn {
@@ -268,11 +348,11 @@ async function handleSubmit() {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-full);
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: #fff;
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -287,7 +367,7 @@ async function handleSubmit() {
 }
 
 .cover-upload-btn:hover {
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   transform: scale(1.05);
 }
 
@@ -502,7 +582,9 @@ async function handleSubmit() {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 768px) {

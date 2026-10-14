@@ -7,15 +7,39 @@
 
       <div class="filter-bar">
         <div class="tabs glass">
-          <button class="tab-btn" :class="{ active: activeTab === 'all' }" @click="activeTab = 'all'">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          <button
+            class="tab-btn"
+            :class="{ active: activeTab === 'all' }"
+            @click="activeTab = 'all'"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
             </svg>
             全部文章
           </button>
-          <button class="tab-btn" :class="{ active: activeTab === 'pending' }" @click="activeTab = 'pending'">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          <button
+            class="tab-btn"
+            :class="{ active: activeTab === 'pending' }"
+            @click="activeTab = 'pending'"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
             </svg>
             待审核
             <span v-if="pendingCount > 0" class="tab-badge">{{ pendingCount }}</span>
@@ -24,10 +48,24 @@
 
         <div class="search-filter glass">
           <div class="search-input-wrapper">
-            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <svg
+              class="search-icon"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            <input v-model="searchQuery" type="text" placeholder="搜索文章标题..." @keyup.enter="fetchPosts" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="搜索文章标题..."
+              @keyup.enter="fetchPosts"
+            />
           </div>
           <select v-model="statusFilter" class="filter-select" @change="fetchPosts">
             <option value="">全部状态</option>
@@ -69,8 +107,17 @@
       </div>
 
       <div v-else-if="error" class="error-state glass">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        <svg
+          width="48"
+          height="48"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         <h3>{{ error }}</h3>
         <button class="btn btn-primary" @click="fetchPosts">重试</button>
@@ -93,8 +140,16 @@
             <tr v-if="posts.length === 0">
               <td colspan="7" class="empty-cell">
                 <div class="empty-content">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                  <svg
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
                   </svg>
                   <span>暂无文章数据</span>
                 </div>
@@ -121,17 +176,54 @@
               <td class="time-cell">{{ formatDate(post.createTime) }}</td>
               <td>
                 <div class="actions">
-                  <button v-if="post.status === 0" class="btn btn-xs btn-success-outline" @click="approvePost(post)">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  <button
+                    v-if="post.status === 0"
+                    class="btn btn-xs btn-success-outline"
+                    @click="approvePost(post)"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
                     通过
                   </button>
-                  <button v-if="post.status === 0" class="btn btn-xs btn-danger-outline" @click="rejectPost(post)">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  <button
+                    v-if="post.status === 0"
+                    class="btn btn-xs btn-danger-outline"
+                    @click="rejectPost(post)"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
                     拒绝
                   </button>
                   <button class="btn btn-xs btn-ghost danger" @click="deletePost(post)">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="3 6 5 6 21 6" />
+                      <path
+                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                      />
                     </svg>
                     删除
                   </button>
@@ -144,14 +236,40 @@
 
       <div v-if="totalPages > 1" class="pagination-wrapper">
         <div class="pagination glass">
-          <button class="pagination-btn" :disabled="currentPage <= 1" @click="changePage(currentPage - 1)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          <button
+            class="pagination-btn"
+            :disabled="currentPage <= 1"
+            @click="changePage(currentPage - 1)"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
             上一页
           </button>
           <span class="page-info">第 {{ currentPage }} / {{ totalPages }} 页</span>
-          <button class="pagination-btn" :disabled="currentPage >= totalPages" @click="changePage(currentPage + 1)">
+          <button
+            class="pagination-btn"
+            :disabled="currentPage >= totalPages"
+            @click="changePage(currentPage + 1)"
+          >
             下一页
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </button>
         </div>
       </div>
@@ -166,7 +284,9 @@
       ></textarea>
       <template #footer>
         <button class="btn btn-secondary" @click="cancelReject">取消</button>
-        <button class="btn btn-primary" style="margin-left: 8px;" @click="confirmReject">确认驳回</button>
+        <button class="btn btn-primary" style="margin-left: 8px" @click="confirmReject">
+          确认驳回
+        </button>
       </template>
     </Modal>
     <ConfirmDialog />
@@ -224,7 +344,11 @@ const fetchPosts = async () => {
 }
 
 const getStatusClass = (status: number) => {
-  const classes: Record<number, string> = { 0: 'status-pending', 1: 'status-active', 2: 'status-rejected' }
+  const classes: Record<number, string> = {
+    0: 'status-pending',
+    1: 'status-active',
+    2: 'status-rejected'
+  }
   return classes[status] || ''
 }
 
@@ -246,7 +370,7 @@ const approvePost = async (post: any) => {
     post.status = 1
     toast.success('审核通过')
     if (activeTab.value === 'pending') {
-      posts.value = posts.value.filter(p => p.id !== post.id)
+      posts.value = posts.value.filter((p) => p.id !== post.id)
     }
   } catch (err: any) {
     logger.error('Failed to approve post', { error: err.message })
@@ -290,7 +414,7 @@ const rejectPost = async (post: any) => {
     post.status = 2
     toast.success('已拒绝')
     if (activeTab.value === 'pending') {
-      posts.value = posts.value.filter(p => p.id !== post.id)
+      posts.value = posts.value.filter((p) => p.id !== post.id)
     }
   } catch (err: any) {
     logger.error('Failed to reject post', { error: err.message })
@@ -303,7 +427,7 @@ const deletePost = async (post: any) => {
   if (!ok) return
   try {
     await adminApi.deletePost(post.id)
-    posts.value = posts.value.filter(p => p.id !== post.id)
+    posts.value = posts.value.filter((p) => p.id !== post.id)
     toast.success('删除成功')
   } catch (err: any) {
     logger.error('Failed to delete post', { error: err.message })
@@ -498,7 +622,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
   pointer-events: none;
   z-index: 1;
 }
@@ -605,9 +729,15 @@ onMounted(() => {
   border-radius: var(--radius-full);
 }
 
-.status-dot.active { background: var(--success); }
-.status-dot.pending { background: var(--warning); }
-.status-dot.rejected { background: var(--error); }
+.status-dot.active {
+  background: var(--success);
+}
+.status-dot.pending {
+  background: var(--warning);
+}
+.status-dot.rejected {
+  background: var(--error);
+}
 
 .actions {
   display: flex;
@@ -689,16 +819,31 @@ onMounted(() => {
 .sk-line {
   height: 14px;
   border-radius: 4px;
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
-.sk-line.w-20 { width: 20%; }
-.sk-line.w-40 { width: 40%; }
-.sk-line.w-50 { width: 50%; }
-.sk-line.w-60 { width: 60%; }
-.sk-line.w-80 { width: 80%; }
+.sk-line.w-20 {
+  width: 20%;
+}
+.sk-line.w-40 {
+  width: 40%;
+}
+.sk-line.w-50 {
+  width: 50%;
+}
+.sk-line.w-60 {
+  width: 60%;
+}
+.sk-line.w-80 {
+  width: 80%;
+}
 
 @media (max-width: 768px) {
   .filter-bar {

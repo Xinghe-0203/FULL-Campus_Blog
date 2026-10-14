@@ -1,7 +1,16 @@
 <template>
   <div class="topic-detail-page">
     <button class="back-btn" @click="router.back()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
       返回
     </button>
 
@@ -39,22 +48,41 @@
         <div v-else class="posts-list">
           <div v-for="item in posts" :key="item.id" class="post-item glass">
             <div class="post-header">
-              <img v-if="item.userAvatar" :src="item.userAvatar" class="user-avatar" @error="onAvatarError" />
+              <img
+                v-if="item.userAvatar"
+                :src="resolveAssetUrl(item.userAvatar)"
+                class="user-avatar"
+                @error="onAvatarError"
+              />
               <div class="user-info">
                 <router-link :to="`/user/${item.userId}`" class="user-name">
                   {{ item.userNickname || item.userUsername }}
                 </router-link>
-                <span class="post-time">{{ item.timeAgo || formatRelativeTime(item.createTime) }}</span>
+                <span class="post-time">{{
+                  item.timeAgo || formatRelativeTime(item.createTime)
+                }}</span>
               </div>
             </div>
             <div class="post-content">
               <p>{{ truncateText(item.content, 300) }}</p>
             </div>
             <div v-if="item.topicNames && item.topicNames.length > 0" class="post-topics">
-              <router-link v-for="(t, idx) in item.topicNames" :key="t" :to="`/topic/${item.topicIds?.[idx] || ''}`" class="topic-tag">#{{ t }}</router-link>
+              <router-link
+                v-for="(t, idx) in item.topicNames"
+                :key="t"
+                :to="`/topic/${item.topicIds?.[idx] || ''}`"
+                class="topic-tag"
+                >#{{ t }}</router-link
+              >
             </div>
             <div v-if="item.images && item.images.length > 0" class="post-images">
-              <img v-for="(img, idx) in item.images.slice(0, 4)" :key="idx" :src="img" class="post-image" @click="previewImage(img)" />
+              <img
+                v-for="(img, idx) in item.images.slice(0, 4)"
+                :key="idx"
+                :src="resolveAssetUrl(img)"
+                class="post-image"
+                @click="previewImage(img)"
+              />
             </div>
             <div class="post-actions">
               <span>❤️ {{ item.likeCount || 0 }}</span>
@@ -70,15 +98,12 @@
         </div>
       </div>
     </template>
-    <ImagePreview
-      :images="previewImages"
-      :initial-index="0"
-      @close="previewImages = []"
-    />
+    <ImagePreview :images="previewImages" :initial-index="0" @close="previewImages = []" />
   </div>
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { topicApi } from '../../api/topic'
@@ -100,7 +125,7 @@ const hasMore = ref(false)
 const pageSize = 20
 const previewImages = ref<string[]>([])
 
-const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="24" fill="#e0e0e0"/><text x="24" y="30" text-anchor="middle" fill="#999" font-size="20" font-family="sans-serif">?</text></svg>')
+const defaultAvatar = DEFAULT_AVATAR_URL
 
 const onAvatarError = (e: Event) => {
   const target = e.target as HTMLImageElement
@@ -114,9 +139,7 @@ const fetchTopicDetail = async () => {
   error.value = ''
   try {
     const topicId = String(route.params.id)
-    const [topicRes] = await Promise.all([
-      topicApi.getTopicById(topicId)
-    ])
+    const [topicRes] = await Promise.all([topicApi.getTopicById(topicId)])
     topic.value = topicRes.data
   } catch (err: any) {
     logger.error('Failed to fetch topic', { error: err.message })
@@ -186,7 +209,8 @@ onMounted(() => {
   color: var(--primary);
 }
 
-.loading-state, .error-state {
+.loading-state,
+.error-state {
   text-align: center;
   padding: var(--spacing-3xl);
 }
@@ -206,7 +230,9 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .topic-header {
@@ -366,7 +392,12 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .topic-detail-page { padding: var(--spacing-md); }
-  .topic-header { flex-direction: column; text-align: center; }
+  .topic-detail-page {
+    padding: var(--spacing-md);
+  }
+  .topic-header {
+    flex-direction: column;
+    text-align: center;
+  }
 }
 </style>

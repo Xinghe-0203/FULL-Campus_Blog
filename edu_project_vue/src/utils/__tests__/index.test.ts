@@ -5,9 +5,11 @@ import {
   formatNumber,
   truncateText,
   getSafeImageUrl,
+  parseDateTime,
   debounce,
   checkPasswordStrength
 } from '../index'
+import { resolveAssetUrl, resolveEmbeddedAssetUrls } from '@/constants'
 
 describe('formatRelativeTime', () => {
   it('should return empty string for null/undefined', () => {
@@ -105,8 +107,8 @@ describe('getSafeImageUrl', () => {
     expect(getSafeImageUrl(undefined)).toBe('/default-image.png')
   })
 
-  it('should return relative URL as-is', () => {
-    expect(getSafeImageUrl('/uploads/image.jpg')).toBe('/uploads/image.jpg')
+  it('should map uploads to the API servlet context', () => {
+    expect(getSafeImageUrl('/uploads/image.jpg')).toBe('/api/uploads/image.jpg')
   })
 
   it('should return valid HTTP URL as-is', () => {
@@ -115,6 +117,35 @@ describe('getSafeImageUrl', () => {
 
   it('should return fallback for invalid URL', () => {
     expect(getSafeImageUrl('not-a-url')).toBe('/default-image.png')
+  })
+})
+
+describe('parseDateTime', () => {
+  it('parses backend local date-time strings without shifting the displayed hour', () => {
+    const parsed = parseDateTime('2026-06-14 09:07:05')
+
+    expect(parsed?.getFullYear()).toBe(2026)
+    expect(parsed?.getMonth()).toBe(5)
+    expect(parsed?.getDate()).toBe(14)
+    expect(parsed?.getHours()).toBe(9)
+    expect(parsed?.getMinutes()).toBe(7)
+  })
+
+  it('keeps explicit timezone offsets intact', () => {
+    expect(parseDateTime('2026-06-14T09:07:05Z')?.toISOString()).toBe('2026-06-14T09:07:05.000Z')
+  })
+})
+
+describe('single-jar asset URLs', () => {
+  it('keeps already-prefixed and external asset URLs unchanged', () => {
+    expect(resolveAssetUrl('/api/uploads/image.jpg')).toBe('/api/uploads/image.jpg')
+    expect(resolveAssetUrl('https://example.com/image.jpg')).toBe('https://example.com/image.jpg')
+  })
+
+  it('rewrites stored upload URLs in rendered content without changing other text', () => {
+    expect(resolveEmbeddedAssetUrls('![image](/uploads/image.jpg)')).toBe(
+      '![image](/api/uploads/image.jpg)'
+    )
   })
 })
 

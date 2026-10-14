@@ -1,13 +1,26 @@
 <template>
-  <nav class="navbar" :class="{ scrolled: isScrolled, 'search-expanded': isSearchExpanded }" aria-label="主导航">
+  <nav
+    class="navbar"
+    :class="{ scrolled: isScrolled, 'search-expanded': isSearchExpanded }"
+    aria-label="主导航"
+  >
     <div class="navbar-container">
       <!-- Logo -->
       <router-link to="/" class="navbar-brand">
         <span class="brand-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-            <path d="M10 2v8l3-2 3 2V2"/>
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--purple)"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            <path d="M10 2v8l3-2 3 2V2" />
           </svg>
         </span>
         <span class="brand-text">校园博客</span>
@@ -16,9 +29,19 @@
       <!-- 搜索框 - 桌面端 -->
       <div class="navbar-search hide-mobile" :class="{ expanded: isSearchExpanded }">
         <div class="search-inner">
-          <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35"/>
+          <svg
+            class="search-icon"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
           </svg>
           <input
             ref="searchInputRef"
@@ -37,16 +60,34 @@
               aria-label="清除搜索"
               @mousedown.prevent="clearSearch"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
           </Transition>
           <button class="search-btn" aria-label="搜索" @click="handleSearch">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="m21 21-4.35-4.35"/>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
             </svg>
           </button>
         </div>
@@ -55,25 +96,60 @@
       <!-- 导航链接 -->
       <div class="navbar-nav">
         <router-link to="/" class="nav-link" :class="{ active: $route.path === '/' }">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <polyline points="9 22 9 12 15 12 15 22"/>
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
           首页
         </router-link>
-        <router-link to="/circle" class="nav-link" :class="{ active: $route.path.startsWith('/circle') }">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        <router-link
+          to="/circle"
+          class="nav-link"
+          :class="{ active: $route.path.startsWith('/circle') }"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
           </svg>
           校友圈
         </router-link>
-        <router-link to="/trending" class="nav-link" :class="{ active: $route.path === '/trending' }">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-            <polyline points="16 7 22 7 22 13"/>
+        <router-link
+          to="/trending"
+          class="nav-link"
+          :class="{ active: $route.path === '/trending' }"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+            <polyline points="16 7 22 7 22 13" />
           </svg>
           热搜
         </router-link>
@@ -84,18 +160,36 @@
         <template v-if="userStore.isLoggedIn">
           <!-- 发布按钮 -->
           <router-link to="/post-edit" class="btn btn-primary btn-sm write-btn hide-mobile">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
             写文章
           </router-link>
 
           <!-- 通知图标 -->
           <router-link to="/notifications" class="icon-btn notification-icon" aria-label="消息通知">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
             <span v-if="userStore.unreadNotifications > 0" class="notification-badge">
               {{ userStore.unreadNotifications > 99 ? '99+' : userStore.unreadNotifications }}
@@ -110,19 +204,41 @@
             :aria-label="themeStore.isDarkMode ? '切换亮色模式' : '切换暗色模式'"
           >
             <Transition name="theme-icon" mode="out-in">
-              <svg v-if="!themeStore.isDarkMode" key="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              <svg
+                v-if="!themeStore.isDarkMode"
+                key="moon"
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
               </svg>
-              <svg v-else key="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/>
-                <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              <svg
+                v-else
+                key="sun"
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
               </svg>
             </Transition>
           </button>
@@ -131,22 +247,38 @@
           <div class="user-dropdown" @mouseenter="openDropdown" @mouseleave="scheduleClose">
             <div class="avatar-wrapper">
               <img
-                :src="userStore.avatar || '/default-avatar.png'"
+                :src="resolveAssetUrl(userStore.avatar) || DEFAULT_AVATAR_URL"
                 :alt="userStore.nickname"
                 class="user-avatar"
               />
               <span class="avatar-status"></span>
             </div>
-            <svg class="dropdown-arrow" :class="{ open: isDropdownOpen }" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"/>
+            <svg
+              class="dropdown-arrow"
+              :class="{ open: isDropdownOpen }"
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9" />
             </svg>
 
             <!-- 下拉菜单 -->
             <Transition name="dropdown">
-              <div v-if="isDropdownOpen" class="dropdown-menu" @mouseenter="openDropdown" @mouseleave="scheduleClose">
+              <div
+                v-if="isDropdownOpen"
+                class="dropdown-menu"
+                @mouseenter="openDropdown"
+                @mouseleave="scheduleClose"
+              >
                 <div class="dropdown-header">
                   <img
-                    :src="userStore.avatar || '/default-avatar.png'"
+                    :src="resolveAssetUrl(userStore.avatar) || DEFAULT_AVATAR_URL"
                     :alt="userStore.nickname"
                     class="dropdown-avatar"
                   />
@@ -157,39 +289,84 @@
                 </div>
                 <div class="dropdown-divider"></div>
                 <router-link to="/profile" class="dropdown-item" @click="closeDropdown">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
                   </svg>
                   我的主页
                 </router-link>
                 <router-link to="/drafts" class="dropdown-item" @click="closeDropdown">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                    <line x1="16" y1="13" x2="8" y2="13"/>
-                    <line x1="16" y1="17" x2="8" y2="17"/>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
                   </svg>
                   我的草稿
                 </router-link>
                 <router-link to="/collections" class="dropdown-item" @click="closeDropdown">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                   </svg>
                   我的收藏
                 </router-link>
                 <router-link to="/my-reports" class="dropdown-item" @click="closeDropdown">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                    <circle cx="12" cy="16" r="1"/>
-                    <circle cx="12" cy="12" r="1"/>
-                    <circle cx="12" cy="8" r="1"/>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <circle cx="12" cy="16" r="1" />
+                    <circle cx="12" cy="12" r="1" />
+                    <circle cx="12" cy="8" r="1" />
                   </svg>
                   我的举报
                 </router-link>
                 <router-link to="/messages" class="dropdown-item" @click="closeDropdown">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
                   私信
                   <span v-if="userStore.unreadMessages > 0" class="dropdown-badge">
@@ -197,20 +374,43 @@
                   </span>
                 </router-link>
                 <div class="dropdown-divider"></div>
-                <router-link v-if="userStore.isAdmin" to="/admin" class="dropdown-item" @click="closeDropdown">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="7" height="7"/>
-                    <rect x="14" y="3" width="7" height="7"/>
-                    <rect x="14" y="14" width="7" height="7"/>
-                    <rect x="3" y="14" width="7" height="7"/>
+                <router-link
+                  v-if="userStore.isAdmin"
+                  to="/admin"
+                  class="dropdown-item"
+                  @click="closeDropdown"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
                   </svg>
                   管理后台
                 </router-link>
                 <button class="dropdown-item danger" @click="handleLogout">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                    <polyline points="16 17 21 12 16 7"/>
-                    <line x1="21" y1="12" x2="9" y2="12"/>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
                   </svg>
                   退出登录
                 </button>
@@ -243,13 +443,30 @@
     <Transition name="mobile-overlay">
       <div v-if="isMobileMenuOpen" class="mobile-menu-overlay" @click="closeMobileMenu">
         <Transition name="mobile-menu-panel">
-          <div v-if="isMobileMenuOpen" class="mobile-menu" @click.stop role="dialog" aria-label="移动端导航菜单" aria-modal="true">
+          <div
+            v-if="isMobileMenuOpen"
+            class="mobile-menu"
+            @click.stop
+            role="dialog"
+            aria-label="移动端导航菜单"
+            aria-modal="true"
+          >
             <!-- 移动端搜索 -->
             <div class="mobile-search">
               <div class="search-inner">
-                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"/>
-                  <path d="m21 21-4.35-4.35"/>
+                <svg
+                  class="search-icon"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
                 </svg>
                 <input
                   v-model="searchQuery"
@@ -262,26 +479,68 @@
 
             <!-- 主导航链接 -- staggered reveal -->
             <div class="mobile-nav-section">
-              <router-link to="/" class="mobile-nav-link" :style="{ '--stagger': 0 }" @click="closeMobileMenu">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                  <polyline points="9 22 9 12 15 12 15 22"/>
+              <router-link
+                to="/"
+                class="mobile-nav-link"
+                :style="{ '--stagger': 0 }"
+                @click="closeMobileMenu"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
                 首页
               </router-link>
-              <router-link to="/circle" class="mobile-nav-link" :style="{ '--stagger': 1 }" @click="closeMobileMenu">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              <router-link
+                to="/circle"
+                class="mobile-nav-link"
+                :style="{ '--stagger': 1 }"
+                @click="closeMobileMenu"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                 </svg>
                 校友圈
               </router-link>
-              <router-link to="/trending" class="mobile-nav-link" :style="{ '--stagger': 2 }" @click="closeMobileMenu">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-                  <polyline points="16 7 22 7 22 13"/>
+              <router-link
+                to="/trending"
+                class="mobile-nav-link"
+                :style="{ '--stagger': 2 }"
+                @click="closeMobileMenu"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                  <polyline points="16 7 22 7 22 13" />
                 </svg>
                 热搜
               </router-link>
@@ -292,26 +551,68 @@
             <!-- 用户链接 -- staggered reveal -->
             <div class="mobile-nav-section">
               <template v-if="userStore.isLoggedIn">
-                <router-link to="/post-edit" class="mobile-nav-link" :style="{ '--stagger': 3 }" @click="closeMobileMenu">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19"/>
-                    <line x1="5" y1="12" x2="19" y2="12"/>
+                <router-link
+                  to="/post-edit"
+                  class="mobile-nav-link"
+                  :style="{ '--stagger': 3 }"
+                  @click="closeMobileMenu"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
                   </svg>
                   写文章
                 </router-link>
-                <router-link to="/notifications" class="mobile-nav-link" :style="{ '--stagger': 4 }" @click="closeMobileMenu">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                <router-link
+                  to="/notifications"
+                  class="mobile-nav-link"
+                  :style="{ '--stagger': 4 }"
+                  @click="closeMobileMenu"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                   </svg>
                   消息通知
                   <span v-if="userStore.unreadNotifications > 0" class="mobile-badge">
                     {{ userStore.unreadNotifications > 99 ? '99+' : userStore.unreadNotifications }}
                   </span>
                 </router-link>
-                <router-link to="/messages" class="mobile-nav-link" :style="{ '--stagger': 5 }" @click="closeMobileMenu">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                <router-link
+                  to="/messages"
+                  class="mobile-nav-link"
+                  :style="{ '--stagger': 5 }"
+                  @click="closeMobileMenu"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
                   私信
                   <span v-if="userStore.unreadMessages > 0" class="mobile-badge">
@@ -319,30 +620,71 @@
                   </span>
                 </router-link>
                 <div class="mobile-divider" :style="{ '--stagger': 6 }"></div>
-                <button class="mobile-nav-link danger" :style="{ '--stagger': 7 }" @click="handleLogout">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                    <polyline points="16 17 21 12 16 7"/>
-                    <line x1="21" y1="12" x2="9" y2="12"/>
+                <button
+                  class="mobile-nav-link danger"
+                  :style="{ '--stagger': 7 }"
+                  @click="handleLogout"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
                   </svg>
                   退出登录
                 </button>
               </template>
               <template v-else>
-                <router-link to="/login" class="mobile-nav-link" :style="{ '--stagger': 3 }" @click="closeMobileMenu">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                    <polyline points="10 17 15 12 10 7"/>
-                    <line x1="15" y1="12" x2="3" y2="12"/>
+                <router-link
+                  to="/login"
+                  class="mobile-nav-link"
+                  :style="{ '--stagger': 3 }"
+                  @click="closeMobileMenu"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                    <polyline points="10 17 15 12 10 7" />
+                    <line x1="15" y1="12" x2="3" y2="12" />
                   </svg>
                   登录
                 </router-link>
-                <router-link to="/register" class="mobile-nav-link" :style="{ '--stagger': 4 }" @click="closeMobileMenu">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="8.5" cy="7" r="4"/>
-                    <line x1="20" y1="8" x2="20" y2="14"/>
-                    <line x1="23" y1="11" x2="17" y2="11"/>
+                <router-link
+                  to="/register"
+                  class="mobile-nav-link"
+                  :style="{ '--stagger': 4 }"
+                  @click="closeMobileMenu"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="8.5" cy="7" r="4" />
+                    <line x1="20" y1="8" x2="20" y2="14" />
+                    <line x1="23" y1="11" x2="17" y2="11" />
                   </svg>
                   注册
                 </router-link>
@@ -356,6 +698,7 @@
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/user'
@@ -465,11 +808,7 @@ const handleClickOutside = (event: Event): void => {
 // 点击外部关闭移动端菜单
 const handleDocumentClick = (event: Event): void => {
   const target = event.target as HTMLElement
-  if (
-    isMobileMenuOpen.value &&
-    !target.closest('.navbar') &&
-    !target.closest('.mobile-menu')
-  ) {
+  if (isMobileMenuOpen.value && !target.closest('.navbar') && !target.closest('.mobile-menu')) {
     closeMobileMenu()
   }
 }
@@ -495,17 +834,22 @@ const fetchNotifications = async () => {
   }
   try {
     await userStore.fetchUnreadCounts()
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
-watch(() => userStore.isLoggedIn, (loggedIn) => {
-  if (loggedIn) {
-    fetchNotifications()
-    startNotificationPolling()
-  } else {
-    stopNotificationPolling()
+watch(
+  () => userStore.isLoggedIn,
+  (loggedIn) => {
+    if (loggedIn) {
+      fetchNotifications()
+      startNotificationPolling()
+    } else {
+      stopNotificationPolling()
+    }
   }
-})
+)
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
@@ -827,8 +1171,13 @@ onUnmounted(() => {
 }
 
 @keyframes badge-breathe {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 /* ==================== Theme Toggle ==================== */
@@ -1102,7 +1451,9 @@ onUnmounted(() => {
 .mobile-menu-btn.active .hamburger-line:nth-child(2) {
   opacity: 0;
   transform: scaleX(0);
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 .mobile-menu-btn.active .hamburger-line:nth-child(3) {
@@ -1117,7 +1468,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100vh;
   height: 100dvh;
-  background: rgba(0, 0, 0, 0.20);
+  background: rgba(0, 0, 0, 0.2);
   z-index: calc(var(--z-sticky) + 1);
   display: flex;
   align-items: flex-start;
@@ -1136,7 +1487,7 @@ onUnmounted(() => {
   padding: var(--spacing-5);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.10);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
 }
 
 .mobile-search {
@@ -1165,7 +1516,9 @@ onUnmounted(() => {
   border-radius: var(--radius-lg);
   font-size: var(--text-base);
   color: var(--text-primary);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   -webkit-appearance: none;
   appearance: none;
   font-family: var(--font-sans);
@@ -1220,7 +1573,9 @@ onUnmounted(() => {
 .mobile-nav-link svg {
   opacity: 0.4;
   flex-shrink: 0;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .mobile-nav-link:hover {

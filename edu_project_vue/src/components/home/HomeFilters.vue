@@ -86,7 +86,9 @@ const indicatorStyle = computed(() => {
   height: calc(100% - 8px);
   background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
   border-radius: calc(var(--radius) - 4px);
-  transition: transform var(--transition-slow) cubic-bezier(0.4, 0, 0.2, 1), width var(--transition-slow) cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    transform var(--transition-slow) cubic-bezier(0.4, 0, 0.2, 1),
+    width var(--transition-slow) cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 0;
   box-shadow: 0 2px 8px var(--primary-glow);
 }

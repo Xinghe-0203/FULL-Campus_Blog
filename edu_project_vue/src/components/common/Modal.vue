@@ -52,11 +52,19 @@ onBeforeUnmount(() => {
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="show" class="modal-overlay" role="dialog" aria-modal="true" @click.self="closable && emit('close')">
+      <div
+        v-if="show"
+        class="modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        @click.self="closable && emit('close')"
+      >
         <div class="modal-content" :style="{ maxWidth: width }">
           <div class="modal-header">
             <h3>{{ title }}</h3>
-            <button v-if="closable" class="modal-close" aria-label="关闭" @click="emit('close')">&times;</button>
+            <button v-if="closable" class="modal-close" aria-label="关闭" @click="emit('close')">
+              &times;
+            </button>
           </div>
           <div class="modal-body"><slot /></div>
           <div v-if="$slots.footer" class="modal-footer"><slot name="footer" /></div>
@@ -155,11 +163,15 @@ onBeforeUnmount(() => {
 }
 
 .modal-enter-active .modal-content {
-  transition: transform var(--duration-slow) cubic-bezier(0.34, 1.56, 0.64, 1), opacity var(--duration-normal) ease;
+  transition:
+    transform var(--duration-slow) cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity var(--duration-normal) ease;
 }
 
 .modal-leave-active .modal-content {
-  transition: transform var(--duration-normal) ease, opacity var(--duration-normal) ease;
+  transition:
+    transform var(--duration-normal) ease,
+    opacity var(--duration-normal) ease;
 }
 
 .modal-enter-from {

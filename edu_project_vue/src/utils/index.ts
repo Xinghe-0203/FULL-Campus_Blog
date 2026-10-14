@@ -2,13 +2,40 @@
  * 工具函数库
  */
 
+import { DEFAULT_IMAGE_URL, resolveAssetUrl } from '@/constants'
+
+/** Parse backend LocalDateTime strings as local time instead of implementation-dependent UTC. */
+export function parseDateTime(value: string | Date | null | undefined): Date | null {
+  if (!value) return null
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value
+
+  const localDateTime =
+    /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?)?$/.exec(value)
+  if (localDateTime) {
+    const [, year, month, day, hour = '0', minute = '0', second = '0', fraction = '0'] =
+      localDateTime
+    return new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second),
+      Number(fraction.slice(0, 3).padEnd(3, '0'))
+    )
+  }
+
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
 /**
  * 格式化日期为相对时间
  */
 export function formatRelativeTime(date: string | Date | null | undefined): string {
   if (!date) return ''
-  const target = new Date(date)
-  if (isNaN(target.getTime())) return ''
+  const target = parseDateTime(date)
+  if (!target) return ''
   const now = new Date()
   const diff = now.getTime() - target.getTime()
   if (diff < 0) {
@@ -33,10 +60,13 @@ export function formatRelativeTime(date: string | Date | null | undefined): stri
 /**
  * 格式化日期
  */
-export function formatDate(date: string | Date | null | undefined, format = 'YYYY-MM-DD HH:mm:ss'): string {
+export function formatDate(
+  date: string | Date | null | undefined,
+  format = 'YYYY-MM-DD HH:mm:ss'
+): string {
   if (!date) return ''
-  const target = new Date(date)
-  if (isNaN(target.getTime())) return ''
+  const target = parseDateTime(date)
+  if (!target) return ''
   const d = target
   const year = d.getFullYear()
   const month = String(d.getMonth() + 1).padStart(2, '0')
@@ -84,7 +114,10 @@ export function truncateText(text: string | null | undefined, maxLength = 100): 
  * 获取安全的图片URL
  * 处理后端返回的相对路径（如 /uploads/xxx.jpg），确保在任何环境下都能正确访问
  */
-export function getSafeImageUrl(url: string | null | undefined, fallback = '/default-image.png'): string {
+export function getSafeImageUrl(
+  url: string | null | undefined,
+  fallback = DEFAULT_IMAGE_URL
+): string {
   if (!url) return fallback
 
   // 完整的 http/https URL，直接返回
@@ -95,7 +128,7 @@ export function getSafeImageUrl(url: string | null | undefined, fallback = '/def
 
   // 相对路径（如 /uploads/xxx.jpg），直接返回
   // 在 Vercel 环境中，会通过 vercel.json 的 rewrites 代理到后端
-  if (url.startsWith('/')) return url
+  if (url.startsWith('/')) return resolveAssetUrl(url)
 
   // 其他情况返回 fallback
   return fallback

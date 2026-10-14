@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/user'
 import { formatRelativeTime, formatNumber } from '../../utils'
@@ -22,7 +23,7 @@ const isVideo = (url: string) => {
   if (!url) return false
   const exts = ['.mp4', '.webm', '.mov', '.avi', '.mkv']
   const lower = url.toLowerCase()
-  return exts.some(e => lower.includes(e)) || lower.includes('video')
+  return exts.some((e) => lower.includes(e)) || lower.includes('video')
 }
 
 const getImageGridClass = (count: number) => {
@@ -35,7 +36,7 @@ const getImageGridClass = (count: number) => {
 }
 
 const playVideo = (url: string) => {
-  window.open(url, '_blank')
+  window.open(resolveAssetUrl(url), '_blank')
 }
 
 const handleLike = () => emit('like', props.post)
@@ -49,20 +50,60 @@ const handlePreview = (images: string[], index: number) => emit('preview', image
     <!-- Header -->
     <header class="feed-card__header">
       <router-link :to="`/user/${post.userId}`" class="feed-card__author">
-        <img :src="post.userAvatar || '/default-avatar.png'" :alt="post.userUsername" class="feed-card__avatar" />
+        <img
+          :src="resolveAssetUrl(post.userAvatar) || DEFAULT_AVATAR_URL"
+          :alt="post.userUsername"
+          class="feed-card__avatar"
+        />
         <div class="feed-card__meta">
           <span class="feed-card__name">{{ post.userNickname || post.userUsername }}</span>
           <time class="feed-card__time">{{ formatRelativeTime(post.createTime) }}</time>
         </div>
       </router-link>
       <div class="feed-card__header-actions">
-        <span v-if="post.visibility !== 0" class="feed-card__vis-dot" :title="post.visibility === 1 ? '关注者可见' : '仅自己可见'"></span>
-        <div v-if="userStore.isLoggedIn && post.userId === userStore.userId" class="feed-card__owner-actions">
-          <button class="feed-card__icon-btn" title="编辑" @click.stop="router.push(`/circle/post/edit/${post.id}`)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+        <span
+          v-if="post.visibility !== 0"
+          class="feed-card__vis-dot"
+          :title="post.visibility === 1 ? '关注者可见' : '仅自己可见'"
+        ></span>
+        <div
+          v-if="userStore.isLoggedIn && post.userId === userStore.userId"
+          class="feed-card__owner-actions"
+        >
+          <button
+            class="feed-card__icon-btn"
+            title="编辑"
+            @click.stop="router.push(`/circle/post/edit/${post.id}`)"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+            </svg>
           </button>
-          <button class="feed-card__icon-btn feed-card__icon-btn--danger" title="删除" @click.stop="handleDelete">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <button
+            class="feed-card__icon-btn feed-card__icon-btn--danger"
+            title="删除"
+            @click.stop="handleDelete"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="3 6 5 6 21 6" />
+              <path
+                d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+              />
+            </svg>
           </button>
         </div>
       </div>
@@ -73,44 +114,123 @@ const handlePreview = (images: string[], index: number) => emit('preview', image
       <p class="feed-card__text">{{ post.content }}</p>
 
       <div v-if="post.topicNames && post.topicNames.length" class="feed-card__tags">
-        <router-link v-for="(tn, idx) in post.topicNames" :key="tn" :to="`/topic/${post.topicIds?.[idx] || ''}`" class="feed-card__tag">#{{ tn }}</router-link>
+        <router-link
+          v-for="(tn, idx) in post.topicNames"
+          :key="tn"
+          :to="`/topic/${post.topicIds?.[idx] || ''}`"
+          class="feed-card__tag"
+          >#{{ tn }}</router-link
+        >
       </div>
 
       <div v-if="post.location" class="feed-card__location">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <svg
+          width="11"
+          height="11"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
         <span>{{ post.location }}</span>
       </div>
 
       <!-- Images -->
-      <div v-if="post.images && post.images.length" class="feed-card__images" :class="getImageGridClass(post.images.length)">
-        <div v-for="(image, idx) in post.images" :key="idx" class="feed-card__img-wrap" :class="{ 'is-video': isVideo(image) }" @click.stop="handlePreview(post.images, Number(idx))">
-          <img v-if="!isVideo(image)" :src="image" alt="动态图片" class="feed-card__image" loading="lazy" />
-          <video v-else :src="image" class="feed-card__image" muted @click.stop.prevent="playVideo(image)"></video>
+      <div
+        v-if="post.images && post.images.length"
+        class="feed-card__images"
+        :class="getImageGridClass(post.images.length)"
+      >
+        <div
+          v-for="(image, idx) in post.images"
+          :key="idx"
+          class="feed-card__img-wrap"
+          :class="{ 'is-video': isVideo(image) }"
+          @click.stop="handlePreview(post.images, Number(idx))"
+        >
+          <img
+            v-if="!isVideo(image)"
+            :src="resolveAssetUrl(image)"
+            alt="动态图片"
+            class="feed-card__image"
+            loading="lazy"
+          />
+          <video
+            v-else
+            :src="resolveAssetUrl(image)"
+            class="feed-card__image"
+            muted
+            @click.stop.prevent="playVideo(image)"
+          ></video>
           <span v-if="isVideo(image)" class="feed-card__play-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3" />
+            </svg>
           </span>
         </div>
       </div>
 
       <div v-if="post.videos && post.videos.length" class="feed-card__videos">
-        <video v-for="(video, idx) in post.videos" :key="'v-'+idx" :src="video" class="feed-card__video" controls muted preload="metadata"></video>
+        <video
+          v-for="(video, idx) in post.videos"
+          :key="'v-' + idx"
+          :src="resolveAssetUrl(video)"
+          class="feed-card__video"
+          controls
+          muted
+          preload="metadata"
+        ></video>
       </div>
 
       <!-- Repost -->
-      <div v-if="post.repostPost" class="feed-card__repost" @click.stop="router.push(`/circle/${post.id}`)">
+      <div
+        v-if="post.repostPost"
+        class="feed-card__repost"
+        @click.stop="router.push(`/circle/${post.id}`)"
+      >
         <div class="feed-card__repost-header">
-          <img :src="post.repostPost.userAvatar || '/default-avatar.png'" class="feed-card__repost-avatar" />
-          <span class="feed-card__repost-name">{{ post.repostPost.userNickname || post.repostPost.userUsername }}</span>
+          <img
+            :src="resolveAssetUrl(post.repostPost.userAvatar) || DEFAULT_AVATAR_URL"
+            class="feed-card__repost-avatar"
+          />
+          <span class="feed-card__repost-name">{{
+            post.repostPost.userNickname || post.repostPost.userUsername
+          }}</span>
         </div>
-        <p v-if="post.repostContent" class="feed-card__repost-user-text">{{ post.repostContent }}</p>
+        <p v-if="post.repostContent" class="feed-card__repost-user-text">
+          {{ post.repostContent }}
+        </p>
         <p class="feed-card__repost-text">{{ post.repostPost.content }}</p>
-        <div v-if="post.repostPost.images && post.repostPost.images.length" class="feed-card__repost-images">
-          <img v-for="(img, idx) in post.repostPost.images.slice(0, 3)" :key="idx" :src="img" class="feed-card__repost-img" />
-          <span v-if="post.repostPost.images.length > 3" class="feed-card__repost-more">+{{ post.repostPost.images.length - 3 }}</span>
+        <div
+          v-if="post.repostPost.images && post.repostPost.images.length"
+          class="feed-card__repost-images"
+        >
+          <img
+            v-for="(img, idx) in post.repostPost.images.slice(0, 3)"
+            :key="idx"
+            :src="resolveAssetUrl(img)"
+            class="feed-card__repost-img"
+          />
+          <span v-if="post.repostPost.images.length > 3" class="feed-card__repost-more"
+            >+{{ post.repostPost.images.length - 3 }}</span
+          >
         </div>
       </div>
       <div v-else-if="post.originalPostHidden" class="feed-card__hidden-notice">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
         <span>原内容已隐藏</span>
       </div>
     </div>
@@ -118,26 +238,62 @@ const handlePreview = (images: string[], index: number) => emit('preview', image
     <!-- Actions -->
     <footer class="feed-card__actions">
       <button class="feed-card__action" :class="{ 'is-liked': post.isLiked }" @click="handleLike">
-        <svg class="feed-card__like-icon" :class="{ 'is-animating': post.likeAnim }" width="17" height="17" viewBox="0 0 24 24" :fill="post.isLiked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        <svg
+          class="feed-card__like-icon"
+          :class="{ 'is-animating': post.likeAnim }"
+          width="17"
+          height="17"
+          viewBox="0 0 24 24"
+          :fill="post.isLiked ? 'currentColor' : 'none'"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+          />
         </svg>
         <span class="feed-card__action-count">{{ formatNumber(post.likeCount) }}</span>
       </button>
       <button class="feed-card__action" @click="router.push(`/circle/${post.id}`)">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        <svg
+          width="17"
+          height="17"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
         <span class="feed-card__action-count">{{ formatNumber(post.commentCount) }}</span>
       </button>
       <button class="feed-card__action" @click="handleRepost">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+        <svg
+          width="17"
+          height="17"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="17 1 21 5 17 9" />
+          <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+          <polyline points="7 23 3 19 7 15" />
+          <path d="M21 13v2a4 4 0 0 1-4 4H3" />
         </svg>
         <span class="feed-card__action-count">{{ formatNumber(post.repostCount) }}</span>
       </button>
       <span class="feed-card__views">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+          <circle cx="12" cy="12" r="3" />
         </svg>
         {{ formatNumber(post.viewCount || 0) }}
       </span>
@@ -152,7 +308,9 @@ const handlePreview = (images: string[], index: number) => emit('preview', image
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   margin-bottom: var(--spacing-3);
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
   animation: cardEnter 0.45s var(--ease-out) both;
 }
 
@@ -319,11 +477,22 @@ const handlePreview = (images: string[], index: number) => emit('preview', image
   overflow: hidden;
 }
 
-.grid-1 { grid-template-columns: 1fr; max-width: 400px; }
-.grid-2 { grid-template-columns: 1fr 1fr; }
-.grid-3 { grid-template-columns: 1fr 1fr 1fr; }
-.grid-4 { grid-template-columns: 1fr 1fr; }
-.grid-multi { grid-template-columns: repeat(3, 1fr); }
+.grid-1 {
+  grid-template-columns: 1fr;
+  max-width: 400px;
+}
+.grid-2 {
+  grid-template-columns: 1fr 1fr;
+}
+.grid-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.grid-4 {
+  grid-template-columns: 1fr 1fr;
+}
+.grid-multi {
+  grid-template-columns: repeat(3, 1fr);
+}
 
 .feed-card__img-wrap {
   position: relative;
@@ -520,11 +689,21 @@ const handlePreview = (images: string[], index: number) => emit('preview', image
 }
 
 @keyframes likePop {
-  0% { transform: scale(1); }
-  25% { transform: scale(1.35); }
-  50% { transform: scale(0.85); }
-  75% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.35);
+  }
+  50% {
+    transform: scale(0.85);
+  }
+  75% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .feed-card__action-count {

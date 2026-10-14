@@ -2,12 +2,15 @@ package com.example.edu_project.controller.social;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.edu_project.annotation.RequiresAuth;
+import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.common.result.Result;
 import com.example.edu_project.dto.social.SendMessageRequest;
 import com.example.edu_project.service.social.MessageService;
+import com.example.edu_project.service.social.MessageRealtimeService;
 import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.social.ConversationVO;
 import com.example.edu_project.vo.social.MessageVO;
+import com.example.edu_project.vo.social.PresenceVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -16,8 +19,10 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 私信控制器
@@ -30,6 +35,28 @@ import java.util.List;
 public class MessageController {
 
     private final MessageService messageService;
+    private final MessageRealtimeService messageRealtimeService;
+
+    @RequiresAuth
+    @Operation(summary = "建立私信实时连接")
+    @GetMapping(value = "/stream", produces = "text/event-stream")
+    public SseEmitter streamMessages() {
+        return messageRealtimeService.connect(SecurityUtils.getCurrentUserId());
+    }
+
+    @RequiresAuth
+    @Operation(summary = "获取用户在线状态")
+    @GetMapping("/presence/{userId}")
+    public Result<PresenceVO> getPresence(@PathVariable Long userId) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        boolean hasConversation = Objects.equals(currentUserId, userId)
+                || messageService.getConversations(currentUserId).stream()
+                        .anyMatch(conversation -> Objects.equals(conversation.getConversationId(), userId));
+        if (!hasConversation) {
+            throw new BusinessException(403, "无权查看该用户在线状态");
+        }
+        return Result.success(messageRealtimeService.getPresence(currentUserId, userId));
+    }
 
     /**
      * 发送私信

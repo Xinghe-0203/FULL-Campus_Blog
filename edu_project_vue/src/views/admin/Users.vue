@@ -5,11 +5,24 @@
         <h2>用户管理</h2>
         <div class="search-bar glass">
           <div class="search-input-wrapper">
-            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <svg
+              class="search-icon"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            <input v-model="searchQuery" type="text" placeholder="搜索用户名、邮箱..." @keyup.enter="fetchUsers" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="搜索用户名、邮箱..."
+              @keyup.enter="fetchUsers"
+            />
           </div>
           <button class="btn btn-primary btn-sm" @click="fetchUsers">搜索</button>
         </div>
@@ -47,8 +60,17 @@
       </div>
 
       <div v-else-if="error" class="error-state glass">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        <svg
+          width="48"
+          height="48"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         <h3>{{ error }}</h3>
         <button class="btn btn-primary" @click="fetchUsers">重试</button>
@@ -72,9 +94,16 @@
             <tr v-if="users.length === 0">
               <td colspan="8" class="empty-cell">
                 <div class="empty-content">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
+                  <svg
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
                   </svg>
                   <span>暂无用户数据</span>
                 </div>
@@ -84,20 +113,33 @@
               <td class="id-cell">{{ user.id }}</td>
               <td>
                 <div class="user-cell">
-                  <img :src="user.avatar || '/default-avatar.png'" :alt="user.username" class="user-avatar" />
+                  <img
+                    :src="resolveAssetUrl(user.avatar) || DEFAULT_AVATAR_URL"
+                    :alt="user.username"
+                    class="user-avatar"
+                  />
                   <span class="username">{{ user.nickname || user.username }}</span>
                 </div>
               </td>
               <td class="email-cell">{{ user.email }}</td>
               <td>
                 <span class="badge" :class="user.role === 'admin' ? 'badge-warning' : 'badge-info'">
-                  <span class="badge-dot" :class="user.role === 'admin' ? 'warning' : 'info'"></span>
+                  <span
+                    class="badge-dot"
+                    :class="user.role === 'admin' ? 'warning' : 'info'"
+                  ></span>
                   {{ user.role === 'admin' ? '管理员' : '用户' }}
                 </span>
               </td>
               <td>
-                <span class="status-badge" :class="user.status === 1 ? 'status-active' : 'status-disabled'">
-                  <span class="status-dot" :class="user.status === 1 ? 'active' : 'disabled'"></span>
+                <span
+                  class="status-badge"
+                  :class="user.status === 1 ? 'status-active' : 'status-disabled'"
+                >
+                  <span
+                    class="status-dot"
+                    :class="user.status === 1 ? 'active' : 'disabled'"
+                  ></span>
                   {{ user.status === 1 ? '正常' : '禁用' }}
                 </span>
               </td>
@@ -110,13 +152,23 @@
               <td class="time-cell">{{ formatDate(user.createTime) }}</td>
               <td>
                 <div class="actions">
-                  <button class="btn btn-xs btn-ghost" @click="toggleUserStatus(user)" :title="user.status === 1 ? '禁用' : '启用'">
+                  <button
+                    class="btn btn-xs btn-ghost"
+                    @click="toggleUserStatus(user)"
+                    :title="user.status === 1 ? '禁用' : '启用'"
+                  >
                     {{ user.status === 1 ? '禁用' : '启用' }}
                   </button>
-                  <button class="btn btn-xs btn-ghost" :class="user.banned ? 'btn-success-outline' : 'btn-danger-outline'" @click="toggleBan(user)">
+                  <button
+                    class="btn btn-xs btn-ghost"
+                    :class="user.banned ? 'btn-success-outline' : 'btn-danger-outline'"
+                    @click="toggleBan(user)"
+                  >
                     {{ user.banned ? '解封' : '封禁' }}
                   </button>
-                  <button class="btn btn-xs btn-ghost" @click="resetPassword(user)">重置密码</button>
+                  <button class="btn btn-xs btn-ghost" @click="resetPassword(user)">
+                    重置密码
+                  </button>
                 </div>
               </td>
             </tr>
@@ -126,14 +178,40 @@
 
       <div v-if="totalPages > 1" class="pagination-wrapper">
         <div class="pagination glass">
-          <button class="pagination-btn" :disabled="currentPage <= 1" @click="changePage(currentPage - 1)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          <button
+            class="pagination-btn"
+            :disabled="currentPage <= 1"
+            @click="changePage(currentPage - 1)"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
             上一页
           </button>
           <span class="page-info">第 {{ currentPage }} / {{ totalPages }} 页</span>
-          <button class="pagination-btn" :disabled="currentPage >= totalPages" @click="changePage(currentPage + 1)">
+          <button
+            class="pagination-btn"
+            :disabled="currentPage >= totalPages"
+            @click="changePage(currentPage + 1)"
+          >
             下一页
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </button>
         </div>
       </div>
@@ -143,8 +221,16 @@
       <div class="password-display">
         <code class="password-code">{{ newPassword }}</code>
         <button class="btn btn-sm btn-outline" @click="copyPassword">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
           </svg>
           复制
         </button>
@@ -158,6 +244,7 @@
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref, onMounted } from 'vue'
 import { adminApi } from '../../api/admin'
 import { formatDate, copyToClipboard } from '../../utils'
@@ -355,7 +442,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
   pointer-events: none;
   z-index: 1;
 }
@@ -451,8 +538,12 @@ onMounted(() => {
   border-radius: var(--radius-full);
 }
 
-.badge-dot.warning { background: var(--warning); }
-.badge-dot.info { background: var(--info); }
+.badge-dot.warning {
+  background: var(--warning);
+}
+.badge-dot.info {
+  background: var(--info);
+}
 
 .status-badge {
   display: inline-flex;
@@ -491,10 +582,14 @@ onMounted(() => {
 }
 
 .status-dot.active,
-.status-dot.normal { background: var(--success); }
+.status-dot.normal {
+  background: var(--success);
+}
 
 .status-dot.disabled,
-.status-dot.banned { background: var(--error); }
+.status-dot.banned {
+  background: var(--error);
+}
 
 .actions {
   display: flex;
@@ -576,16 +671,31 @@ onMounted(() => {
 .sk-line {
   height: 14px;
   border-radius: 4px;
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
-.sk-line.w-30 { width: 30%; }
-.sk-line.w-40 { width: 40%; }
-.sk-line.w-50 { width: 50%; }
-.sk-line.w-60 { width: 60%; }
-.sk-line.w-70 { width: 70%; }
+.sk-line.w-30 {
+  width: 30%;
+}
+.sk-line.w-40 {
+  width: 40%;
+}
+.sk-line.w-50 {
+  width: 50%;
+}
+.sk-line.w-60 {
+  width: 60%;
+}
+.sk-line.w-70 {
+  width: 70%;
+}
 
 @media (max-width: 768px) {
   .page-header {

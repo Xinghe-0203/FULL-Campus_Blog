@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { resolveAssetUrl } from '@/constants'
 import { ref, watch, onBeforeUnmount } from 'vue'
 
 const props = defineProps<{
@@ -60,11 +61,22 @@ onBeforeUnmount(() => {
 <template>
   <Teleport to="body">
     <Transition name="preview">
-      <div v-if="show && images?.length" class="preview-overlay" role="dialog" aria-modal="true" @click.self="emit('close')" tabindex="0">
+      <div
+        v-if="show && images?.length"
+        class="preview-overlay"
+        role="dialog"
+        aria-modal="true"
+        @click.self="emit('close')"
+        tabindex="0"
+      >
         <button class="preview-close" aria-label="关闭" @click="emit('close')">&times;</button>
-        <button v-if="images.length > 1" class="preview-nav prev" aria-label="上一张" @click="prev">&#8249;</button>
-        <img :src="images[currentIndex]" class="preview-img" @click.stop />
-        <button v-if="images.length > 1" class="preview-nav next" aria-label="下一页" @click="next">&#8250;</button>
+        <button v-if="images.length > 1" class="preview-nav prev" aria-label="上一张" @click="prev">
+          &#8249;
+        </button>
+        <img :src="resolveAssetUrl(images[currentIndex])" class="preview-img" @click.stop />
+        <button v-if="images.length > 1" class="preview-nav next" aria-label="下一页" @click="next">
+          &#8250;
+        </button>
         <div class="preview-counter">{{ currentIndex + 1 }} / {{ images.length }}</div>
       </div>
     </Transition>

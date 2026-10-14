@@ -1,7 +1,16 @@
 <template>
   <div class="circle-post-page">
     <button class="back-btn glass" @click="router.back()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
       返回
     </button>
 
@@ -9,34 +18,141 @@
       <div class="post-card glass">
         <div class="card-header">
           <h2>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:8px"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              style="display: inline; vertical-align: middle; margin-right: 8px"
+            >
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
             {{ isEdit ? '编辑动态' : '发布动态' }}
           </h2>
         </div>
 
         <div class="card-body">
           <div class="create-top">
-            <img :src="userStore.avatar || '/default-avatar.png'" class="user-avatar" />
+            <img
+              :src="resolveAssetUrl(userStore.avatar) || DEFAULT_AVATAR_URL"
+              class="user-avatar"
+            />
             <div class="create-info">
               <span class="create-nickname">{{ userStore.nickname }}</span>
               <button class="visibility-selector glass-chip" @click="showPicker = !showPicker">
-                <svg v-if="form.visibility === 0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                <svg v-else-if="form.visibility === 1" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
-                <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <svg
+                  v-if="form.visibility === 0"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="2" y1="12" x2="22" y2="12" />
+                  <path
+                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                  />
+                </svg>
+                <svg
+                  v-else-if="form.visibility === 1"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="8.5" cy="7" r="4" />
+                  <path d="M20 8v6" />
+                  <path d="M23 11h-6" />
+                </svg>
+                <svg
+                  v-else
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
                 {{ visibilityOptions[form.visibility] }}
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
               </button>
               <transition name="dropdown">
                 <div v-if="showPicker" class="visibility-dropdown glass">
-                  <div v-for="(label, key) in visibilityOptions" :key="key" class="vis-item" :class="{ active: form.visibility === Number(key) }" @click="form.visibility = Number(key); showPicker = false">
+                  <div
+                    v-for="(label, key) in visibilityOptions"
+                    :key="key"
+                    class="vis-item"
+                    :class="{ active: form.visibility === Number(key) }"
+                    @click="((form.visibility = Number(key)), (showPicker = false))"
+                  >
                     <span class="vis-icon">
-                      <svg v-if="Number(key) === 0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                      <svg v-else-if="Number(key) === 1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
-                      <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      <svg
+                        v-if="Number(key) === 0"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="2" y1="12" x2="22" y2="12" />
+                        <path
+                          d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                        />
+                      </svg>
+                      <svg
+                        v-else-if="Number(key) === 1"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="8.5" cy="7" r="4" />
+                        <path d="M20 8v6" />
+                        <path d="M23 11h-6" />
+                      </svg>
+                      <svg
+                        v-else
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
                     </span>
                     <div>
                       <div class="vis-label">{{ label }}</div>
-                      <div class="vis-desc">{{ ['所有人可见', '仅关注的粉丝可见', '只有自己可见'][key] }}</div>
+                      <div class="vis-desc">
+                        {{ ['所有人可见', '仅关注的粉丝可见', '只有自己可见'][key] }}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -45,7 +161,15 @@
           </div>
 
           <div class="textarea-wrapper">
-            <textarea v-model="form.content" class="post-textarea" placeholder="分享你的校园生活... 使用 @ 提及用户" rows="6" maxlength="2000" @input="handleTextareaInput" ref="textareaRef"></textarea>
+            <textarea
+              v-model="form.content"
+              class="post-textarea"
+              placeholder="分享你的校园生活... 使用 @ 提及用户"
+              rows="6"
+              maxlength="2000"
+              @input="handleTextareaInput"
+              ref="textareaRef"
+            ></textarea>
             <transition name="dropdown">
               <div v-if="showMentionDropdown" class="mention-dropdown glass">
                 <div v-if="mentionLoading" class="mention-loading">
@@ -53,26 +177,60 @@
                 </div>
                 <div v-else-if="mentionResults.length === 0" class="mention-empty">未找到用户</div>
                 <div v-else>
-                  <div v-for="user in mentionResults" :key="user.id" class="mention-item" @mousedown.prevent="selectMention(user)">
-                    <img :src="user.avatar || '/default-avatar.png'" class="mention-avatar" />
+                  <div
+                    v-for="user in mentionResults"
+                    :key="user.id"
+                    class="mention-item"
+                    @mousedown.prevent="selectMention(user)"
+                  >
+                    <img
+                      :src="resolveAssetUrl(user.avatar) || DEFAULT_AVATAR_URL"
+                      class="mention-avatar"
+                    />
                     <span class="mention-name">{{ user.nickname || user.username }}</span>
                   </div>
                 </div>
               </div>
             </transition>
           </div>
-          <div class="char-count" :class="{ warn: form.content.length > 1800 }">{{ form.content.length }}/2000</div>
+          <div class="char-count" :class="{ warn: form.content.length > 1800 }">
+            {{ form.content.length }}/2000
+          </div>
 
           <div class="location-input-wrapper">
             <button class="location-btn glass-chip" @click="showLocationInput = !showLocationInput">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
               {{ form.location ? form.location : '添加位置' }}
             </button>
             <transition name="dropdown">
               <div v-if="showLocationInput" class="location-input-box glass">
                 <input v-model="form.location" placeholder="输入位置信息..." maxlength="100" />
-                <button class="clear-location" @click="form.location = ''; showLocationInput = false" v-if="form.location">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <button
+                  class="clear-location"
+                  @click="((form.location = ''), (showLocationInput = false))"
+                  v-if="form.location"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
                 </button>
               </div>
             </transition>
@@ -81,7 +239,16 @@
           <div class="toggle-options">
             <label class="toggle-item glass-chip">
               <span class="toggle-label">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
                 允许评论
               </span>
               <input type="checkbox" v-model="allowComment" class="toggle-checkbox" />
@@ -89,7 +256,19 @@
             </label>
             <label class="toggle-item glass-chip">
               <span class="toggle-label">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="17 1 21 5 17 9" />
+                  <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                  <polyline points="7 23 3 19 7 15" />
+                  <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                </svg>
                 允许转发
               </span>
               <input type="checkbox" v-model="allowRepost" class="toggle-checkbox" />
@@ -101,47 +280,114 @@
             <div v-if="selectedTopics.length" class="selected-topics">
               <div v-for="topic in selectedTopics" :key="topic.id" class="selected-topic">
                 <span class="topic-badge glass-chip">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                    <line x1="4" y1="22" x2="4" y2="15" />
+                  </svg>
                   {{ topic.name }}
                 </span>
                 <button class="remove-topic" @click="removeTopic(topic)" title="移除话题">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
                 </button>
               </div>
             </div>
             <div class="topic-input-wrapper">
               <div class="topic-search-box glass">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input v-model="topicSearch" placeholder="添加话题..." @focus="showTopicDropdown = true" @blur="hideTopicDropdown" />
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  v-model="topicSearch"
+                  placeholder="添加话题..."
+                  @focus="showTopicDropdown = true"
+                  @blur="hideTopicDropdown"
+                />
               </div>
               <transition name="dropdown">
                 <div v-if="showTopicDropdown && filteredTopics.length" class="topic-dropdown glass">
-                  <div v-for="topic in filteredTopics" :key="topic.id" class="topic-dropdown-item" @mousedown.prevent="selectTopic(topic)">
+                  <div
+                    v-for="topic in filteredTopics"
+                    :key="topic.id"
+                    class="topic-dropdown-item"
+                    @mousedown.prevent="selectTopic(topic)"
+                  >
                     <span class="topic-name">#{{ topic.name }}</span>
                     <span class="topic-count">{{ topic.postCount || 0 }} 篇</span>
                   </div>
                 </div>
               </transition>
               <div v-if="topicSearch.trim() && !filteredTopics.length" class="no-topics">
-                <button class="btn btn-text btn-xs" @click="createTopicAndAdd">创建「{{ topicSearch }}」话题</button>
+                <button class="btn btn-text btn-xs" @click="createTopicAndAdd">
+                  创建「{{ topicSearch }}」话题
+                </button>
               </div>
             </div>
           </div>
 
           <div v-if="form.images.length" class="uploaded-images">
             <div v-for="(img, idx) in form.images" :key="idx" class="image-item">
-              <img :src="img" alt="" />
+              <img :src="resolveAssetUrl(img)" alt="" />
               <button class="remove-image" @click="form.images.splice(idx, 1)">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
           </div>
 
           <div v-if="form.videos.length" class="uploaded-videos">
             <div v-for="(video, idx) in form.videos" :key="idx" class="video-item">
-              <video :src="video" class="video-preview" muted preload="metadata"></video>
+              <video
+                :src="resolveAssetUrl(video)"
+                class="video-preview"
+                muted
+                preload="metadata"
+              ></video>
               <button class="remove-video" @click="form.videos.splice(idx, 1)">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
           </div>
@@ -150,18 +396,58 @@
             <div class="upload-progress-bar">
               <div class="progress-fill" :style="{ width: uploadPercent + '%' }"></div>
             </div>
-            <span class="upload-progress-text">上传中 {{ currentUploadIndex }}/{{ totalUploadCount }}... {{ uploadPercent }}%</span>
+            <span class="upload-progress-text"
+              >上传中 {{ currentUploadIndex }}/{{ totalUploadCount }}... {{ uploadPercent }}%</span
+            >
           </div>
 
           <div class="toolbar">
-            <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple @change="handleUpload" ref="fileInput" hidden />
-            <input type="file" accept="video/mp4,video/webm" @change="handleVideoUpload" ref="videoInput" hidden />
-            <button class="tool-btn glass-chip" @click="fileInput?.click()" :disabled="form.images.length >= 9">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              multiple
+              @change="handleUpload"
+              ref="fileInput"
+              hidden
+            />
+            <input
+              type="file"
+              accept="video/mp4,video/webm"
+              @change="handleVideoUpload"
+              ref="videoInput"
+              hidden
+            />
+            <button
+              class="tool-btn glass-chip"
+              @click="fileInput?.click()"
+              :disabled="form.images.length >= 9"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
               图片
             </button>
             <button class="tool-btn glass-chip" @click="videoInput?.click()">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polygon points="23 7 16 12 23 17 23 7" />
+                <rect x="1" y="5" width="15" height="14" rx="2" />
+              </svg>
               视频
             </button>
           </div>
@@ -169,8 +455,12 @@
 
         <div class="card-footer">
           <button class="btn btn-ghost" @click="goBack">取消</button>
-          <button class="btn btn-primary" @click="publishPost" :disabled="!form.content.trim() || publishing">
-            {{ publishing ? (isEdit ? '保存中...' : '发布中...') : (isEdit ? '保存' : '发布') }}
+          <button
+            class="btn btn-primary"
+            @click="publishPost"
+            :disabled="!form.content.trim() || publishing"
+          >
+            {{ publishing ? (isEdit ? '保存中...' : '发布中...') : isEdit ? '保存' : '发布' }}
           </button>
         </div>
       </div>
@@ -179,6 +469,7 @@
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { circleApi } from '../../api/circle'
@@ -219,11 +510,11 @@ const allTopics = ref<Topic[]>([])
 const filteredTopics = computed(() => {
   if (!topicSearch.value) return allTopics.value
   const q = topicSearch.value.toLowerCase()
-  return allTopics.value.filter(t => t.name.toLowerCase().includes(q))
+  return allTopics.value.filter((t) => t.name.toLowerCase().includes(q))
 })
 
 const selectTopic = (topic: { id: number; name: string }) => {
-  if (!selectedTopics.value.find(t => t.id === topic.id)) {
+  if (!selectedTopics.value.find((t) => t.id === topic.id)) {
     selectedTopics.value.push(topic)
   }
   topicSearch.value = ''
@@ -231,7 +522,7 @@ const selectTopic = (topic: { id: number; name: string }) => {
 }
 
 const removeTopic = (topic: { id: number; name: string }) => {
-  selectedTopics.value = selectedTopics.value.filter(t => t.id !== topic.id)
+  selectedTopics.value = selectedTopics.value.filter((t) => t.id !== topic.id)
 }
 
 async function createTopicAndAdd() {
@@ -243,13 +534,13 @@ async function createTopicAndAdd() {
     const newTopicId = (res.data as any)?.id ?? res.data
     if (newTopicId) {
       const newTopic: { id: number; name: string } = { id: Number(newTopicId), name }
-      if (!selectedTopics.value.find(t => t.id === newTopic.id)) {
+      if (!selectedTopics.value.find((t) => t.id === newTopic.id)) {
         selectedTopics.value.push(newTopic)
       }
     }
-    topicApi.getTopicList({ pageNum: 1, pageSize: 100 }).then(res => {
+    topicApi.getTopicList({ pageNum: 1, pageSize: 100 }).then((res) => {
       const data = res.data
-      allTopics.value = Array.isArray(data) ? data : (data?.records || [])
+      allTopics.value = Array.isArray(data) ? data : data?.records || []
     })
     toast.success('话题已创建')
     topicSearch.value = ''
@@ -260,7 +551,9 @@ async function createTopicAndAdd() {
 }
 
 const hideTopicDropdown = () => {
-  setTimeout(() => { showTopicDropdown.value = false }, 200)
+  setTimeout(() => {
+    showTopicDropdown.value = false
+  }, 200)
 }
 
 const handleTextareaInput = () => {
@@ -311,7 +604,8 @@ const selectMention = (user: User) => {
   const textAfterCursor = form.content.substring(cursorPos)
   const matchPos = textBeforeCursor.lastIndexOf('@')
   if (matchPos === -1) return
-  const newTextBefore = textBeforeCursor.substring(0, matchPos) + `@${user.nickname || user.username} `
+  const newTextBefore =
+    textBeforeCursor.substring(0, matchPos) + `@${user.nickname || user.username} `
   form.content = newTextBefore + textAfterCursor
   showMentionDropdown.value = false
   mentionResults.value = []
@@ -353,9 +647,9 @@ const form = reactive({
 const handleUpload = async (e: Event) => {
   const target = e.target as HTMLInputElement
   const allFiles = Array.from(target.files || [])
-  const oversized = allFiles.filter(f => f.size > MAX_IMAGE_SIZE)
+  const oversized = allFiles.filter((f) => f.size > MAX_IMAGE_SIZE)
   for (const f of oversized) toast.warning(`${f.name} 超过10MB限制`)
-  const files = allFiles.filter(f => f.size <= MAX_IMAGE_SIZE)
+  const files = allFiles.filter((f) => f.size <= MAX_IMAGE_SIZE)
   if (files.length === 0) return
   totalUploadCount.value = files.length
   currentUploadIndex.value = 0
@@ -363,7 +657,9 @@ const handleUpload = async (e: Event) => {
   uploadPercent.value = 0
   try {
     let totalBytes = 0
-    for (const file of files) { totalBytes += file.size }
+    for (const file of files) {
+      totalBytes += file.size
+    }
     let uploadedBytes = 0
     for (let i = 0; i < files.length; i++) {
       if (form.images.length >= 9) break
@@ -426,7 +722,7 @@ const publishPost = async () => {
     images: form.images,
     videos: form.videos,
     location: form.location || undefined,
-    topicIds: selectedTopics.value.map(t => t.id),
+    topicIds: selectedTopics.value.map((t) => t.id),
     visibility: form.visibility,
     allowComment: allowComment.value ? 1 : 0,
     allowRepost: allowRepost.value ? 1 : 0
@@ -494,10 +790,13 @@ onMounted(() => {
   if (isEdit.value) {
     loadEditPost()
   }
-  topicApi.getTopicList({ pageNum: 1, pageSize: 100 }).then(res => {
-    const data = res.data
-    allTopics.value = Array.isArray(data) ? data : (data?.records || [])
-  }).catch(() => {})
+  topicApi
+    .getTopicList({ pageNum: 1, pageSize: 100 })
+    .then((res) => {
+      const data = res.data
+      allTopics.value = Array.isArray(data) ? data : data?.records || []
+    })
+    .catch(() => {})
 })
 </script>
 
@@ -654,8 +953,15 @@ onMounted(() => {
   color: var(--primary);
 }
 
-.vis-label { font-size: 0.8125rem; font-weight: 500; }
-.vis-desc { font-size: 0.6875rem; color: var(--text-muted); margin-top: 2px; }
+.vis-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.vis-desc {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
 
 .post-textarea {
   width: 100%;
@@ -677,7 +983,9 @@ onMounted(() => {
 
 .post-textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
+  box-shadow:
+    0 0 0 3px var(--primary-light),
+    var(--glass-shadow);
   background: var(--glass-hover);
 }
 
@@ -796,8 +1104,15 @@ onMounted(() => {
   margin-bottom: var(--spacing-xs);
 }
 
-.upload-progress-container { margin-bottom: var(--spacing-md); }
-.upload-progress-text { display: block; font-size: 0.75rem; color: var(--text-muted); text-align: center; }
+.upload-progress-container {
+  margin-bottom: var(--spacing-md);
+}
+.upload-progress-text {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
 
 .progress-fill {
   height: 100%;
@@ -909,7 +1224,9 @@ onMounted(() => {
 
 .topic-search-box:focus-within {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
+  box-shadow:
+    0 0 0 3px var(--primary-light),
+    var(--glass-shadow);
 }
 
 .topic-search-box svg {
@@ -1100,7 +1417,9 @@ onMounted(() => {
 
 .location-input-box:focus-within {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
+  box-shadow:
+    0 0 0 3px var(--primary-light),
+    var(--glass-shadow);
 }
 
 .location-input-box input {
@@ -1337,7 +1656,9 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 640px) {

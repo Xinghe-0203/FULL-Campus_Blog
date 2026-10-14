@@ -11,7 +11,11 @@ public interface StatisticsService {
      * 获取平台完整统计数据
      * @return 平台统计数据
      */
-    StatisticsVO getPlatformStatistics();
+    StatisticsVO getPlatformStatistics(int trendDays);
+
+    default StatisticsVO getPlatformStatistics() {
+        return getPlatformStatistics(30);
+    }
 
     /**
      * 获取社区统计数据（公开接口）

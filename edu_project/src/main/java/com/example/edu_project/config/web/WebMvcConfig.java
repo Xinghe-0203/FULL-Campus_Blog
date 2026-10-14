@@ -36,6 +36,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(httpRequestLoggingInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
+                        "/index.html",             // SPA shell
+                        "/assets/**",              // SPA assets
+                        "/favicon.svg",
+                        "/default-avatar.png",
+                        "/default-cover.jpg",
+                        "/default-image.png",
                         "/uploads/**",           // 静态资源
                         "/actuator/**",          // 监控端点
                         "/doc.html",             // Knife4j UI

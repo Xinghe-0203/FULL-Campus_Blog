@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  * - categoryCache: 分类缓存，30分钟过期，最大500条
  * - userCache: 用户缓存，10分钟过期，最大5000条
  * - trendingCache: 趋势缓存，5分钟过期，最大1000条
- * - statsCache: 统计缓存，15分钟过期，最大200条
+ * - statsCache: 统计缓存，30秒过期，最大200条
  */
 @Configuration
 @EnableCaching
@@ -77,7 +77,7 @@ public class CaffeineCacheConfig {
     public Caffeine<Object, Object> statsCache() {
         return Caffeine.newBuilder()
                 .maximumSize(200)
-                .expireAfterWrite(15, TimeUnit.MINUTES)
+                .expireAfterWrite(30, TimeUnit.SECONDS)
                 .recordStats();
     }
 

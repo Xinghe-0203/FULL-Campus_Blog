@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { postApi } from '@/api/post'
@@ -242,19 +243,27 @@ onUnmounted(() => {
             <h2 class="section-title">文章</h2>
             <span class="section-title-line"></span>
           </div>
-          <HomeFilters
-            :filters="filters"
-            :current-filter="currentFilter"
-            @update="setFilter"
-          />
+          <HomeFilters :filters="filters" :current-filter="currentFilter" @update="setFilter" />
         </div>
 
         <!-- Asymmetric Bento Post Grid -->
         <div class="bento-grid">
           <Transition name="fade" mode="out-in">
             <!-- Loading State -->
-            <div v-if="loading" key="loading" class="skeleton-grid" role="status" aria-busy="true" aria-label="加载中">
-              <div v-for="i in 4" :key="i" class="skeleton-card" :class="{ 'skeleton-card--large': i === 1 }">
+            <div
+              v-if="loading"
+              key="loading"
+              class="skeleton-grid"
+              role="status"
+              aria-busy="true"
+              aria-label="加载中"
+            >
+              <div
+                v-for="i in 4"
+                :key="i"
+                class="skeleton-card"
+                :class="{ 'skeleton-card--large': i === 1 }"
+              >
                 <div class="skeleton-card-body">
                   <div class="skeleton-card-header">
                     <div class="skeleton skeleton-avatar"></div>
@@ -270,10 +279,19 @@ onUnmounted(() => {
             <!-- Error State -->
             <div v-else-if="error" key="error" class="error-state" role="alert">
               <div class="error-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12" y2="12"/>
-                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                <svg
+                  width="48"
+                  height="48"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
               </div>
               <h3>加载失败</h3>
@@ -284,11 +302,20 @@ onUnmounted(() => {
             <!-- Empty State -->
             <div v-else-if="posts.length === 0" key="empty" class="empty-state">
               <div class="empty-icon">
-                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="12" y1="18" x2="12" y2="12"/>
-                  <line x1="9" y1="15" x2="15" y2="15"/>
+                <svg
+                  width="56"
+                  height="56"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="12" y1="18" x2="12" y2="12" />
+                  <line x1="9" y1="15" x2="15" y2="15" />
                 </svg>
               </div>
               <h3 class="empty-title">还没有文章</h3>
@@ -308,7 +335,10 @@ onUnmounted(() => {
               >
                 <!-- Standard card -->
                 <div class="bento-standard" @click="$router.push(`/post/${post.id}`)">
-                  <div class="bento-standard-cover" :class="{ 'bento-standard-cover--empty': !post.coverImage }">
+                  <div
+                    class="bento-standard-cover"
+                    :class="{ 'bento-standard-cover--empty': !post.coverImage }"
+                  >
                     <img
                       v-if="post.coverImage"
                       :src="getSafeImageUrl(post.coverImage)"
@@ -320,7 +350,7 @@ onUnmounted(() => {
                   <div class="bento-standard-body">
                     <div class="bento-author">
                       <img
-                        :src="post.avatar || '/default-avatar.png'"
+                        :src="resolveAssetUrl(post.avatar) || DEFAULT_AVATAR_URL"
                         :alt="post.nickname || post.username || '用户'"
                         class="bento-avatar bento-avatar--squircle"
                         loading="lazy"
@@ -328,15 +358,13 @@ onUnmounted(() => {
                       <span class="bento-author-name">{{ post.nickname || post.username }}</span>
                     </div>
                     <h3 class="bento-title">
-                      <router-link :to="`/post/${post.id}`" @click.stop>{{ post.title }}</router-link>
+                      <router-link :to="`/post/${post.id}`" @click.stop>{{
+                        post.title
+                      }}</router-link>
                     </h3>
                     <p class="bento-excerpt" v-if="post.summary">{{ post.summary }}</p>
                     <div class="bento-tags" v-if="post.tags?.length">
-                      <span
-                        v-for="tag in post.tags.slice(0, 2)"
-                        :key="tag.id"
-                        class="bento-tag"
-                      >
+                      <span v-for="tag in post.tags.slice(0, 2)" :key="tag.id" class="bento-tag">
                         {{ tag.name }}
                       </span>
                     </div>
@@ -344,11 +372,33 @@ onUnmounted(() => {
                       <span class="bento-time">{{ formatRelativeTime(post.createTime) }}</span>
                       <div class="bento-stats">
                         <span class="bento-stat">
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                          <svg
+                            width="13"
+                            height="13"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path
+                              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                            />
+                          </svg>
                           {{ post.likeCount || 0 }}
                         </span>
                         <span class="bento-stat">
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                          <svg
+                            width="13"
+                            height="13"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path
+                              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                            />
+                          </svg>
                           {{ post.commentCount || 0 }}
                         </span>
                       </div>
@@ -368,8 +418,17 @@ onUnmounted(() => {
             @click="changePage(currentPage - 1)"
             aria-label="上一页"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="15 18 9 12 15 6"/>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
 
@@ -392,8 +451,17 @@ onUnmounted(() => {
             @click="changePage(currentPage + 1)"
             aria-label="下一页"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6"/>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="9 18 15 12 9 6" />
             </svg>
           </button>
 
@@ -410,7 +478,6 @@ onUnmounted(() => {
         />
       </aside>
     </div>
-
   </div>
 </template>
 
@@ -421,8 +488,9 @@ onUnmounted(() => {
   min-height: calc(100vh - 64px);
   opacity: 0;
   transform: translateY(12px);
-  transition: opacity 0.6s cubic-bezier(0.25, 0.1, 0.25, 1),
-              transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
+  transition:
+    opacity 0.6s cubic-bezier(0.25, 0.1, 0.25, 1),
+    transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .home-page.page-ready {
@@ -509,8 +577,13 @@ onUnmounted(() => {
 }
 
 @keyframes meta-pulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 0.2; }
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.2;
+  }
 }
 
 .hero-meta-text {
@@ -572,7 +645,9 @@ onUnmounted(() => {
   background: var(--primary);
   border-radius: 1px;
   opacity: 0.5;
-  transition: width 0.3s ease, opacity 0.3s ease;
+  transition:
+    width 0.3s ease,
+    opacity 0.3s ease;
 }
 
 .section-header:hover .section-title-line {
@@ -595,8 +670,9 @@ onUnmounted(() => {
 .bento-card {
   opacity: 0;
   transform: translateY(12px);
-  transition: opacity 0.45s cubic-bezier(0.25, 0.1, 0.25, 1),
-              transform 0.45s cubic-bezier(0.25, 0.1, 0.25, 1);
+  transition:
+    opacity 0.45s cubic-bezier(0.25, 0.1, 0.25, 1),
+    transform 0.45s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .bento-card--visible {
@@ -742,10 +818,22 @@ onUnmounted(() => {
   color: var(--tag-color, var(--primary));
 }
 
-.bento-tag:nth-child(1) { --tag-bg: rgba(13, 148, 136, 0.06); --tag-color: #0D9488; }
-.bento-tag:nth-child(2) { --tag-bg: rgba(249, 115, 22, 0.06); --tag-color: #EA580C; }
-.bento-tag:nth-child(3) { --tag-bg: rgba(139, 92, 246, 0.06); --tag-color: #7C3AED; }
-.bento-tag:nth-child(4) { --tag-bg: rgba(236, 72, 153, 0.06); --tag-color: #DB2777; }
+.bento-tag:nth-child(1) {
+  --tag-bg: rgba(13, 148, 136, 0.06);
+  --tag-color: #0d9488;
+}
+.bento-tag:nth-child(2) {
+  --tag-bg: rgba(249, 115, 22, 0.06);
+  --tag-color: #ea580c;
+}
+.bento-tag:nth-child(3) {
+  --tag-bg: rgba(139, 92, 246, 0.06);
+  --tag-color: #7c3aed;
+}
+.bento-tag:nth-child(4) {
+  --tag-bg: rgba(236, 72, 153, 0.06);
+  --tag-color: #db2777;
+}
 
 /* ==================== Bento Stats ==================== */
 .bento-stats {
@@ -813,18 +901,24 @@ onUnmounted(() => {
 }
 
 .skeleton {
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     var(--skeleton-base) 0%,
     var(--skeleton-highlight) 50%,
-    var(--skeleton-base) 100%);
+    var(--skeleton-base) 100%
+  );
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s ease-in-out infinite;
   border-radius: var(--radius-sm);
 }
 
 @keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .skeleton-avatar {
@@ -903,7 +997,9 @@ onUnmounted(() => {
   border: none;
   border-radius: var(--radius);
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
   text-decoration: none;
 }
 

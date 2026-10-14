@@ -2,7 +2,16 @@
   <div class="circle-detail-page">
     <div class="detail-container">
       <button class="back-btn glass" @click="router.back()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
         返回
       </button>
 
@@ -21,8 +30,17 @@
       </div>
 
       <div v-else-if="error" class="error-state glass">
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        <svg
+          width="60"
+          height="60"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         <h3>{{ error }}</h3>
         <button class="btn btn-primary" @click="fetchPost">重试</button>
@@ -32,23 +50,93 @@
         <div class="feed-card glass">
           <div class="feed-header">
             <router-link :to="`/user/${post.userId}`" class="feed-author">
-              <img :src="post.userAvatar || '/default-avatar.png'" :alt="post.userUsername" class="author-avatar" />
+              <img
+                :src="resolveAssetUrl(post.userAvatar) || DEFAULT_AVATAR_URL"
+                :alt="post.userUsername"
+                class="author-avatar"
+              />
               <div class="author-info">
                 <span class="author-name">{{ post.userNickname || post.userUsername }}</span>
                 <span class="feed-time">{{ formatRelativeTime(post.createTime) }}</span>
               </div>
             </router-link>
             <span class="visibility-badge glass-badge" :title="visibilityLabel(post.visibility)">
-              <svg v-if="post.visibility === 0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-              <svg v-else-if="post.visibility === 1" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
-              <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <svg
+                v-if="post.visibility === 0"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path
+                  d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                />
+              </svg>
+              <svg
+                v-else-if="post.visibility === 1"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="8.5" cy="7" r="4" />
+                <path d="M20 8v6" />
+                <path d="M23 11h-6" />
+              </svg>
+              <svg
+                v-else
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
             </span>
-            <div v-if="userStore.isLoggedIn && post.userId === userStore.userId" class="post-owner-actions">
-              <button class="action-icon-btn" title="编辑" @click="router.push(`/circle/post/edit/${post.id}`)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+            <div
+              v-if="userStore.isLoggedIn && post.userId === userStore.userId"
+              class="post-owner-actions"
+            >
+              <button
+                class="action-icon-btn"
+                title="编辑"
+                @click="router.push(`/circle/post/edit/${post.id}`)"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                </svg>
               </button>
               <button class="action-icon-btn" title="删除" @click="confirmDeletePost">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="3 6 5 6 21 6" />
+                  <path
+                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                  />
+                </svg>
               </button>
             </div>
           </div>
@@ -57,99 +145,248 @@
             <p class="feed-text">{{ post.content }}</p>
 
             <div v-if="post.topicNames && post.topicNames.length" class="topic-tags">
-              <router-link v-for="(tn, idx) in post.topicNames" :key="tn" :to="`/topic/${post.topicIds?.[idx] || ''}`" class="topic-tag-link glass-chip">#{{ tn }}</router-link>
+              <router-link
+                v-for="(tn, idx) in post.topicNames"
+                :key="tn"
+                :to="`/topic/${post.topicIds?.[idx] || ''}`"
+                class="topic-tag-link glass-chip"
+                >#{{ tn }}</router-link
+              >
             </div>
 
             <div v-if="post.location" class="location-display">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
               <span>{{ post.location }}</span>
             </div>
 
-            <div v-if="post.images && post.images.length" class="feed-images" :class="getImageGridClass(post.images.length)">
-              <div v-for="(image, idx) in post.images" :key="idx" class="img-wrap" :class="{ 'is-video': isVideo(image) }" @click="openImagePreview(post.images, Number(idx))">
-                <img v-if="!isVideo(image)" :src="image" alt="" class="feed-image" loading="lazy" />
-                <video v-else :src="image" class="feed-image" muted></video>
+            <div
+              v-if="post.images && post.images.length"
+              class="feed-images"
+              :class="getImageGridClass(post.images.length)"
+            >
+              <div
+                v-for="(image, idx) in post.images"
+                :key="idx"
+                class="img-wrap"
+                :class="{ 'is-video': isVideo(image) }"
+                @click="openImagePreview(post.images, Number(idx))"
+              >
+                <img
+                  v-if="!isVideo(image)"
+                  :src="resolveAssetUrl(image)"
+                  alt=""
+                  class="feed-image"
+                  loading="lazy"
+                />
+                <video v-else :src="resolveAssetUrl(image)" class="feed-image" muted></video>
                 <span v-if="isVideo(image)" class="play-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
                 </span>
               </div>
             </div>
 
             <div v-if="post.videos && post.videos.length" class="feed-videos">
-              <video v-for="(video, idx) in post.videos" :key="'v-'+idx" :src="video" class="feed-video" controls preload="metadata"></video>
+              <video
+                v-for="(video, idx) in post.videos"
+                :key="'v-' + idx"
+                :src="resolveAssetUrl(video)"
+                class="feed-video"
+                controls
+                preload="metadata"
+              ></video>
             </div>
 
-            <div v-if="post.repostPost" class="repost-card glass-inner" @click="router.push(`/circle/${post.repostPost.id}`)">
+            <div
+              v-if="post.repostPost"
+              class="repost-card glass-inner"
+              @click="router.push(`/circle/${post.repostPost.id}`)"
+            >
               <div class="repost-header">
-                <img :src="post.repostPost.userAvatar || '/default-avatar.png'" class="repost-avatar" />
-                <span class="repost-author">{{ post.repostPost.userNickname || post.repostPost.userUsername }}</span>
+                <img
+                  :src="resolveAssetUrl(post.repostPost.userAvatar) || DEFAULT_AVATAR_URL"
+                  class="repost-avatar"
+                />
+                <span class="repost-author">{{
+                  post.repostPost.userNickname || post.repostPost.userUsername
+                }}</span>
               </div>
               <p v-if="post.repostContent" class="repost-user-content">{{ post.repostContent }}</p>
               <p class="repost-text">{{ post.repostPost.content }}</p>
-              <div v-if="post.repostPost.images && post.repostPost.images.length" class="repost-images mini">
-                <img v-for="(img, idx) in post.repostPost.images.slice(0, 3)" :key="idx" :src="img" class="repost-img" />
-                <span v-if="post.repostPost.images.length > 3" class="repost-more">+{{ post.repostPost.images.length - 3 }}</span>
+              <div
+                v-if="post.repostPost.images && post.repostPost.images.length"
+                class="repost-images mini"
+              >
+                <img
+                  v-for="(img, idx) in post.repostPost.images.slice(0, 3)"
+                  :key="idx"
+                  :src="resolveAssetUrl(img)"
+                  class="repost-img"
+                />
+                <span v-if="post.repostPost.images.length > 3" class="repost-more"
+                  >+{{ post.repostPost.images.length - 3 }}</span
+                >
               </div>
             </div>
             <div v-else-if="post.originalPostHidden" class="repost-hidden-notice">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
               <span>原内容已隐藏</span>
             </div>
           </div>
 
           <div class="feed-stats">
             <span class="post-date">{{ formatDate(post.createTime) }}</span>
-            <span v-if="post.likeCount || post.commentCount || post.repostCount || post.viewCount" class="post-stats-text">
-              {{ formatNumber(post.likeCount) }} 赞 · {{ formatNumber(post.commentCount) }} 评论 · {{ formatNumber(post.repostCount) }} 转发 · {{ formatNumber(post.viewCount || 0) }} 浏览
+            <span
+              v-if="post.likeCount || post.commentCount || post.repostCount || post.viewCount"
+              class="post-stats-text"
+            >
+              {{ formatNumber(post.likeCount) }} 赞 · {{ formatNumber(post.commentCount) }} 评论 ·
+              {{ formatNumber(post.repostCount) }} 转发 ·
+              {{ formatNumber(post.viewCount || 0) }} 浏览
             </span>
           </div>
 
           <div class="feed-actions">
             <button class="action-btn" :class="{ liked: isLiked }" @click="toggleLike">
-              <svg class="like-icon" :class="{ 'animate-pop': likeAnim }" width="20" height="20" viewBox="0 0 24 24" :fill="isLiked ? 'var(--accent)' : 'none'" stroke="currentColor" stroke-width="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              <svg
+                class="like-icon"
+                :class="{ 'animate-pop': likeAnim }"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                :fill="isLiked ? 'var(--accent)' : 'none'"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                />
               </svg>
               <span>{{ formatNumber(post.likeCount) }}</span>
             </button>
             <button class="action-btn active-comment">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
               <span>{{ formatNumber(post.commentCount) }}</span>
             </button>
             <button class="action-btn" @click="openRepostModal">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="17 1 21 5 17 9" />
+                <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                <polyline points="7 23 3 19 7 15" />
+                <path d="M21 13v2a4 4 0 0 1-4 4H3" />
               </svg>
               <span>{{ formatNumber(post.repostCount) }}</span>
             </button>
             <button class="action-btn" @click="openReport" title="举报">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                <line x1="4" y1="22" x2="4" y2="15" />
+              </svg>
             </button>
           </div>
         </div>
 
         <div class="comment-section glass">
           <h3 class="section-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:6px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              style="display: inline; vertical-align: middle; margin-right: 6px"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
             评论 ({{ post.commentCount ?? comments.length }})
           </h3>
 
           <div v-if="userStore.isLoggedIn" class="comment-form">
-            <img :src="userStore.avatar || '/default-avatar.png'" class="comment-form-avatar" />
+            <img
+              :src="resolveAssetUrl(userStore.avatar) || DEFAULT_AVATAR_URL"
+              class="comment-form-avatar"
+            />
             <div class="comment-form-body">
               <transition name="slide">
                 <div v-if="replyTarget" class="reply-indicator glass-chip">
                   <span>回复 @{{ replyTarget.replyToUsername }}</span>
                   <button class="cancel-reply" @click="cancelReply">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
                   </button>
                 </div>
               </transition>
-              <textarea v-model="commentContent" :placeholder="replyTarget ? `回复 @${replyTarget.replyToUsername}...` : '写下你的评论...'" rows="2" @input="autoResizeComment" maxlength="500" class="comment-textarea"></textarea>
+              <textarea
+                v-model="commentContent"
+                :placeholder="
+                  replyTarget ? `回复 @${replyTarget.replyToUsername}...` : '写下你的评论...'
+                "
+                rows="2"
+                @input="autoResizeComment"
+                maxlength="500"
+                class="comment-textarea"
+              ></textarea>
               <div class="comment-form-bottom">
                 <span class="char-count">{{ commentContent.length }}/500</span>
-                <button class="btn btn-primary btn-sm" @click="submitComment" :disabled="!commentContent.trim() || submitting">
+                <button
+                  class="btn btn-primary btn-sm"
+                  @click="submitComment"
+                  :disabled="!commentContent.trim() || submitting"
+                >
                   {{ submitting ? '发表中...' : replyTarget ? '回复' : '发表' }}
                 </button>
               </div>
@@ -170,42 +407,97 @@
           </div>
 
           <div v-else-if="comments.length === 0" class="no-comments">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
             <p>暂无评论，快来抢沙发吧~</p>
           </div>
 
           <div v-else class="comment-list">
             <div v-for="comment in comments" :key="comment.id" class="comment-item glass-inner">
-              <img :src="comment.user?.avatar || '/default-avatar.png'" :alt="comment.user?.username" class="comment-avatar" />
+              <img
+                :src="resolveAssetUrl(comment.user?.avatar) || DEFAULT_AVATAR_URL"
+                :alt="comment.user?.username"
+                class="comment-avatar"
+              />
               <div class="comment-body">
                 <div class="comment-header">
-                  <router-link :to="`/user/${comment.user?.id}`" class="comment-author">{{ comment.user?.nickname || comment.user?.username }}</router-link>
+                  <router-link :to="`/user/${comment.user?.id}`" class="comment-author">{{
+                    comment.user?.nickname || comment.user?.username
+                  }}</router-link>
                   <span class="comment-time">{{ formatRelativeTime(comment.createTime) }}</span>
                 </div>
                 <div class="comment-content">{{ comment.content }}</div>
                 <div class="comment-actions">
                   <button class="comment-action-btn" @click="startReply(comment)">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      style="display: inline; vertical-align: middle; margin-right: 4px"
+                    >
+                      <polyline points="9 17 4 12 9 7" />
+                      <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+                    </svg>
                     回复
                   </button>
-                  <button v-if="comment.user?.id === userStore.userId" class="comment-action-btn danger" @click="deleteComment(comment.id)">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  <button
+                    v-if="comment.user?.id === userStore.userId"
+                    class="comment-action-btn danger"
+                    @click="deleteComment(comment.id)"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      style="display: inline; vertical-align: middle; margin-right: 4px"
+                    >
+                      <polyline points="3 6 5 6 21 6" />
+                      <path
+                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                      />
+                    </svg>
                     删除
                   </button>
                 </div>
 
                 <div v-if="comment.replies && comment.replies.length" class="nested-replies">
                   <div v-for="reply in comment.replies" :key="reply.id" class="reply-item">
-                    <img :src="reply.user?.avatar || '/default-avatar.png'" :alt="reply.user?.username" class="reply-avatar" />
+                    <img
+                      :src="resolveAssetUrl(reply.user?.avatar) || DEFAULT_AVATAR_URL"
+                      :alt="reply.user?.username"
+                      class="reply-avatar"
+                    />
                     <div class="reply-body">
                       <div class="comment-header">
-                        <router-link :to="`/user/${reply.user?.id}`" class="comment-author">{{ reply.user?.nickname || reply.user?.username }}</router-link>
+                        <router-link :to="`/user/${reply.user?.id}`" class="comment-author">{{
+                          reply.user?.nickname || reply.user?.username
+                        }}</router-link>
                         <span class="comment-time">{{ formatRelativeTime(reply.createTime) }}</span>
                       </div>
                       <div class="comment-content">{{ reply.content }}</div>
                       <div class="comment-actions">
                         <button class="comment-action-btn" @click="startReply(reply)">回复</button>
-                        <button v-if="reply.user?.id === userStore.userId" class="comment-action-btn danger" @click="deleteComment(reply.id)">删除</button>
+                        <button
+                          v-if="reply.user?.id === userStore.userId"
+                          class="comment-action-btn danger"
+                          @click="deleteComment(reply.id)"
+                        >
+                          删除
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -224,19 +516,42 @@
             <div class="modal-header">
               <h3>转发动态</h3>
               <button class="close-btn" @click="closeRepostModal">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
             <div class="modal-body">
               <div v-if="post" class="repost-original-card glass-inner">
                 <div class="repost-original-header">
-                  <img :src="post.userAvatar || '/default-avatar.png'" class="repost-original-avatar" />
-                  <span class="repost-original-name">{{ post.userNickname || post.userUsername }}</span>
+                  <img
+                    :src="resolveAssetUrl(post.userAvatar) || DEFAULT_AVATAR_URL"
+                    class="repost-original-avatar"
+                  />
+                  <span class="repost-original-name">{{
+                    post.userNickname || post.userUsername
+                  }}</span>
                 </div>
                 <p class="repost-original-text">{{ post.content }}</p>
               </div>
-              <textarea v-model="repostContent" class="post-textarea" placeholder="说说你的看法..." rows="4" maxlength="2000"></textarea>
-              <div class="char-count" :class="{ warn: repostContent.length > 1800 }">{{ repostContent.length }}/2000</div>
+              <textarea
+                v-model="repostContent"
+                class="post-textarea"
+                placeholder="说说你的看法..."
+                rows="4"
+                maxlength="2000"
+              ></textarea>
+              <div class="char-count" :class="{ warn: repostContent.length > 1800 }">
+                {{ repostContent.length }}/2000
+              </div>
             </div>
             <div class="modal-footer">
               <button class="btn btn-ghost" @click="closeRepostModal">取消</button>
@@ -249,12 +564,18 @@
       </transition>
     </teleport>
 
-    <ImagePreview :images="previewImages" :initial-index="previewIndex" :show="showPreview" @close="showPreview = false" />
+    <ImagePreview
+      :images="previewImages"
+      :initial-index="previewIndex"
+      :show="showPreview"
+      @close="showPreview = false"
+    />
     <ConfirmDialog />
   </div>
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -293,7 +614,7 @@ const isVideo = (url: string) => {
   if (!url) return false
   const exts = ['.mp4', '.webm', '.mov', '.avi', '.mkv']
   const lower = url.toLowerCase()
-  return exts.some(e => lower.includes(e)) || lower.includes('video')
+  return exts.some((e) => lower.includes(e)) || lower.includes('video')
 }
 
 const visibilityLabel = (v: number) => {
@@ -368,7 +689,7 @@ const toggleLike = async () => {
   isLiked.value = !isLiked.value
   post.value.likeCount += isLiked.value ? 1 : -1
   likeAnim.value = true
-  setTimeout(() => likeAnim.value = false, 400)
+  setTimeout(() => (likeAnim.value = false), 400)
   try {
     await circleApi.toggleLike(route.params.id as string)
   } catch (err: any) {
@@ -448,7 +769,10 @@ const closeRepostModal = () => {
 }
 
 const confirmRepost = async () => {
-  if (!userStore.isLoggedIn) { toast.warning('请先登录'); return }
+  if (!userStore.isLoggedIn) {
+    toast.warning('请先登录')
+    return
+  }
   if (!post.value) return
   reposting.value = true
   try {
@@ -481,12 +805,15 @@ onMounted(() => {
   fetchComments()
 })
 
-watch(() => route.params.id, () => {
-  if (route.params.id) {
-    fetchPost()
-    fetchComments()
+watch(
+  () => route.params.id,
+  () => {
+    if (route.params.id) {
+      fetchPost()
+      fetchComments()
+    }
   }
-})
+)
 </script>
 
 <style scoped>
@@ -639,11 +966,22 @@ watch(() => route.params.id, () => {
   overflow: hidden;
 }
 
-.grid-1 { grid-template-columns: 1fr; max-width: 400px; }
-.grid-2 { grid-template-columns: 1fr 1fr; }
-.grid-3 { grid-template-columns: 1fr 1fr 1fr; }
-.grid-4 { grid-template-columns: 1fr 1fr; }
-.grid-multi { grid-template-columns: repeat(3, 1fr); }
+.grid-1 {
+  grid-template-columns: 1fr;
+  max-width: 400px;
+}
+.grid-2 {
+  grid-template-columns: 1fr 1fr;
+}
+.grid-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.grid-4 {
+  grid-template-columns: 1fr 1fr;
+}
+.grid-multi {
+  grid-template-columns: repeat(3, 1fr);
+}
 
 .img-wrap {
   position: relative;
@@ -787,8 +1125,6 @@ watch(() => route.params.id, () => {
   color: var(--primary);
 }
 
-
-
 .repost-user-content {
   font-size: 0.875rem;
   color: var(--text-primary);
@@ -864,7 +1200,7 @@ watch(() => route.params.id, () => {
   border-color: var(--accent);
 }
 
-.action-btn:hover[title="举报"] {
+.action-btn:hover[title='举报'] {
   color: var(--error);
   border-color: var(--error);
   background: var(--error-light);
@@ -881,11 +1217,21 @@ watch(() => route.params.id, () => {
 }
 
 @keyframes likePop {
-  0% { transform: scale(1); }
-  25% { transform: scale(1.4); }
-  50% { transform: scale(0.85); }
-  75% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.4);
+  }
+  50% {
+    transform: scale(0.85);
+  }
+  75% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .comment-section {
@@ -979,7 +1325,9 @@ watch(() => route.params.id, () => {
 
 .comment-textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
+  box-shadow:
+    0 0 0 3px var(--primary-light),
+    var(--glass-shadow);
   background: var(--glass-hover);
 }
 
@@ -1169,16 +1517,47 @@ watch(() => route.params.id, () => {
   width: 44px;
   height: 44px;
   border-radius: var(--radius-full);
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
-.skeleton-info { flex: 1; }
-.skeleton-name { width: 100px; height: 14px; background: var(--skeleton-base); border-radius: var(--radius-xs); margin-bottom: var(--spacing-sm); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
-.skeleton-time { width: 60px; height: 12px; background: var(--skeleton-base); border-radius: var(--radius-xs); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
-.skeleton-text { height: 14px; background: var(--skeleton-base); border-radius: var(--radius-xs); margin-bottom: var(--spacing-sm); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
-.skeleton-text.short { width: 60%; }
+.skeleton-info {
+  flex: 1;
+}
+.skeleton-name {
+  width: 100px;
+  height: 14px;
+  background: var(--skeleton-base);
+  border-radius: var(--radius-xs);
+  margin-bottom: var(--spacing-sm);
+  animation: shimmer 1.5s infinite;
+  background-size: 200% 100%;
+}
+.skeleton-time {
+  width: 60px;
+  height: 12px;
+  background: var(--skeleton-base);
+  border-radius: var(--radius-xs);
+  animation: shimmer 1.5s infinite;
+  background-size: 200% 100%;
+}
+.skeleton-text {
+  height: 14px;
+  background: var(--skeleton-base);
+  border-radius: var(--radius-xs);
+  margin-bottom: var(--spacing-sm);
+  animation: shimmer 1.5s infinite;
+  background-size: 200% 100%;
+}
+.skeleton-text.short {
+  width: 60%;
+}
 
 .comment-skeleton {
   display: flex;
@@ -1202,9 +1581,26 @@ watch(() => route.params.id, () => {
   background-size: 200% 100%;
 }
 
-.cs-body { flex: 1; }
-.cs-name { width: 80px; height: 12px; background: var(--skeleton-base); border-radius: var(--radius-xs); margin-bottom: var(--spacing-sm); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
-.cs-text { width: 100%; height: 12px; background: var(--skeleton-base); border-radius: var(--radius-xs); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.cs-body {
+  flex: 1;
+}
+.cs-name {
+  width: 80px;
+  height: 12px;
+  background: var(--skeleton-base);
+  border-radius: var(--radius-xs);
+  margin-bottom: var(--spacing-sm);
+  animation: shimmer 1.5s infinite;
+  background-size: 200% 100%;
+}
+.cs-text {
+  width: 100%;
+  height: 12px;
+  background: var(--skeleton-base);
+  border-radius: var(--radius-xs);
+  animation: shimmer 1.5s infinite;
+  background-size: 200% 100%;
+}
 
 .error-state {
   text-align: center;
@@ -1309,7 +1705,9 @@ watch(() => route.params.id, () => {
 
 .post-textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
+  box-shadow:
+    0 0 0 3px var(--primary-light),
+    var(--glass-shadow);
   background: var(--glass-hover);
 }
 

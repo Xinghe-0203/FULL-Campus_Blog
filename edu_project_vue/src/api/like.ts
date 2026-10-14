@@ -23,7 +23,9 @@ export const likeApi = {
   /**
    * 批量检查点赞状态
    */
-  checkLikeStatusBatch(postIds: (number | string)[]): Promise<ApiResponse<Record<string, boolean>>> {
+  checkLikeStatusBatch(
+    postIds: (number | string)[]
+  ): Promise<ApiResponse<Record<string, boolean>>> {
     return api.post('/like/check/batch', postIds)
   },
 

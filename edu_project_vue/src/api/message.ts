@@ -3,7 +3,14 @@
  */
 
 import api from './index'
-import type { ApiResponse, PaginatedResponse, Message, Conversation, SendMessageRequest } from '@/types'
+import type {
+  ApiResponse,
+  PaginatedResponse,
+  Message,
+  Conversation,
+  MessagePresence,
+  SendMessageRequest
+} from '@/types'
 
 export const messageApi = {
   /**
@@ -11,6 +18,10 @@ export const messageApi = {
    */
   getConversations(): Promise<ApiResponse<Conversation[]>> {
     return api.get('/message/conversations')
+  },
+
+  getPresence(userId: number | string): Promise<ApiResponse<MessagePresence>> {
+    return api.get(`/message/presence/${userId}`)
   },
 
   /**

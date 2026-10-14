@@ -6,22 +6,59 @@
       </div>
 
       <div class="tabs glass">
-        <button class="tab-btn" :class="{ active: activeTab === 'pending' }" @click="activeTab = 'pending'">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        <button
+          class="tab-btn"
+          :class="{ active: activeTab === 'pending' }"
+          @click="activeTab = 'pending'"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
           </svg>
           待处理
           <span v-if="pendingCount > 0" class="tab-badge warning">{{ pendingCount }}</span>
         </button>
-        <button class="tab-btn" :class="{ active: activeTab === 'verified' }" @click="activeTab = 'verified'">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+        <button
+          class="tab-btn"
+          :class="{ active: activeTab === 'verified' }"
+          @click="activeTab = 'verified'"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
           已核实
         </button>
-        <button class="tab-btn" :class="{ active: activeTab === 'rejected' }" @click="activeTab = 'rejected'">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+        <button
+          class="tab-btn"
+          :class="{ active: activeTab === 'rejected' }"
+          @click="activeTab = 'rejected'"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
           </svg>
           已驳回
         </button>
@@ -38,8 +75,17 @@
       </div>
 
       <div v-else-if="error" class="error-state glass">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        <svg
+          width="48"
+          height="48"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         <h3>{{ error }}</h3>
         <button class="btn btn-primary" @click="fetchReports">重试</button>
@@ -47,9 +93,19 @@
 
       <div v-else>
         <div v-if="reports.length === 0" class="empty-state glass">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          <svg
+            width="64"
+            height="64"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path
+              d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+            />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
           <h3 class="empty-title">暂无举报数据</h3>
           <p class="empty-text">当前分类下没有举报记录</p>
@@ -60,7 +116,9 @@
             <div class="report-header">
               <div class="report-id">
                 <span class="id-label">#{{ report.id }}</span>
-                <span class="priority-badge" :class="getPriorityClass(report)">{{ getPriorityText(report) }}</span>
+                <span class="priority-badge" :class="getPriorityClass(report)">{{
+                  getPriorityText(report)
+                }}</span>
               </div>
               <span class="status-badge" :class="getStatusClass(report.status)">
                 <span class="status-dot" :class="getStatusDotClass(report.status)"></span>
@@ -93,28 +151,61 @@
 
             <div class="report-actions" v-if="report.status === 0">
               <button class="btn btn-sm btn-success-outline" @click="handleReport(report, 2)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
                 核实
               </button>
               <button class="btn btn-sm btn-danger-outline" @click="handleReport(report, 1)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="15" y1="9" x2="9" y2="15" />
+                  <line x1="9" y1="9" x2="15" y2="15" />
                 </svg>
                 驳回
               </button>
               <button class="btn btn-sm btn-ghost" @click="viewDetail(report)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
                 </svg>
                 详情
               </button>
             </div>
             <div class="report-actions" v-else>
               <button class="btn btn-sm btn-ghost" @click="viewDetail(report)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
                 </svg>
                 查看详情
               </button>
@@ -124,14 +215,40 @@
 
         <div v-if="totalPages > 1" class="pagination-wrapper">
           <div class="pagination glass">
-            <button class="pagination-btn" :disabled="currentPage <= 1" @click="changePage(currentPage - 1)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            <button
+              class="pagination-btn"
+              :disabled="currentPage <= 1"
+              @click="changePage(currentPage - 1)"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
               上一页
             </button>
             <span class="page-info">第 {{ currentPage }} / {{ totalPages }} 页</span>
-            <button class="pagination-btn" :disabled="currentPage >= totalPages" @click="changePage(currentPage + 1)">
+            <button
+              class="pagination-btn"
+              :disabled="currentPage >= totalPages"
+              @click="changePage(currentPage + 1)"
+            >
               下一页
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
             </button>
           </div>
         </div>
@@ -143,8 +260,16 @@
         <div class="dialog-header">
           <h3>举报详情 #{{ detailData?.id }}</h3>
           <button class="dialog-close" @click="detailDialog = false">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
@@ -250,13 +375,15 @@ const fetchReports = async () => {
 
 const getPriorityClass = (report: any) => {
   const reason = (report.reason || '').toLowerCase()
-  if (reason.includes('违法') || reason.includes('暴力') || reason.includes('色情')) return 'priority-high'
+  if (reason.includes('违法') || reason.includes('暴力') || reason.includes('色情'))
+    return 'priority-high'
   return 'priority-normal'
 }
 
 const getPriorityText = (report: any) => {
   const reason = (report.reason || '').toLowerCase()
-  if (reason.includes('违法') || reason.includes('暴力') || reason.includes('色情')) return '高优先级'
+  if (reason.includes('违法') || reason.includes('暴力') || reason.includes('色情'))
+    return '高优先级'
   return '普通'
 }
 
@@ -277,7 +404,10 @@ const handleReport = async (report: any, status: number) => {
   const ok = await confirm(`确定${action}该举报吗？`, `${action}举报`)
   if (!ok) return
   try {
-    await adminApi.handleReport(report.id, { status: status === 2 ? 'approved' : 'rejected', handleResult: '' } as any)
+    await adminApi.handleReport(report.id, {
+      status: status === 2 ? 'approved' : 'rejected',
+      handleResult: ''
+    } as any)
     report.status = status
     toast.success(`已${action}`)
     fetchReports()
@@ -315,9 +445,12 @@ watch(activeTab, () => {
 onMounted(() => {
   fetchReports()
   // 单独获取待处理数量用于 badge 显示
-  adminApi.getPendingReports({ pageNum: 1, pageSize: 1, status: 0 } as any).then(res => {
-    pendingCount.value = res.data?.total || 0
-  }).catch(() => {})
+  adminApi
+    .getPendingReports({ pageNum: 1, pageSize: 1, status: 0 } as any)
+    .then((res) => {
+      pendingCount.value = res.data?.total || 0
+    })
+    .catch(() => {})
 })
 </script>
 
@@ -431,7 +564,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
   pointer-events: none;
 }
 
@@ -509,9 +642,15 @@ onMounted(() => {
   border-radius: var(--radius-full);
 }
 
-.status-dot.pending { background: var(--warning); }
-.status-dot.verified { background: var(--success); }
-.status-dot.rejected { background: var(--error); }
+.status-dot.pending {
+  background: var(--warning);
+}
+.status-dot.verified {
+  background: var(--success);
+}
+.status-dot.rejected {
+  background: var(--error);
+}
 
 .report-body {
   display: flex;
@@ -629,7 +768,7 @@ onMounted(() => {
 .dialog-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   display: flex;
@@ -725,14 +864,25 @@ onMounted(() => {
 .sk-line {
   height: 14px;
   border-radius: 4px;
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
-.sk-line.w-40 { width: 40%; }
-.sk-line.w-60 { width: 60%; }
-.sk-line.w-80 { width: 80%; }
+.sk-line.w-40 {
+  width: 40%;
+}
+.sk-line.w-60 {
+  width: 60%;
+}
+.sk-line.w-80 {
+  width: 80%;
+}
 
 @media (max-width: 768px) {
   .reports-grid {

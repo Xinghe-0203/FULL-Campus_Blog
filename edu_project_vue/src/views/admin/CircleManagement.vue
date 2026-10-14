@@ -5,10 +5,24 @@
         <h2>校友圈管理</h2>
         <div class="search-bar glass">
           <div class="search-input-wrapper">
-            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <svg
+              class="search-icon"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            <input v-model="searchQuery" type="text" placeholder="搜索内容..." @keyup.enter="fetchCirclePosts" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="搜索内容..."
+              @keyup.enter="fetchCirclePosts"
+            />
           </div>
           <button class="btn btn-primary btn-sm" @click="fetchCirclePosts">搜索</button>
         </div>
@@ -18,7 +32,17 @@
         <div class="table-container glass">
           <table class="data-table">
             <thead>
-              <tr><th>ID</th><th>作者</th><th>内容</th><th>类型</th><th>统计</th><th>可见性</th><th>状态</th><th>时间</th><th>操作</th></tr>
+              <tr>
+                <th>ID</th>
+                <th>作者</th>
+                <th>内容</th>
+                <th>类型</th>
+                <th>统计</th>
+                <th>可见性</th>
+                <th>状态</th>
+                <th>时间</th>
+                <th>操作</th>
+              </tr>
             </thead>
             <tbody>
               <tr v-for="i in 5" :key="i">
@@ -38,8 +62,17 @@
       </div>
 
       <div v-else-if="error" class="error-state glass">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        <svg
+          width="48"
+          height="48"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         <h3>{{ error }}</h3>
         <button class="btn btn-primary" @click="fetchCirclePosts">重试</button>
@@ -48,20 +81,42 @@
       <div v-else class="table-container glass">
         <table class="data-table">
           <thead>
-            <tr><th>ID</th><th>作者</th><th>内容</th><th>类型</th><th>统计</th><th>可见性</th><th>状态</th><th>时间</th><th>操作</th></tr>
+            <tr>
+              <th>ID</th>
+              <th>作者</th>
+              <th>内容</th>
+              <th>类型</th>
+              <th>统计</th>
+              <th>可见性</th>
+              <th>状态</th>
+              <th>时间</th>
+              <th>操作</th>
+            </tr>
           </thead>
           <tbody>
             <tr v-if="circlePosts.length === 0">
               <td colspan="9" class="empty-cell">
                 <div class="empty-content">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  <svg
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
                   <span>暂无校友圈数据</span>
                 </div>
               </td>
             </tr>
-            <tr v-for="post in circlePosts" :key="post.id" class="clickable-row" @click="viewDetail(post)">
+            <tr
+              v-for="post in circlePosts"
+              :key="post.id"
+              class="clickable-row"
+              @click="viewDetail(post)"
+            >
               <td class="id-cell">{{ post.id }}</td>
               <td>{{ post.nickname || post.username }}</td>
               <td class="content-cell">{{ truncateContent(post.content) }}</td>
@@ -82,8 +137,14 @@
                 </span>
               </td>
               <td>
-                <span class="status-badge" :class="post.status === 1 ? 'status-active' : 'status-disabled'">
-                  <span class="status-dot" :class="post.status === 1 ? 'active' : 'disabled'"></span>
+                <span
+                  class="status-badge"
+                  :class="post.status === 1 ? 'status-active' : 'status-disabled'"
+                >
+                  <span
+                    class="status-dot"
+                    :class="post.status === 1 ? 'active' : 'disabled'"
+                  ></span>
                   {{ post.status === 1 ? '正常' : '隐藏' }}
                 </span>
               </td>
@@ -94,8 +155,18 @@
                     {{ post.status === 1 ? '隐藏' : '显示' }}
                   </button>
                   <button class="btn btn-xs btn-ghost danger" @click="deletePost(post)">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="3 6 5 6 21 6" />
+                      <path
+                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                      />
                     </svg>
                     删除
                   </button>
@@ -108,14 +179,40 @@
 
       <div v-if="totalPages > 1" class="pagination-wrapper">
         <div class="pagination glass">
-          <button class="pagination-btn" :disabled="currentPage <= 1" @click="changePage(currentPage - 1)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          <button
+            class="pagination-btn"
+            :disabled="currentPage <= 1"
+            @click="changePage(currentPage - 1)"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
             上一页
           </button>
           <span class="page-info">第 {{ currentPage }} / {{ totalPages }} 页</span>
-          <button class="pagination-btn" :disabled="currentPage >= totalPages" @click="changePage(currentPage + 1)">
+          <button
+            class="pagination-btn"
+            :disabled="currentPage >= totalPages"
+            @click="changePage(currentPage + 1)"
+          >
             下一页
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </button>
         </div>
       </div>
@@ -126,8 +223,16 @@
         <div class="dialog-header">
           <h3>校友圈详情 #{{ detailData?.id }}</h3>
           <button class="dialog-close" @click="detailDialog = false">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
@@ -156,21 +261,35 @@
             <div class="detail-row">
               <span class="detail-label">状态</span>
               <span class="detail-value">
-                <span class="status-badge" :class="detailData.status === 1 ? 'status-active' : 'status-disabled'">
-                  <span class="status-dot" :class="detailData.status === 1 ? 'active' : 'disabled'"></span>
+                <span
+                  class="status-badge"
+                  :class="detailData.status === 1 ? 'status-active' : 'status-disabled'"
+                >
+                  <span
+                    class="status-dot"
+                    :class="detailData.status === 1 ? 'active' : 'disabled'"
+                  ></span>
                   {{ detailData.status === 1 ? '正常' : '隐藏' }}
                 </span>
               </span>
             </div>
             <div class="detail-row">
               <span class="detail-label">内容</span>
-              <span class="detail-value content-text">{{ detailData.content || '无文本内容' }}</span>
+              <span class="detail-value content-text">{{
+                detailData.content || '无文本内容'
+              }}</span>
             </div>
             <div class="detail-row" v-if="detailData.images && detailData.images.length">
               <span class="detail-label">图片</span>
               <div class="detail-value">
                 <div class="image-list">
-                  <img v-for="(img, idx) in detailData.images" :key="idx" :src="img" class="detail-image" @click="previewImage = img" />
+                  <img
+                    v-for="(img, idx) in detailData.images"
+                    :key="idx"
+                    :src="resolveAssetUrl(img)"
+                    class="detail-image"
+                    @click="previewImage = img"
+                  />
                 </div>
               </div>
             </div>
@@ -196,13 +315,14 @@
     </div>
 
     <div v-if="previewImage" class="image-preview-overlay" @click="previewImage = null">
-      <img :src="previewImage" class="preview-img" @click.stop />
+      <img :src="resolveAssetUrl(previewImage)" class="preview-img" @click.stop />
     </div>
     <ConfirmDialog />
   </div>
 </template>
 
 <script setup lang="ts">
+import { resolveAssetUrl } from '@/constants'
 import { ref, onMounted } from 'vue'
 import { adminApi } from '../../api/admin'
 import { formatDate } from '../../utils'
@@ -259,7 +379,11 @@ const visibilityText = (visibility: string) => {
 }
 
 const visibilityClass = (visibility: string) => {
-  const map: Record<string, string> = { public: 'visibility-public', followers: 'visibility-followers', private: 'visibility-private' }
+  const map: Record<string, string> = {
+    public: 'visibility-public',
+    followers: 'visibility-followers',
+    private: 'visibility-private'
+  }
   return map[visibility] || 'visibility-public'
 }
 
@@ -299,7 +423,7 @@ const deletePost = async (post: any) => {
   if (!ok) return
   try {
     await adminApi.deleteCirclePost(post.id)
-    circlePosts.value = circlePosts.value.filter(p => p.id !== post.id)
+    circlePosts.value = circlePosts.value.filter((p) => p.id !== post.id)
     toast.success('删除成功')
   } catch (err: any) {
     logger.error('Failed to delete circle post', { error: err.message })
@@ -411,7 +535,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
   pointer-events: none;
   z-index: 1;
 }
@@ -533,8 +657,12 @@ onMounted(() => {
   border-radius: var(--radius-full);
 }
 
-.status-dot.active { background: var(--success); }
-.status-dot.disabled { background: var(--error); }
+.status-dot.active {
+  background: var(--success);
+}
+.status-dot.disabled {
+  background: var(--error);
+}
 
 .visibility-public {
   background: var(--success-light);
@@ -619,21 +747,36 @@ onMounted(() => {
 .sk-line {
   height: 14px;
   border-radius: 4px;
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
-.sk-line.w-30 { width: 30%; }
-.sk-line.w-40 { width: 40%; }
-.sk-line.w-50 { width: 50%; }
-.sk-line.w-60 { width: 60%; }
-.sk-line.w-80 { width: 80%; }
+.sk-line.w-30 {
+  width: 30%;
+}
+.sk-line.w-40 {
+  width: 40%;
+}
+.sk-line.w-50 {
+  width: 50%;
+}
+.sk-line.w-60 {
+  width: 60%;
+}
+.sk-line.w-80 {
+  width: 80%;
+}
 
 .dialog-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   display: flex;
@@ -765,7 +908,7 @@ onMounted(() => {
 .image-preview-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
@@ -163,7 +164,14 @@ const openImagePreview = (post: Post): void => {
   <div class="post-list-container">
     <Transition name="fade" mode="out-in">
       <!-- Loading State -->
-      <div v-if="loading" key="loading" class="skeleton-list" role="status" aria-busy="true" aria-label="加载中">
+      <div
+        v-if="loading"
+        key="loading"
+        class="skeleton-list"
+        role="status"
+        aria-busy="true"
+        aria-label="加载中"
+      >
         <div v-for="i in 3" :key="i" class="skeleton-card">
           <div class="skeleton-card-header">
             <div class="skeleton skeleton-avatar"></div>
@@ -182,10 +190,17 @@ const openImagePreview = (post: Post): void => {
 
       <!-- Error State -->
       <div v-else-if="error" key="error" class="error-state" role="alert">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        <svg
+          width="64"
+          height="64"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         <h3>加载失败</h3>
         <p>{{ errorMessage }}</p>
@@ -194,11 +209,18 @@ const openImagePreview = (post: Post): void => {
 
       <!-- Empty State -->
       <div v-else-if="posts.length === 0" key="empty" class="empty-state">
-        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="12" y1="18" x2="12" y2="12"/>
-          <line x1="9" y1="15" x2="15" y2="15"/>
+        <svg
+          width="80"
+          height="80"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.2"
+        >
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+          <line x1="12" y1="18" x2="12" y2="12" />
+          <line x1="9" y1="15" x2="15" y2="15" />
         </svg>
         <h3 class="empty-title">还没有文章</h3>
         <p class="empty-desc">成为第一个分享知识的人吧</p>
@@ -216,8 +238,17 @@ const openImagePreview = (post: Post): void => {
           >
             <div class="post-card-inner">
               <div class="post-author-row">
-                <a href="#" class="post-author" @click.prevent="post.userId && goToUser(post.userId)">
-                  <img :src="post.avatar || '/default-avatar.png'" :alt="post.nickname || post.username || '用户头像'" class="author-avatar" loading="lazy" />
+                <a
+                  href="#"
+                  class="post-author"
+                  @click.prevent="post.userId && goToUser(post.userId)"
+                >
+                  <img
+                    :src="resolveAssetUrl(post.avatar) || DEFAULT_AVATAR_URL"
+                    :alt="post.nickname || post.username || '用户头像'"
+                    class="author-avatar"
+                    loading="lazy"
+                  />
                   <span class="author-name">{{ post.nickname || post.username }}</span>
                 </a>
                 <span class="post-time">{{ formatRelativeTime(post.createTime) }}</span>
@@ -235,11 +266,7 @@ const openImagePreview = (post: Post): void => {
               </h3>
               <p class="post-excerpt" v-if="post.summary">{{ post.summary }}</p>
               <div class="post-tags" v-if="post.tags?.length">
-                <span
-                  v-for="tag in post.tags.slice(0, 3)"
-                  :key="tag.id"
-                  class="tag"
-                >
+                <span v-for="tag in post.tags.slice(0, 3)" :key="tag.id" class="tag">
                   {{ tag.name }}
                 </span>
               </div>
@@ -251,14 +278,30 @@ const openImagePreview = (post: Post): void => {
                   :disabled="!userStore.isLoggedIn"
                   :aria-label="'点赞，当前 ' + (post.likeCount || 0) + ' 人已赞'"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" :fill="likedPosts?.has(post.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    :fill="likedPosts?.has(post.id) ? 'currentColor' : 'none'"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                    />
                   </svg>
                   <span>{{ post.likeCount || 0 }}</span>
                 </button>
                 <button class="action-btn comment-btn" @click="goToPost(post)">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
                   <span>{{ post.commentCount || 0 }}</span>
                 </button>
@@ -269,18 +312,32 @@ const openImagePreview = (post: Post): void => {
                   :disabled="!userStore.isLoggedIn"
                   :aria-label="'收藏，当前 ' + (post.collectCount || 0) + ' 人已收藏'"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" :fill="collectedPosts?.has(post.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    :fill="collectedPosts?.has(post.id) ? 'currentColor' : 'none'"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                   </svg>
                   <span>{{ post.collectCount || 0 }}</span>
                 </button>
                 <button class="action-btn share-btn" @click="sharePost(post)" aria-label="分享文章">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="18" cy="5" r="3"/>
-                    <circle cx="6" cy="12" r="3"/>
-                    <circle cx="18" cy="19" r="3"/>
-                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                   </svg>
                   <span>{{ post.shareCount || 0 }}</span>
                 </button>
@@ -366,17 +423,23 @@ const openImagePreview = (post: Post): void => {
 }
 
 .skeleton {
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     var(--skeleton-base) 0%,
     var(--skeleton-highlight) 50%,
-    var(--skeleton-base) 100%);
+    var(--skeleton-base) 100%
+  );
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s ease-in-out infinite;
 }
 
 @keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .error-state {
@@ -468,7 +531,9 @@ const openImagePreview = (post: Post): void => {
 
 .post-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg), 0 0 0 1px var(--primary-light);
+  box-shadow:
+    var(--shadow-lg),
+    0 0 0 1px var(--primary-light);
   background: var(--glass-hover);
 }
 
@@ -657,17 +722,33 @@ const openImagePreview = (post: Post): void => {
 }
 
 @keyframes heart-pop {
-  0% { transform: scale(1); }
-  30% { transform: scale(1.35); }
-  60% { transform: scale(0.9); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.35);
+  }
+  60% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes collect-pop {
-  0% { transform: scale(1) rotate(0deg); }
-  30% { transform: scale(1.3) rotate(-5deg); }
-  60% { transform: scale(0.9) rotate(3deg); }
-  100% { transform: scale(1) rotate(0deg); }
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  30% {
+    transform: scale(1.3) rotate(-5deg);
+  }
+  60% {
+    transform: scale(0.9) rotate(3deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
 }
 
 .stagger-enter-active {

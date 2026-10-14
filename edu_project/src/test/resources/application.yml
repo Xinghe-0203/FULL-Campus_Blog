@@ -36,6 +36,11 @@ spring:
     init:
       mode: always
 
+# Controller tests call the servlet mappings directly; root/API URL adaptation is covered separately.
+api:
+  root-prefix:
+    enabled: false
+
 # ==================== JWT 测试配置 ====================
 jwt:
   secret: this_is_a_very_long_secret_key_for_testing_at_least_32_chars_long

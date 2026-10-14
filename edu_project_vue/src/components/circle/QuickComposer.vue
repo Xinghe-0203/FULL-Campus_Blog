@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref, reactive, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { circleApi } from '../../api/circle'
 import { mediaApi } from '../../api/media'
@@ -42,23 +43,26 @@ const newTopic = reactive({ name: '', description: '' })
 const filteredTopics = computed(() => {
   if (!topicSearch.value) return allTopics.value
   const q = topicSearch.value.toLowerCase()
-  return allTopics.value.filter(t => t.name.toLowerCase().includes(q))
+  return allTopics.value.filter((t) => t.name.toLowerCase().includes(q))
 })
 
 const loadTopics = () => {
   if (allTopics.value.length > 0) return
   topicsLoading.value = true
-  topicApi.getTopicList({ pageNum: 1, pageSize: 100 })
-    .then(res => {
+  topicApi
+    .getTopicList({ pageNum: 1, pageSize: 100 })
+    .then((res) => {
       const data = res.data as any
-      allTopics.value = Array.isArray(data) ? data : (data?.records || [])
+      allTopics.value = Array.isArray(data) ? data : data?.records || []
     })
     .catch(() => {})
-    .finally(() => { topicsLoading.value = false })
+    .finally(() => {
+      topicsLoading.value = false
+    })
 }
 
 const selectTopic = (topic: any) => {
-  if (!selectedTopics.value.find(t => t.id === topic.id)) {
+  if (!selectedTopics.value.find((t) => t.id === topic.id)) {
     selectedTopics.value.push(topic)
   }
   topicSearch.value = ''
@@ -66,11 +70,13 @@ const selectTopic = (topic: any) => {
 }
 
 const removeTopic = (topic: any) => {
-  selectedTopics.value = selectedTopics.value.filter(t => t.id !== topic.id)
+  selectedTopics.value = selectedTopics.value.filter((t) => t.id !== topic.id)
 }
 
 const hideTopicDropdown = () => {
-  setTimeout(() => { showTopicDropdown.value = false }, 200)
+  setTimeout(() => {
+    showTopicDropdown.value = false
+  }, 200)
 }
 
 const openCreateTopicModal = () => {
@@ -89,9 +95,14 @@ const confirmCreateTopic = async () => {
       description: newTopic.description.trim() || undefined
     })
     const topicId = res.data
-    const created = { id: topicId, name: newTopic.name.trim(), description: newTopic.description.trim(), postCount: 0 }
+    const created = {
+      id: topicId,
+      name: newTopic.name.trim(),
+      description: newTopic.description.trim(),
+      postCount: 0
+    }
     allTopics.value.unshift(created)
-    if (!selectedTopics.value.find(t => t.id === created.id)) {
+    if (!selectedTopics.value.find((t) => t.id === created.id)) {
       selectedTopics.value.push(created)
     }
     topicSearch.value = ''
@@ -196,7 +207,7 @@ const handleSubmit = async () => {
       images: images.value.length > 0 ? images.value : undefined,
       videos: videos.value.length > 0 ? videos.value : undefined,
       visibility: 0,
-      topicIds: selectedTopics.value.length > 0 ? selectedTopics.value.map(t => t.id) : undefined,
+      topicIds: selectedTopics.value.length > 0 ? selectedTopics.value.map((t) => t.id) : undefined,
       location: location.value.trim() || undefined
     })
     content.value = ''
@@ -254,9 +265,16 @@ watch(showCreateTopicModal, (val) => {
 </script>
 
 <template>
-  <div class="quick-composer" :class="{ 'is-expanded': isFocused || content || images.length > 0 || videos.length > 0 }">
+  <div
+    class="quick-composer"
+    :class="{ 'is-expanded': isFocused || content || images.length > 0 || videos.length > 0 }"
+  >
     <div class="composer-row">
-      <img :src="userStore.avatar || '/default-avatar.png'" class="composer-avatar" alt="" />
+      <img
+        :src="resolveAssetUrl(userStore.avatar) || DEFAULT_AVATAR_URL"
+        class="composer-avatar"
+        alt=""
+      />
       <div class="composer-input-wrap">
         <textarea
           ref="textareaRef"
@@ -267,7 +285,14 @@ watch(showCreateTopicModal, (val) => {
           maxlength="2000"
           @input="handleInput"
           @focus="isFocused = true"
-          @blur="!content && images.length === 0 && videos.length === 0 && selectedTopics.length === 0 && !location && (isFocused = false)"
+          @blur="
+            !content &&
+            images.length === 0 &&
+            videos.length === 0 &&
+            selectedTopics.length === 0 &&
+            !location &&
+            (isFocused = false)
+          "
           @keydown="handleKeydown"
         ></textarea>
       </div>
@@ -278,7 +303,17 @@ watch(showCreateTopicModal, (val) => {
       <span v-for="topic in selectedTopics" :key="topic.id" class="composer-topic-badge">
         #{{ topic.name }}
         <button class="composer-topic-remove" @click="removeTopic(topic)">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </span>
     </div>
@@ -286,7 +321,17 @@ watch(showCreateTopicModal, (val) => {
     <!-- Topic Search Input (expanded only) -->
     <div v-if="isFocused" class="composer-topic-wrap">
       <div class="composer-topic-input">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
         <input
           v-model="topicSearch"
           placeholder="添加话题..."
@@ -313,7 +358,17 @@ watch(showCreateTopicModal, (val) => {
               <div class="qc-dropdown-divider"></div>
             </div>
             <div class="qc-topic-option qc-topic-create" @mousedown.prevent="openCreateTopicModal">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
               <span>创建话题 "{{ topicSearch || '新话题' }}"</span>
             </div>
           </template>
@@ -324,14 +379,38 @@ watch(showCreateTopicModal, (val) => {
     <!-- Location (expanded only) -->
     <div v-if="isFocused" class="composer-location">
       <button class="composer-loc-btn" @click="showLocationInput = !showLocationInput">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
         {{ location || '添加位置' }}
       </button>
       <transition name="qc-drop">
         <div v-if="showLocationInput" class="composer-loc-input">
           <input v-model="location" placeholder="输入位置信息..." maxlength="100" />
-          <button v-if="location" class="composer-loc-clear" @click="location = ''; showLocationInput = false">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <button
+            v-if="location"
+            class="composer-loc-clear"
+            @click="((location = ''), (showLocationInput = false))"
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
       </transition>
@@ -340,9 +419,19 @@ watch(showCreateTopicModal, (val) => {
     <!-- Image Preview Strip -->
     <div v-if="images.length > 0" class="composer-images">
       <div v-for="(img, idx) in images" :key="idx" class="composer-image-item">
-        <img :src="img" class="composer-image-thumb" alt="" />
+        <img :src="resolveAssetUrl(img)" class="composer-image-thumb" alt="" />
         <button class="composer-image-remove" @click="removeImage(idx)" aria-label="移除图片">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
     </div>
@@ -350,12 +439,24 @@ watch(showCreateTopicModal, (val) => {
     <!-- Video Preview Strip -->
     <div v-if="videos.length > 0" class="composer-videos">
       <div v-for="(vid, idx) in videos" :key="idx" class="composer-video-item">
-        <video :src="vid" class="composer-video-thumb" preload="metadata"></video>
+        <video :src="resolveAssetUrl(vid)" class="composer-video-thumb" preload="metadata"></video>
         <div class="composer-video-play-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
         </div>
         <button class="composer-image-remove" @click="removeVideo(idx)" aria-label="移除视频">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
     </div>
@@ -371,29 +472,100 @@ watch(showCreateTopicModal, (val) => {
     <!-- Action Bar -->
     <div class="composer-actions">
       <div class="composer-tools">
-        <button class="tool-btn" @click="imageInput?.click()" :disabled="uploading || images.length >= 9" title="图片">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <button
+          class="tool-btn"
+          @click="imageInput?.click()"
+          :disabled="uploading || images.length >= 9"
+          title="图片"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
         </button>
-        <button class="tool-btn" @click="videoInput?.click()" :disabled="uploading || videos.length >= 1" title="视频">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        <button
+          class="tool-btn"
+          @click="videoInput?.click()"
+          :disabled="uploading || videos.length >= 1"
+          title="视频"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <polygon points="23 7 16 12 23 17 23 7" />
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+          </svg>
         </button>
-        <button class="tool-btn" @click="isFocused = true; $nextTick(() => { showTopicDropdown = true })" title="话题">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+        <button
+          class="tool-btn"
+          @click="((isFocused = true), $nextTick(() => (showTopicDropdown = true)))"
+          title="话题"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <line x1="4" y1="9" x2="20" y2="9" />
+            <line x1="4" y1="15" x2="20" y2="15" />
+            <line x1="10" y1="3" x2="8" y2="21" />
+            <line x1="16" y1="3" x2="14" y2="21" />
+          </svg>
         </button>
-        <button class="tool-btn" @click="isFocused = true; showLocationInput = true" title="位置">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <button
+          class="tool-btn"
+          @click="((isFocused = true), (showLocationInput = true))"
+          title="位置"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
         </button>
       </div>
       <div class="composer-submit">
         <span v-if="uploading" class="upload-hint">
-          <span class="spinner-small"></span> 上传中...{{ uploadPercent > 0 ? ` ${uploadPercent}%` : '' }}
+          <span class="spinner-small"></span> 上传中...{{
+            uploadPercent > 0 ? ` ${uploadPercent}%` : ''
+          }}
         </span>
-        <span v-else-if="content.length > 0" class="char-hint" :class="{ warn: content.length > 1800 }">
+        <span
+          v-else-if="content.length > 0"
+          class="char-hint"
+          :class="{ warn: content.length > 1800 }"
+        >
           {{ content.length }}/2000
         </span>
         <button
           class="submit-btn"
-          :disabled="(!content.trim() && images.length === 0 && videos.length === 0) || publishing || uploading"
+          :disabled="
+            (!content.trim() && images.length === 0 && videos.length === 0) ||
+            publishing ||
+            uploading
+          "
           @click="handleSubmit"
         >
           {{ publishing ? '发送中...' : '发帖' }}
@@ -421,23 +593,48 @@ watch(showCreateTopicModal, (val) => {
   <!-- Create Topic Modal -->
   <teleport to="body">
     <transition name="qc-modal-fade">
-      <div v-if="showCreateTopicModal" class="qc-modal-overlay" @click.self="showCreateTopicModal = false">
+      <div
+        v-if="showCreateTopicModal"
+        class="qc-modal-overlay"
+        @click.self="showCreateTopicModal = false"
+      >
         <div class="qc-modal">
           <div class="qc-modal-header">
             <h3>创建新话题</h3>
             <button class="qc-modal-close" @click="showCreateTopicModal = false">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
             </button>
           </div>
           <div class="qc-modal-body">
             <div class="qc-field">
               <label class="qc-label">话题名称</label>
-              <input v-model="newTopic.name" class="qc-input" placeholder="请输入话题名称" maxlength="20" />
+              <input
+                v-model="newTopic.name"
+                class="qc-input"
+                placeholder="请输入话题名称"
+                maxlength="20"
+              />
               <div class="qc-field-char">{{ newTopic.name.length }}/20</div>
             </div>
             <div class="qc-field">
               <label class="qc-label">话题描述（可选）</label>
-              <textarea v-model="newTopic.description" class="qc-textarea" placeholder="简单描述这个话题..." rows="3" maxlength="100"></textarea>
+              <textarea
+                v-model="newTopic.description"
+                class="qc-textarea"
+                placeholder="简单描述这个话题..."
+                rows="3"
+                maxlength="100"
+              ></textarea>
               <div class="qc-field-char">{{ newTopic.description.length }}/100</div>
             </div>
           </div>
@@ -923,7 +1120,9 @@ watch(showCreateTopicModal, (val) => {
 }
 
 @keyframes qc-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .char-hint {

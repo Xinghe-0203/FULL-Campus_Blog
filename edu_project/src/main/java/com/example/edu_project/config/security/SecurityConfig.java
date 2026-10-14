@@ -1,5 +1,6 @@
 package com.example.edu_project.config.security;
 
+import com.example.edu_project.config.web.ApiPrefixFilter;
 import com.example.edu_project.utils.LogUtils;
 import com.example.edu_project.utils.SecurityUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -146,6 +147,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/error", "/error/**").permitAll()
+                .requestMatchers(request -> HttpMethod.GET.matches(request.getMethod())
+                        && !ApiPrefixFilter.isApiRequest(request)).permitAll()
+                .requestMatchers("/app", "/app/**").permitAll()
                 .requestMatchers("/user/register", "/user/login", "/user/refresh", "/auth/register/send-code", "/auth/register/verify", "/auth/password/send-code", "/auth/password/reset-password").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/doc.html", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()

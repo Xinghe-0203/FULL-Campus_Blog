@@ -13,7 +13,12 @@
         <div class="brand-icon">
           <svg width="32" height="32" viewBox="0 0 56 56" fill="none">
             <rect width="56" height="56" rx="16" fill="url(#logo-grad)" />
-            <path d="M16 20h24M16 28h18M16 36h12" stroke="white" stroke-width="2.5" stroke-linecap="round" />
+            <path
+              d="M16 20h24M16 28h18M16 36h12"
+              stroke="white"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            />
             <circle cx="40" cy="36" r="4" fill="white" opacity="0.9" />
             <defs>
               <linearGradient id="logo-grad" x1="0" y1="0" x2="56" y2="56">
@@ -72,13 +77,35 @@
               :aria-label="showPassword ? '隐藏密码' : '显示密码'"
               tabindex="-1"
             >
-              <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
+              <svg
+                v-if="!showPassword"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
               </svg>
-              <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                <line x1="1" y1="1" x2="23" y2="23"/>
+              <svg
+                v-else
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                />
+                <line x1="1" y1="1" x2="23" y2="23" />
               </svg>
             </button>
           </div>
@@ -88,7 +115,16 @@
           <label class="check-label">
             <input type="checkbox" v-model="form.remember" class="check-input" />
             <span class="check-box">
-              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 12 12"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <polyline points="2 6 5 9 10 3" />
               </svg>
             </span>
@@ -274,9 +310,15 @@ const handleLogin = async () => {
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.chrome-dot--red    { background: #FF5F57; }
-.chrome-dot--yellow { background: #FEBC2E; }
-.chrome-dot--green  { background: #28C840; }
+.chrome-dot--red {
+  background: #ff5f57;
+}
+.chrome-dot--yellow {
+  background: #febc2e;
+}
+.chrome-dot--green {
+  background: #28c840;
+}
 
 /* ===== Brand ===== */
 .auth-brand {
@@ -548,7 +590,9 @@ const handleLogin = async () => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ===== Divider ===== */
@@ -600,7 +644,9 @@ const handleLogin = async () => {
 /* ===== Transition ===== */
 .fade-swap-enter-active,
 .fade-swap-leave-active {
-  transition: opacity 0.12s ease, transform 0.12s ease;
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
 }
 
 .fade-swap-enter-from {

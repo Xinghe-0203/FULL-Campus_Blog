@@ -13,6 +13,7 @@ import com.example.edu_project.mapper.BlogNotificationMapper;
 import com.example.edu_project.mapper.MessageMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.social.MessageService;
+import com.example.edu_project.service.social.MessageRealtimeService;
 import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.TimeUtils;
 import com.example.edu_project.utils.UserConverter;
@@ -51,6 +52,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Autowired
     private CacheManager cacheManager;
+
+    @Autowired
+    private MessageRealtimeService messageRealtimeService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -130,7 +134,21 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (receiver != null) {
             vo.setReceiver(UserConverter.toUserVO(receiver));
         }
+        publishMessageAfterCommit(vo);
         return vo;
+    }
+
+    private void publishMessageAfterCommit(MessageVO message) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    messageRealtimeService.publishMessage(message);
+                }
+            });
+        } else {
+            messageRealtimeService.publishMessage(message);
+        }
     }
 
     @Override

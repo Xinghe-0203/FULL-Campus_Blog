@@ -68,9 +68,9 @@ public class StatisticsServiceImpl implements StatisticsService {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Override
-    @Cacheable(value = CaffeineCacheConfig.STATS_CACHE, key = "'platformStats'", unless = "#result == null")
+    @Cacheable(value = CaffeineCacheConfig.STATS_CACHE, key = "'platformStats:' + #p0", unless = "#result == null")
     @Transactional(readOnly = true)
-    public StatisticsVO getPlatformStatistics() {
+    public StatisticsVO getPlatformStatistics(int trendDays) {
         StatisticsVO vo = new StatisticsVO();
         StatisticsVO.UserStats userStats = getUserStats();
         StatisticsVO.PostStats postStats = getPostStats();
@@ -84,8 +84,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         vo.setCircleStats(circleStats);
         vo.setReportStats(reportStats);
         vo.setTopicStats(topicStats);
-        vo.setUserGrowthTrend(getUserGrowthTrend());
-        vo.setPostGrowthTrend(getPostGrowthTrend());
+        vo.setUserGrowthTrend(getUserGrowthTrend(trendDays));
+        vo.setPostGrowthTrend(getPostGrowthTrend(trendDays));
         vo.setStatsTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
         // Set flat fields for frontend compatibility
@@ -165,17 +165,8 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     private Long getActiveUsersThisWeek() {
         LocalDateTime weekStart = LocalDateTime.now().minusDays(7);
-        Long postAuthors = blogPostMapper.countDistinctAuthorsSince(weekStart);
-        Long commentAuthors = blogCommentMapper.countDistinctAuthorsSince(weekStart);
-        Long circleAuthors = circlePostMapper.countDistinctAuthorsSince(weekStart);
-        long postCount = postAuthors != null ? postAuthors : 0;
-        long commentCount = commentAuthors != null ? commentAuthors : 0;
-        long circleCount = circleAuthors != null ? circleAuthors : 0;
-        if (postCount == 0 && commentCount == 0) return circleCount;
-        if (postCount == 0 && circleCount == 0) return commentCount;
-        if (commentCount == 0 && circleCount == 0) return postCount;
-        double avgOverlap = (double)(Math.min(postCount, commentCount) + Math.min(postCount, circleCount) + Math.min(commentCount, circleCount)) / 3.0;
-        return Math.round(postCount + commentCount + circleCount - avgOverlap);
+        Long activeUsers = sysUserMapper.countDistinctActiveUsersSince(weekStart);
+        return activeUsers == null ? 0L : activeUsers;
     }
 
     private StatisticsVO.PostStats getPostStats() {
@@ -275,18 +266,23 @@ public class StatisticsServiceImpl implements StatisticsService {
         return stats;
     }
 
-    private List<StatisticsVO.DailyCount> getUserGrowthTrend() {
-        LocalDateTime since = LocalDate.now().minusDays(29).atStartOfDay();
+    private List<StatisticsVO.DailyCount> getUserGrowthTrend(int days) {
+        LocalDate today = LocalDate.now();
+        LocalDateTime since = today.minusDays(days - 1L).atStartOfDay();
         List<Map<String, Object>> rawData = sysUserMapper.countUsersGroupByDate(since);
         Map<String, Long> countMap = new HashMap<>();
         for (Map<String, Object> row : rawData) {
-            String dateStr = row.get("date").toString();
-            long count = ((Number) row.get("count")).longValue();
+            Object rawDate = getCaseInsensitiveValue(row, "date");
+            Object rawCount = getCaseInsensitiveValue(row, "count");
+            if (rawDate == null || !(rawCount instanceof Number number)) {
+                continue;
+            }
+            long count = number.longValue();
+            String dateStr = rawDate.toString().substring(0, 10);
             countMap.put(dateStr, count);
         }
         List<StatisticsVO.DailyCount> trend = new ArrayList<>();
-        LocalDate today = LocalDate.now();
-        for (int i = 29; i >= 0; i--) {
+        for (int i = days - 1; i >= 0; i--) {
             LocalDate date = today.minusDays(i);
             String dateStr = date.format(DATE_FORMATTER);
             Long count = countMap.get(dateStr);
@@ -298,18 +294,23 @@ public class StatisticsServiceImpl implements StatisticsService {
         return trend;
     }
 
-    private List<StatisticsVO.DailyCount> getPostGrowthTrend() {
-        LocalDateTime since = LocalDate.now().minusDays(29).atStartOfDay();
+    private List<StatisticsVO.DailyCount> getPostGrowthTrend(int days) {
+        LocalDate today = LocalDate.now();
+        LocalDateTime since = today.minusDays(days - 1L).atStartOfDay();
         List<Map<String, Object>> rawData = blogPostMapper.countPostsGroupByDate(since);
         Map<String, Long> countMap = new HashMap<>();
         for (Map<String, Object> row : rawData) {
-            String dateStr = row.get("date").toString();
-            long count = ((Number) row.get("count")).longValue();
+            Object rawDate = getCaseInsensitiveValue(row, "date");
+            Object rawCount = getCaseInsensitiveValue(row, "count");
+            if (rawDate == null || !(rawCount instanceof Number number)) {
+                continue;
+            }
+            long count = number.longValue();
+            String dateStr = rawDate.toString().substring(0, 10);
             countMap.put(dateStr, count);
         }
         List<StatisticsVO.DailyCount> trend = new ArrayList<>();
-        LocalDate today = LocalDate.now();
-        for (int i = 29; i >= 0; i--) {
+        for (int i = days - 1; i >= 0; i--) {
             LocalDate date = today.minusDays(i);
             String dateStr = date.format(DATE_FORMATTER);
             Long count = countMap.get(dateStr);
@@ -319,5 +320,13 @@ public class StatisticsServiceImpl implements StatisticsService {
             trend.add(dailyCount);
         }
         return trend;
+    }
+
+    private Object getCaseInsensitiveValue(Map<String, Object> row, String columnName) {
+        return row.entrySet().stream()
+                .filter(entry -> entry.getKey() != null && entry.getKey().equalsIgnoreCase(columnName))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(null);
     }
 }

@@ -31,7 +31,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
                              Object handler) throws Exception {
-        String path = request.getRequestURI();
+        Object originalUri = request.getAttribute(ApiPrefixFilter.ORIGINAL_URI_ATTRIBUTE);
+        String path = originalUri instanceof String uri ? uri : request.getRequestURI();
         String ip = getClientIp(request);
 
         // 使用配置的限流阈值

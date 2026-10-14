@@ -24,7 +24,9 @@ body {
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background var(--transition-slow), color var(--transition-slow);
+  transition:
+    background var(--transition-slow),
+    color var(--transition-slow);
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
@@ -65,7 +67,7 @@ body {
 }
 
 .dark-mode ::selection {
-  background: rgba(31, 108, 159, 0.30);
+  background: rgba(31, 108, 159, 0.3);
 }
 
 /* ==================== Image Loading ==================== */
@@ -73,12 +75,12 @@ img {
   transition: opacity 0.3s ease;
 }
 
-img[loading="lazy"] {
+img[loading='lazy'] {
   opacity: 0;
 }
 
-img[loading="lazy"].loaded,
-img[loading="lazy"]:not([src=""]) {
+img[loading='lazy'].loaded,
+img[loading='lazy']:not([src='']) {
   opacity: 1;
 }
 

@@ -12,7 +12,16 @@
         <div class="circle-container">
           <!-- Back Button -->
           <button class="back-btn" @click="router.back()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
             返回
           </button>
 
@@ -23,7 +32,18 @@
               :class="{ 'is-active': activeTab === 'recommend' }"
               @click="switchTab('recommend')"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                />
+              </svg>
               推荐
             </button>
             <button
@@ -32,16 +52,25 @@
               :class="{ 'is-active': activeTab === 'following' }"
               @click="switchTab('following')"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="8.5" cy="7" r="4" />
+                <line x1="20" y1="8" x2="20" y2="14" />
+                <line x1="23" y1="11" x2="17" y2="11" />
+              </svg>
               关注
             </button>
           </div>
 
           <!-- Quick Composer (Twitter/X style) -->
-          <QuickComposer
-            v-if="userStore.isLoggedIn"
-            @published="fetchPosts(true)"
-          />
+          <QuickComposer v-if="userStore.isLoggedIn" @published="fetchPosts(true)" />
 
           <!-- Feed List -->
           <div class="feed-list" ref="feedListRef">
@@ -68,8 +97,17 @@
 
             <!-- Error State -->
             <div v-else-if="error" class="feed-state">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
               <h3>加载失败</h3>
               <p>{{ error }}</p>
@@ -79,12 +117,23 @@
             <!-- Empty State -->
             <div v-else-if="posts.length === 0" class="feed-state">
               <div class="feed-state__icon">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                <svg
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="0.8"
+                >
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
               </div>
-              <h3 class="feed-state__title">{{ activeTab === 'following' ? '还没有关注的内容' : '还没有动态' }}</h3>
-              <p class="feed-state__text">{{ activeTab === 'following' ? '去发现更多有趣的人吧' : '快来说点什么吧' }}</p>
+              <h3 class="feed-state__title">
+                {{ activeTab === 'following' ? '还没有关注的内容' : '还没有动态' }}
+              </h3>
+              <p class="feed-state__text">
+                {{ activeTab === 'following' ? '去发现更多有趣的人吧' : '快来说点什么吧' }}
+              </p>
             </div>
 
             <!-- Posts -->
@@ -125,7 +174,17 @@
       title="发布动态"
       aria-label="发布动态"
     >
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+      >
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
     </button>
 
     <!-- Create Post Modal -->
@@ -143,14 +202,29 @@
             <div class="modal-box__header">
               <h3>转发动态</h3>
               <button class="modal-box__close" @click="closeRepostModal">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
             <div class="modal-box__body">
               <div v-if="currentRepostPost" class="repost-preview">
                 <div class="repost-preview__header">
-                  <img :src="currentRepostPost.userAvatar || '/default-avatar.png'" class="repost-preview__avatar" />
-                  <span class="repost-preview__name">{{ currentRepostPost.userNickname || currentRepostPost.userUsername }}</span>
+                  <img
+                    :src="resolveAssetUrl(currentRepostPost.userAvatar) || DEFAULT_AVATAR_URL"
+                    class="repost-preview__avatar"
+                  />
+                  <span class="repost-preview__name">{{
+                    currentRepostPost.userNickname || currentRepostPost.userUsername
+                  }}</span>
                 </div>
                 <p class="repost-preview__text">{{ currentRepostPost.content }}</p>
               </div>
@@ -161,7 +235,9 @@
                 rows="4"
                 maxlength="2000"
               ></textarea>
-              <div class="char-count" :class="{ 'is-warn': repostContent.length > 1800 }">{{ repostContent.length }}/2000</div>
+              <div class="char-count" :class="{ 'is-warn': repostContent.length > 1800 }">
+                {{ repostContent.length }}/2000
+              </div>
             </div>
             <div class="modal-box__footer">
               <button class="btn btn-ghost" @click="closeRepostModal">取消</button>
@@ -177,18 +253,64 @@
     <!-- Image Preview -->
     <teleport to="body">
       <transition name="modal-fade">
-        <div v-if="showPreview" class="modal-overlay preview-overlay" @click.self="showPreview = false">
-          <button class="preview-nav preview-nav--prev" @click="previewPrev" v-if="previewImages.length > 1">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        <div
+          v-if="showPreview"
+          class="modal-overlay preview-overlay"
+          @click.self="showPreview = false"
+        >
+          <button
+            class="preview-nav preview-nav--prev"
+            @click="previewPrev"
+            v-if="previewImages.length > 1"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
           </button>
-          <img :src="previewImages[previewIndex]" class="preview-image" @click.stop />
-          <button class="preview-nav preview-nav--next" @click="previewNext" v-if="previewImages.length > 1">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <img
+            :src="resolveAssetUrl(previewImages[previewIndex])"
+            class="preview-image"
+            @click.stop
+          />
+          <button
+            class="preview-nav preview-nav--next"
+            @click="previewNext"
+            v-if="previewImages.length > 1"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </button>
           <button class="preview-close" @click="showPreview = false">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
-          <div class="preview-counter" v-if="previewImages.length > 1">{{ previewIndex + 1 }} / {{ previewImages.length }}</div>
+          <div class="preview-counter" v-if="previewImages.length > 1">
+            {{ previewIndex + 1 }} / {{ previewImages.length }}
+          </div>
         </div>
       </transition>
     </teleport>
@@ -197,6 +319,7 @@
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref, onMounted, watch, nextTick, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { circleApi } from '../../api/circle'
@@ -250,10 +373,11 @@ const fetchPosts = async (reset = false) => {
   }
   loading.value = true
   try {
-    const fn = activeTab.value === 'following' ? circleApi.getFollowingFeed : circleApi.getRecommendFeed
+    const fn =
+      activeTab.value === 'following' ? circleApi.getFollowingFeed : circleApi.getRecommendFeed
     const res = await fn({ pageNum: currentPage.value, pageSize: 20 })
-    const list = Array.isArray(res.data) ? res.data : (res.data?.records || [])
-    const mapped = list.map(p => ({ ...p, isLiked: p.isLiked || false, likeAnim: false }))
+    const list = Array.isArray(res.data) ? res.data : res.data?.records || []
+    const mapped = list.map((p) => ({ ...p, isLiked: p.isLiked || false, likeAnim: false }))
     posts.value = reset ? mapped : [...posts.value, ...mapped]
     hasMore.value = list.length >= 20
     return true
@@ -283,18 +407,24 @@ watch(activeTab, () => fetchPosts(true))
 let observer: IntersectionObserver | null = null
 const setupObserver = () => {
   if (!sentinelRef.value) return
-  observer = new IntersectionObserver((entries) => {
-    if (entries[0]?.isIntersecting) loadMore()
-  }, { rootMargin: '200px' })
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0]?.isIntersecting) loadMore()
+    },
+    { rootMargin: '200px' }
+  )
   observer.observe(sentinelRef.value)
 }
 
-watch(() => posts.value.length, () => {
-  nextTick(() => {
-    if (observer) observer.disconnect()
-    setupObserver()
-  })
-})
+watch(
+  () => posts.value.length,
+  () => {
+    nextTick(() => {
+      if (observer) observer.disconnect()
+      setupObserver()
+    })
+  }
+)
 
 const { confirm, ConfirmDialog } = useConfirm()
 
@@ -303,7 +433,7 @@ const deletePost = async (post: any) => {
   if (!ok) return
   try {
     await circleApi.deletePost(post.id)
-    posts.value = posts.value.filter(p => p.id !== post.id)
+    posts.value = posts.value.filter((p) => p.id !== post.id)
     toast.success('删除成功')
   } catch (err: any) {
     logger.error('deletePost error', { error: err.message })
@@ -312,7 +442,10 @@ const deletePost = async (post: any) => {
 }
 
 const toggleLike = async (post: any) => {
-  if (!userStore.isLoggedIn) { toast.warning('请先登录'); return }
+  if (!userStore.isLoggedIn) {
+    toast.warning('请先登录')
+    return
+  }
   if (post._likeLoading) return
   post._likeLoading = true
   const prevLiked = post.isLiked
@@ -320,7 +453,7 @@ const toggleLike = async (post: any) => {
   post.isLiked = !post.isLiked
   post.likeCount = prevCount + (post.isLiked ? 1 : -1)
   post.likeAnim = true
-  setTimeout(() => post.likeAnim = false, 400)
+  setTimeout(() => (post.likeAnim = false), 400)
   try {
     const res = await circleApi.toggleLike(post.id)
     const data = res.data as any
@@ -341,7 +474,10 @@ const toggleLike = async (post: any) => {
 }
 
 const openRepostModal = (post: any) => {
-  if (!userStore.isLoggedIn) { toast.warning('请先登录'); return }
+  if (!userStore.isLoggedIn) {
+    toast.warning('请先登录')
+    return
+  }
   currentRepostPost.value = post
   repostContent.value = ''
   showRepostModal.value = true
@@ -376,7 +512,8 @@ const openImagePreview = (images: string[], idx: number) => {
 }
 
 const previewPrev = () => {
-  previewIndex.value = (previewIndex.value - 1 + previewImages.value.length) % previewImages.value.length
+  previewIndex.value =
+    (previewIndex.value - 1 + previewImages.value.length) % previewImages.value.length
 }
 
 const previewNext = () => {
@@ -520,14 +657,36 @@ onBeforeUnmount(() => {
   width: 40px;
   height: 40px;
   border-radius: var(--radius-full);
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
-.skeleton-info { flex: 1; }
-.skeleton-name { width: 100px; height: 14px; background: var(--skeleton-base); border-radius: var(--radius-xs); margin-bottom: var(--spacing-sm); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
-.skeleton-time { width: 60px; height: 12px; background: var(--skeleton-base); border-radius: var(--radius-xs); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-info {
+  flex: 1;
+}
+.skeleton-name {
+  width: 100px;
+  height: 14px;
+  background: var(--skeleton-base);
+  border-radius: var(--radius-xs);
+  margin-bottom: var(--spacing-sm);
+  animation: shimmer 1.5s infinite;
+  background-size: 200% 100%;
+}
+.skeleton-time {
+  width: 60px;
+  height: 12px;
+  background: var(--skeleton-base);
+  border-radius: var(--radius-xs);
+  animation: shimmer 1.5s infinite;
+  background-size: 200% 100%;
+}
 
 .skeleton-content {
   background: var(--surface-solid);
@@ -536,14 +695,38 @@ onBeforeUnmount(() => {
   padding: var(--spacing-lg);
 }
 
-.skeleton-text { height: 14px; background: var(--skeleton-base); border-radius: var(--radius-xs); margin-bottom: var(--spacing-sm); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
-.skeleton-text--short { width: 60%; }
-.skeleton-images { display: flex; gap: var(--spacing-xs); margin-top: var(--spacing-md); }
-.skeleton-img { flex: 1; aspect-ratio: 1; background: var(--skeleton-base); border-radius: var(--radius-sm); animation: shimmer 1.5s infinite; background-size: 200% 100%; }
+.skeleton-text {
+  height: 14px;
+  background: var(--skeleton-base);
+  border-radius: var(--radius-xs);
+  margin-bottom: var(--spacing-sm);
+  animation: shimmer 1.5s infinite;
+  background-size: 200% 100%;
+}
+.skeleton-text--short {
+  width: 60%;
+}
+.skeleton-images {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-md);
+}
+.skeleton-img {
+  flex: 1;
+  aspect-ratio: 1;
+  background: var(--skeleton-base);
+  border-radius: var(--radius-sm);
+  animation: shimmer 1.5s infinite;
+  background-size: 200% 100%;
+}
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* States */
@@ -562,8 +745,13 @@ onBeforeUnmount(() => {
 }
 
 @keyframes stateFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 .feed-state h3,
@@ -611,7 +799,9 @@ onBeforeUnmount(() => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .no-more {
@@ -852,8 +1042,12 @@ onBeforeUnmount(() => {
   transform: translateY(-50%) scale(1.08);
 }
 
-.preview-nav--prev { left: var(--spacing-lg); }
-.preview-nav--next { right: var(--spacing-lg); }
+.preview-nav--prev {
+  left: var(--spacing-lg);
+}
+.preview-nav--next {
+  right: var(--spacing-lg);
+}
 
 .preview-close {
   position: absolute;
@@ -948,7 +1142,11 @@ onBeforeUnmount(() => {
     padding: var(--spacing-md);
   }
 
-  .preview-nav--prev { left: var(--spacing-sm); }
-  .preview-nav--next { right: var(--spacing-sm); }
+  .preview-nav--prev {
+    left: var(--spacing-sm);
+  }
+  .preview-nav--next {
+    right: var(--spacing-sm);
+  }
 }
 </style>

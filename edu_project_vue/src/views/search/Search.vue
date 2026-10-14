@@ -18,7 +18,19 @@
           aria-label="搜索"
         />
         <button class="search-submit" @click="doSearch" aria-label="执行搜索">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
         </button>
         <transition name="dropdown">
           <div v-if="showSuggestions && suggestions.length > 0" class="suggestions-dropdown">
@@ -61,10 +73,12 @@
           v-for="item in searchHistory"
           :key="item"
           class="history-chip"
-          @click="searchQuery = item; doSearch()"
+          @click="selectHistoryItem(item)"
         >
           <span>{{ item }}</span>
-          <span class="chip-x" @click.stop="removeHistoryItem(item)" aria-label="删除">&times;</span>
+          <span class="chip-x" @click.stop="removeHistoryItem(item)" aria-label="删除"
+            >&times;</span
+          >
         </button>
       </div>
     </section>
@@ -100,7 +114,12 @@
             :to="`/user/${item.userId}`"
             class="user-card"
           >
-            <img :src="item.avatar || defaultAvatar" class="user-avatar" @error="onAvatarError" alt="" />
+            <img
+              :src="resolveAssetUrl(item.avatar) || defaultAvatar"
+              class="user-avatar"
+              @error="onAvatarError"
+              alt=""
+            />
             <div class="user-meta">
               <span class="user-display">{{ item.nickname || item.username }}</span>
               <span class="user-handle">@{{ item.username }}</span>
@@ -135,16 +154,40 @@
             class="circle-card"
           >
             <div class="circle-card-head">
-              <img :src="item.userAvatar || defaultAvatar" class="circle-avatar" @error="(e: Event) => { const t = e.target as HTMLImageElement; if (t) t.src = defaultAvatar; }" alt="" />
+              <img
+                :src="resolveAssetUrl(item.userAvatar) || defaultAvatar"
+                class="circle-avatar"
+                @error="
+                  (e: Event) => {
+                    const t = e.target as HTMLImageElement
+                    if (t) t.src = defaultAvatar
+                  }
+                "
+                alt=""
+              />
               <span class="circle-author">{{ item.userNickname || item.userUsername }}</span>
-              <span class="circle-time">{{ item.timeAgo || formatRelativeTime(item.createTime) }}</span>
+              <span class="circle-time">{{
+                item.timeAgo || formatRelativeTime(item.createTime)
+              }}</span>
             </div>
             <p class="circle-text">{{ truncateText(item.content, 200) }}</p>
             <div v-if="item.topicNames && item.topicNames.length > 0" class="circle-topic-row">
-              <router-link v-for="(topic, idx) in item.topicNames" :key="topic" :to="`/topic/${item.topicIds?.[idx] || ''}`" class="topic-tag">#{{ topic }}</router-link>
+              <router-link
+                v-for="(topic, idx) in item.topicNames"
+                :key="topic"
+                :to="`/topic/${item.topicIds?.[idx] || ''}`"
+                class="topic-tag"
+                >#{{ topic }}</router-link
+              >
             </div>
             <div v-if="item.images && item.images.length > 0" class="circle-img-row">
-              <img v-for="(img, idx) in item.images.slice(0, 3)" :key="idx" :src="img" class="circle-thumb" alt="" />
+              <img
+                v-for="(img, idx) in item.images.slice(0, 3)"
+                :key="idx"
+                :src="resolveAssetUrl(img)"
+                class="circle-thumb"
+                alt=""
+              />
             </div>
           </router-link>
         </div>
@@ -193,21 +236,37 @@
               </div>
             </router-link>
             <!-- Circle -->
-            <router-link v-else-if="item.type === 'circle'" :to="`/circle/${item.id}`" class="circle-card">
+            <router-link
+              v-else-if="item.type === 'circle'"
+              :to="`/circle/${item.id}`"
+              class="circle-card"
+            >
               <div class="circle-card-head">
-                <img :src="item.userAvatar || defaultAvatar" class="circle-avatar" alt="" />
+                <img
+                  :src="resolveAssetUrl(item.userAvatar) || defaultAvatar"
+                  class="circle-avatar"
+                  alt=""
+                />
                 <span class="circle-author">{{ item.userNickname || item.userUsername }}</span>
                 <span class="card-type-label">校友圈</span>
               </div>
               <p class="circle-text">{{ truncateText(item.content, 140) }}</p>
             </router-link>
             <!-- Tag -->
-            <router-link v-else-if="item.type === 'tag'" :to="`/tag/${item.id}`" class="tag-inline-card">
+            <router-link
+              v-else-if="item.type === 'tag'"
+              :to="`/tag/${item.id}`"
+              class="tag-inline-card"
+            >
               <span class="card-type-label">标签</span>
               <span class="tag-chip-lg">{{ item.name }}</span>
             </router-link>
             <!-- Topic -->
-            <router-link v-else-if="item.type === 'topic'" :to="`/topic/${item.id}`" class="topic-card">
+            <router-link
+              v-else-if="item.type === 'topic'"
+              :to="`/topic/${item.id}`"
+              class="topic-card"
+            >
               <span class="card-type-label">话题</span>
               <span class="topic-hash">#</span>
               <span class="topic-name">{{ item.name }}</span>
@@ -237,6 +296,7 @@
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { postApi } from '../../api/post'
@@ -250,7 +310,7 @@ import { useLogger } from '../../utils/logger'
 const route = useRoute()
 const logger = useLogger('Search')
 
-const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="24" fill="#e0e0e0"/><text x="24" y="30" text-anchor="middle" fill="#999" font-size="20" font-family="sans-serif">?</text></svg>')
+const defaultAvatar = DEFAULT_AVATAR_URL
 
 const onAvatarError = (e: Event) => {
   const target = e.target as HTMLImageElement
@@ -283,7 +343,13 @@ const onSearchFocus = () => {
 
 const fetchSuggestions = debounce(async (...args: unknown[]) => {
   const keyword = args[0] as string
-  if (!keyword.trim() || activeFilter.value === 'users' || activeFilter.value === 'circles' || activeFilter.value === 'tags' || activeFilter.value === 'topics') {
+  if (
+    !keyword.trim() ||
+    activeFilter.value === 'users' ||
+    activeFilter.value === 'circles' ||
+    activeFilter.value === 'tags' ||
+    activeFilter.value === 'topics'
+  ) {
     suggestions.value = []
     showSuggestions.value = false
     return
@@ -304,8 +370,15 @@ const selectSuggestion = (suggestion: string) => {
   doSearch()
 }
 
+const selectHistoryItem = (item: string) => {
+  searchQuery.value = item
+  doSearch()
+}
+
 const hideSuggestions = () => {
-  setTimeout(() => { showSuggestions.value = false }, 150)
+  setTimeout(() => {
+    showSuggestions.value = false
+  }, 150)
 }
 
 const filters = [
@@ -373,7 +446,7 @@ const doSearch = async () => {
 
       if (postsRes.status === 'fulfilled' && postsRes.value.data) {
         const posts = postsRes.value.data.records || []
-        results.value.push(...posts.map(p => ({ ...p, type: 'post' })))
+        results.value.push(...posts.map((p) => ({ ...p, type: 'post' })))
         total += postsRes.value.data.total || 0
       }
       if (circlesRes.status === 'fulfilled' && circlesRes.value.data) {
@@ -383,12 +456,12 @@ const doSearch = async () => {
       }
       if (tagsRes.status === 'fulfilled' && tagsRes.value.data) {
         const tags = tagsRes.value.data || []
-        results.value.push(...tags.map(t => ({ id: t.id, name: t.name, type: 'tag' })))
+        results.value.push(...tags.map((t) => ({ id: t.id, name: t.name, type: 'tag' })))
         total += tags.length
       }
       if (topicsRes.status === 'fulfilled' && topicsRes.value.data) {
         const topics = topicsRes.value.data || []
-        results.value.push(...topics.map(tp => ({ ...tp, type: 'topic' })))
+        results.value.push(...topics.map((tp) => ({ ...tp, type: 'topic' })))
         total += topics.length
       }
 
@@ -401,7 +474,7 @@ const doSearch = async () => {
         pageSize: pageSize
       })
       const pageData = response.data || {}
-      results.value = (pageData.records || []).map(p => ({ ...p, type: 'post' }))
+      results.value = (pageData.records || []).map((p) => ({ ...p, type: 'post' }))
       totalResults.value = pageData.total || 0
       totalPages.value = pageData.pages || 1
       hasMore.value = currentPage.value < totalPages.value
@@ -444,7 +517,7 @@ const loadSearchHistory = () => {
 
 const saveSearchHistory = (query: string) => {
   if (!query.trim()) return
-  const history = searchHistory.value.filter(item => item !== query)
+  const history = searchHistory.value.filter((item) => item !== query)
   history.unshift(query)
   if (history.length > maxHistoryItems) {
     history.pop()
@@ -467,7 +540,7 @@ const clearSearchHistory = () => {
 }
 
 const removeHistoryItem = (item: string) => {
-  searchHistory.value = searchHistory.value.filter(h => h !== item)
+  searchHistory.value = searchHistory.value.filter((h) => h !== item)
   try {
     localStorage.setItem('edu_search_history', JSON.stringify(searchHistory.value))
   } catch {
@@ -475,14 +548,17 @@ const removeHistoryItem = (item: string) => {
   }
 }
 
-watch(() => route.query.q, (q) => {
-  if (q) {
-    searchQuery.value = String(q)
-    currentPage.value = 1
-    results.value = []
-    doSearch()
+watch(
+  () => route.query.q,
+  (q) => {
+    if (q) {
+      searchQuery.value = String(q)
+      currentPage.value = 1
+      results.value = []
+      doSearch()
+    }
   }
-})
+)
 
 watch(searchQuery, (val: string) => {
   fetchSuggestions(val)
@@ -543,7 +619,9 @@ onUnmounted(() => {
   font-size: var(--text-base);
   color: var(--text-muted);
   margin: 0 0 var(--spacing-xl);
-  transition: opacity var(--transition), margin var(--transition-slow);
+  transition:
+    opacity var(--transition),
+    margin var(--transition-slow);
 }
 
 .search-hero.has-results .search-subtitle {
@@ -572,7 +650,9 @@ onUnmounted(() => {
   border: 2px solid var(--border-solid);
   border-radius: var(--radius-xl);
   outline: none;
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
   line-height: var(--leading-normal);
 }
 
@@ -601,7 +681,9 @@ onUnmounted(() => {
   border-radius: var(--radius-lg);
   color: white;
   cursor: pointer;
-  transition: background var(--transition), transform var(--transition);
+  transition:
+    background var(--transition),
+    transform var(--transition);
 }
 
 .search-submit:hover {
@@ -649,7 +731,9 @@ onUnmounted(() => {
 
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity var(--transition), transform var(--transition);
+  transition:
+    opacity var(--transition),
+    transform var(--transition);
 }
 
 .dropdown-enter-from,
@@ -716,7 +800,9 @@ onUnmounted(() => {
   cursor: pointer;
   padding: var(--spacing-1) var(--spacing-2);
   border-radius: var(--radius-sm);
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .clear-btn:hover {
@@ -793,7 +879,9 @@ onUnmounted(() => {
   border: 1px solid var(--border-solid);
   border-radius: var(--radius-md);
   text-decoration: none;
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
 }
 
 .post-card:hover {
@@ -846,7 +934,9 @@ onUnmounted(() => {
   border: 1px solid var(--border-solid);
   border-radius: var(--radius-md);
   text-decoration: none;
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
 }
 
 .user-card:hover {
@@ -888,7 +978,9 @@ onUnmounted(() => {
   border: 1px solid var(--border-solid);
   border-radius: var(--radius-md);
   text-decoration: none;
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
 }
 
 .circle-card:hover {
@@ -1027,7 +1119,9 @@ onUnmounted(() => {
   border: 1px solid var(--border-solid);
   border-radius: var(--radius-md);
   text-decoration: none;
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
 }
 
 .topic-card:hover {
@@ -1140,18 +1234,33 @@ onUnmounted(() => {
 .sk-line {
   height: 14px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
-.sk-w60 { width: 60%; }
-.sk-w90 { width: 90%; }
-.sk-w35 { width: 35%; }
+.sk-w60 {
+  width: 60%;
+}
+.sk-w90 {
+  width: 90%;
+}
+.sk-w35 {
+  width: 35%;
+}
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* ---------- Load more ---------- */

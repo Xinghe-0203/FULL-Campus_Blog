@@ -8,8 +8,18 @@
       <div class="create-form glass">
         <h3 class="form-title">新建标签</h3>
         <div class="form-row">
-          <input v-model="newTagName" type="text" class="form-input" placeholder="输入标签名称..." @keyup.enter="createTag" />
-          <button class="btn btn-primary" :disabled="!newTagName.trim() || creating" @click="createTag">
+          <input
+            v-model="newTagName"
+            type="text"
+            class="form-input"
+            placeholder="输入标签名称..."
+            @keyup.enter="createTag"
+          />
+          <button
+            class="btn btn-primary"
+            :disabled="!newTagName.trim() || creating"
+            @click="createTag"
+          >
             {{ creating ? '创建中...' : '创建' }}
           </button>
         </div>
@@ -19,7 +29,12 @@
         <div class="table-container glass">
           <table class="data-table">
             <thead>
-              <tr><th>ID</th><th>名称</th><th>文章数</th><th>操作</th></tr>
+              <tr>
+                <th>ID</th>
+                <th>名称</th>
+                <th>文章数</th>
+                <th>操作</th>
+              </tr>
             </thead>
             <tbody>
               <tr v-for="i in 5" :key="i">
@@ -34,8 +49,17 @@
       </div>
 
       <div v-else-if="error" class="error-state glass">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        <svg
+          width="48"
+          height="48"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         <h3>{{ error }}</h3>
         <button class="btn btn-primary" @click="fetchTags">重试</button>
@@ -44,15 +68,29 @@
       <div v-else class="table-container glass">
         <table class="data-table">
           <thead>
-            <tr><th>ID</th><th>名称</th><th>文章数</th><th>操作</th></tr>
+            <tr>
+              <th>ID</th>
+              <th>名称</th>
+              <th>文章数</th>
+              <th>操作</th>
+            </tr>
           </thead>
           <tbody>
             <tr v-if="tags.length === 0">
               <td colspan="4" class="empty-cell">
                 <div class="empty-content">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                    <line x1="7" y1="7" x2="7.01" y2="7"/>
+                  <svg
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path
+                      d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"
+                    />
+                    <line x1="7" y1="7" x2="7.01" y2="7" />
                   </svg>
                   <span>暂无标签</span>
                 </div>
@@ -68,8 +106,18 @@
                 <div class="actions">
                   <button class="btn btn-xs btn-ghost" @click="startEdit(tag)">编辑</button>
                   <button class="btn btn-xs btn-ghost danger" @click="deleteTag(tag)">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="3 6 5 6 21 6" />
+                      <path
+                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                      />
                     </svg>
                     删除
                   </button>
@@ -82,14 +130,40 @@
 
       <div v-if="totalPages > 1" class="pagination-wrapper">
         <div class="pagination glass">
-          <button class="pagination-btn" :disabled="currentPage <= 1" @click="changePage(currentPage - 1)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          <button
+            class="pagination-btn"
+            :disabled="currentPage <= 1"
+            @click="changePage(currentPage - 1)"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
             上一页
           </button>
           <span class="page-info">第 {{ currentPage }} / {{ totalPages }} 页</span>
-          <button class="pagination-btn" :disabled="currentPage >= totalPages" @click="changePage(currentPage + 1)">
+          <button
+            class="pagination-btn"
+            :disabled="currentPage >= totalPages"
+            @click="changePage(currentPage + 1)"
+          >
             下一页
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </button>
         </div>
       </div>
@@ -102,7 +176,9 @@
       </div>
       <template #footer>
         <button class="btn btn-secondary" @click="editDialog = false">取消</button>
-        <button class="btn btn-primary" :disabled="!editName.trim()" @click="submitEdit">保存</button>
+        <button class="btn btn-primary" :disabled="!editName.trim()" @click="submitEdit">
+          保存
+        </button>
       </template>
     </Modal>
     <ConfirmDialog />
@@ -189,7 +265,7 @@ const deleteTag = async (tag: any) => {
   if (!ok) return
   try {
     await adminApi.deleteTag(tag.id)
-    tags.value = tags.value.filter(t => t.id !== tag.id)
+    tags.value = tags.value.filter((t) => t.id !== tag.id)
     toast.success('删除成功')
   } catch (err: any) {
     logger.error('Failed to delete tag', { error: err.message })
@@ -293,7 +369,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
   pointer-events: none;
   z-index: 1;
 }
@@ -413,15 +489,28 @@ onMounted(() => {
 .sk-line {
   height: 14px;
   border-radius: 4px;
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
-.sk-line.w-30 { width: 30%; }
-.sk-line.w-40 { width: 40%; }
-.sk-line.w-50 { width: 50%; }
-.sk-line.w-60 { width: 60%; }
+.sk-line.w-30 {
+  width: 30%;
+}
+.sk-line.w-40 {
+  width: 40%;
+}
+.sk-line.w-50 {
+  width: 50%;
+}
+.sk-line.w-60 {
+  width: 60%;
+}
 
 .edit-form {
   padding: var(--spacing-sm) 0;

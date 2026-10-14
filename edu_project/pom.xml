@@ -27,6 +27,7 @@
         <hutool.version>5.8.40</hutool.version>
         <jjwt.version>0.12.6</jjwt.version>
         <jsoup.version>1.18.3</jsoup.version>
+        <campus.buildDirectory>${project.basedir}/target</campus.buildDirectory>
     </properties>
 
     <!-- 项目依赖 -->
@@ -193,6 +194,7 @@
 
     <!-- Maven 构建插件 -->
     <build>
+        <directory>${campus.buildDirectory}</directory>
         <plugins>
             <!-- Maven 编译器插件：配置 Lombok 注解处理器 -->
             <plugin>
@@ -236,5 +238,81 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>single-jar</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.eirslett</groupId>
+                        <artifactId>frontend-maven-plugin</artifactId>
+                        <version>1.15.1</version>
+                        <configuration>
+                            <workingDirectory>${project.basedir}/../edu_project_vue</workingDirectory>
+                            <installDirectory>${project.build.directory}/frontend</installDirectory>
+                            <environmentVariables>
+                                <VITE_BUILD_OUT_DIR>${project.build.directory}/frontend-dist</VITE_BUILD_OUT_DIR>
+                            </environmentVariables>
+                            <nodeVersion>v22.22.2</nodeVersion>
+                            <npmVersion>10.9.4</npmVersion>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>install-frontend-node</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>install-node-and-npm</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>install-frontend-dependencies</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>ci</arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>build-frontend</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>run build</arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>copy-frontend-into-jar</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.build.directory}/frontend-dist</directory>
+                                            <filtering>false</filtering>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

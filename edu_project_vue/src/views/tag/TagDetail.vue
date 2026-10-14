@@ -1,7 +1,18 @@
 <template>
   <div class="tag-detail-page">
     <button class="back-link" @click="router.back()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
       <span>返回</span>
     </button>
 
@@ -47,7 +58,11 @@
               <h2 class="post-row-title">{{ item.title }}</h2>
               <p class="post-row-excerpt">{{ truncateText(item.summary || item.content, 120) }}</p>
               <div class="post-row-meta">
-                <img :src="item.avatar || defaultAvatar" :alt="item.nickname || item.username" class="post-row-avatar" />
+                <img
+                  :src="resolveAssetUrl(item.avatar) || defaultAvatar"
+                  :alt="item.nickname || item.username"
+                  class="post-row-avatar"
+                />
                 <span class="post-row-author">{{ item.nickname || item.username || '匿名' }}</span>
                 <span class="meta-dot">&middot;</span>
                 <span class="post-row-time">{{ formatRelativeTime(item.createTime) }}</span>
@@ -75,6 +90,7 @@
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { postApi } from '../../api/post'
@@ -97,7 +113,7 @@ const hasMore = ref(false)
 const totalPosts = ref(0)
 const pageSize = 10
 
-const defaultAvatar = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="24" fill="#e0e0e0"/><text x="24" y="30" text-anchor="middle" fill="#999" font-size="20" font-family="sans-serif">?</text></svg>')
+const defaultAvatar = DEFAULT_AVATAR_URL
 
 const fetchTagDetail = async () => {
   loading.value = true

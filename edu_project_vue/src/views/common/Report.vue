@@ -4,7 +4,17 @@
       <div class="report-card glass">
         <div class="card-header">
           <div class="header-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+              <line x1="4" y1="22" x2="4" y2="15" />
+            </svg>
           </div>
           <h2 class="card-title">举报内容</h2>
           <p class="card-subtitle">您的反馈将帮助我们维护良好的社区环境</p>
@@ -20,7 +30,12 @@
                 class="reason-option"
                 :class="{ selected: form.reason === reason.value }"
               >
-                <input type="radio" v-model="form.reason" :value="reason.value" class="reason-radio" />
+                <input
+                  type="radio"
+                  v-model="form.reason"
+                  :value="reason.value"
+                  class="reason-radio"
+                />
                 <span class="reason-icon">{{ reason.icon }}</span>
                 <span class="reason-text">{{ reason.label }}</span>
               </label>
@@ -41,8 +56,24 @@
 
           <div class="form-actions">
             <button type="button" class="btn btn-secondary" @click="goBack">取消</button>
-            <button type="submit" class="btn btn-primary" :class="{ loading: loading }" :disabled="loading || !form.reason">
-              <svg v-if="!loading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              :class="{ loading: loading }"
+              :disabled="loading || !form.reason"
+            >
+              <svg
+                v-if="!loading"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                <line x1="4" y1="22" x2="4" y2="15" />
+              </svg>
               {{ loading ? '提交中...' : '提交举报' }}
             </button>
           </div>
@@ -144,7 +175,7 @@ const goBack = () => {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   pointer-events: none;
   z-index: 1;
 }
@@ -267,9 +298,17 @@ textarea.form-input {
 }
 
 @media (max-width: 480px) {
-  .report-page { padding: var(--spacing-md); }
-  .card-header { padding: var(--spacing-lg); }
-  .report-form { padding: var(--spacing-md); }
-  .reason-grid { grid-template-columns: 1fr; }
+  .report-page {
+    padding: var(--spacing-md);
+  }
+  .card-header {
+    padding: var(--spacing-lg);
+  }
+  .report-form {
+    padding: var(--spacing-md);
+  }
+  .reason-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

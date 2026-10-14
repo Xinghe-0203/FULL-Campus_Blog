@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
+    base: env.VITE_APP_BASE || '/',
     plugins: [vue()],
     resolve: {
       alias: {
@@ -39,7 +40,8 @@ export default defineConfig(({ mode }) => {
       }
     },
     build: {
-      outDir: 'dist',
+      outDir: env.VITE_BUILD_OUT_DIR || 'dist',
+      emptyOutDir: Boolean(env.VITE_BUILD_OUT_DIR),
       assetsDir: 'assets',
       sourcemap: false,
       minify: 'esbuild',

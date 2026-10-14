@@ -6,16 +6,19 @@ import { collectApi } from '@/api/collect'
 import { useLogger } from '@/utils/logger'
 import { toast } from '@/utils/toast'
 
-const props = withDefaults(defineProps<{
-  postId: number | string
-  initialCollected?: boolean
-  initialCount?: number
-  size?: 'sm' | 'md' | 'lg'
-}>(), {
-  initialCollected: false,
-  initialCount: 0,
-  size: 'md'
-})
+const props = withDefaults(
+  defineProps<{
+    postId: number | string
+    initialCollected?: boolean
+    initialCount?: number
+    size?: 'sm' | 'md' | 'lg'
+  }>(),
+  {
+    initialCollected: false,
+    initialCount: 0,
+    size: 'md'
+  }
+)
 
 const emit = defineEmits<{
   toggled: [isCollected: boolean, count: number]
@@ -29,8 +32,18 @@ const isCollected = ref(props.initialCollected)
 const collectCount = ref(props.initialCount)
 const isToggling = ref(false)
 
-watch(() => props.initialCollected, (val) => { isCollected.value = val })
-watch(() => props.initialCount, (val) => { collectCount.value = val })
+watch(
+  () => props.initialCollected,
+  (val) => {
+    isCollected.value = val
+  }
+)
+watch(
+  () => props.initialCount,
+  (val) => {
+    collectCount.value = val
+  }
+)
 
 const iconSize = { sm: 14, md: 18, lg: 22 }[props.size]
 
@@ -85,8 +98,15 @@ const toggleCollect = async () => {
     @click="toggleCollect"
   >
     <slot :is-collected="isCollected" :count="collectCount">
-      <svg :width="iconSize" :height="iconSize" viewBox="0 0 24 24" :fill="isCollected ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+      <svg
+        :width="iconSize"
+        :height="iconSize"
+        viewBox="0 0 24 24"
+        :fill="isCollected ? 'currentColor' : 'none'"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
       </svg>
       <span class="collect-btn__count">{{ collectCount }}</span>
     </slot>
@@ -154,9 +174,17 @@ const toggleCollect = async () => {
 }
 
 @keyframes collect-pop {
-  0% { transform: scale(1) rotate(0deg); }
-  30% { transform: scale(1.3) rotate(-5deg); }
-  60% { transform: scale(0.9) rotate(3deg); }
-  100% { transform: scale(1) rotate(0deg); }
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  30% {
+    transform: scale(1.3) rotate(-5deg);
+  }
+  60% {
+    transform: scale(0.9) rotate(3deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
 }
 </style>

@@ -25,7 +25,10 @@ export const circleApi = {
   /**
    * 更新动态
    */
-  updatePost(postId: number | string, data: UpdateCirclePostRequest): Promise<ApiResponse<CirclePost>> {
+  updatePost(
+    postId: number | string,
+    data: UpdateCirclePostRequest
+  ): Promise<ApiResponse<CirclePost>> {
     return api.put(`/circle/post/${postId}`, data)
   },
 

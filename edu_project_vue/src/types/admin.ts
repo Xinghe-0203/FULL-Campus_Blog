@@ -61,6 +61,9 @@ export interface AdminStatistics {
   userStats?: UserStats
   postStats?: PostStats
   circleStats?: CircleStats
+  engagementStats?: Record<string, number>
+  reportStats?: Record<string, number>
+  topicStats?: Record<string, number>
   userGrowthTrend?: GrowthTrendItem[]
   postGrowthTrend?: GrowthTrendItem[]
 }

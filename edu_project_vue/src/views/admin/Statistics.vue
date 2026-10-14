@@ -14,10 +14,17 @@
             <option value="year">本年度</option>
           </select>
           <button class="btn btn-secondary btn-sm" @click="exportData">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
             导出数据
           </button>
@@ -39,8 +46,17 @@
       </div>
 
       <div v-else-if="error" class="error-state glass">
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        <svg
+          width="60"
+          height="60"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         <h3>{{ error }}</h3>
         <button class="btn btn-primary" @click="fetchStats">重试</button>
@@ -50,19 +66,36 @@
         <div class="stats-overview">
           <div class="stat-card glass stat-card-blue">
             <div class="stat-icon gradient-info">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
               </svg>
             </div>
             <div class="stat-main">
-              <span class="stat-value">{{ stats.userCount || stats.userStats?.totalUsers || 0 }}</span>
+              <span class="stat-value">{{
+                stats.userCount || stats.userStats?.totalUsers || 0
+              }}</span>
               <span class="stat-label">总用户数</span>
             </div>
             <div class="stat-growth" :class="getGrowthClass(stats.userStats?.todayNewUsers)">
-              <svg v-if="stats.userStats?.todayNewUsers > 0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-                <polyline points="17 6 23 6 23 12"/>
+              <svg
+                v-if="stats.userStats?.todayNewUsers > 0"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                <polyline points="17 6 23 6 23 12" />
               </svg>
               <span>+{{ stats.userStats?.todayNewUsers || 0 }} 今日</span>
             </div>
@@ -70,32 +103,61 @@
 
           <div class="stat-card glass stat-card-green">
             <div class="stat-icon gradient-success">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
               </svg>
             </div>
             <div class="stat-main">
-              <span class="stat-value">{{ stats.postCount || stats.postStats?.totalPosts || 0 }}</span>
+              <span class="stat-value">{{
+                stats.postCount || stats.postStats?.totalPosts || 0
+              }}</span>
               <span class="stat-label">总文章数</span>
             </div>
             <div class="stat-growth" :class="getGrowthClass(stats.postStats?.todayNewPosts)">
-              <svg v-if="stats.postStats?.todayNewPosts > 0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-                <polyline points="17 6 23 6 23 12"/>
+              <svg
+                v-if="stats.postStats?.todayNewPosts > 0"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                <polyline points="17 6 23 6 23 12" />
               </svg>
               <span>+{{ stats.postStats?.todayNewPosts || 0 }} 今日</span>
             </div>
           </div>
 
           <div class="stat-card glass stat-card-purple">
-            <div class="stat-icon" style="background: linear-gradient(135deg, var(--purple), #7C3AED);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <div
+              class="stat-icon"
+              style="background: linear-gradient(135deg, var(--purple), #7c3aed)"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
             </div>
             <div class="stat-main">
-              <span class="stat-value">{{ stats.commentCount || stats.postStats?.totalComments || 0 }}</span>
+              <span class="stat-value">{{
+                stats.commentCount || stats.postStats?.totalComments || 0
+              }}</span>
               <span class="stat-label">总评论数</span>
             </div>
             <div class="stat-growth neutral">
@@ -105,15 +167,27 @@
 
           <div class="stat-card glass stat-card-orange">
             <div class="stat-icon gradient-warning">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                />
               </svg>
             </div>
             <div class="stat-main">
               <span class="stat-value">{{ stats.reportStats?.pendingReports || 0 }}</span>
               <span class="stat-label">待处理举报</span>
             </div>
-            <div class="stat-growth" :class="stats.reportStats?.pendingReports > 0 ? 'warning' : 'success'">
+            <div
+              class="stat-growth"
+              :class="stats.reportStats?.pendingReports > 0 ? 'warning' : 'success'"
+            >
               <span>{{ stats.reportStats?.pendingReports > 0 ? '需要处理' : '全部已处理' }}</span>
             </div>
           </div>
@@ -129,7 +203,9 @@
               </div>
               <div class="detail-row">
                 <span class="detail-label">今日新增</span>
-                <span class="detail-value text-success">+{{ stats.userStats?.todayNewUsers || 0 }}</span>
+                <span class="detail-value text-success"
+                  >+{{ stats.userStats?.todayNewUsers || 0 }}</span
+                >
               </div>
               <div class="detail-row">
                 <span class="detail-label">本周新增</span>
@@ -155,7 +231,9 @@
               </div>
               <div class="detail-row">
                 <span class="detail-label">今日新增</span>
-                <span class="detail-value text-success">+{{ stats.postStats?.todayNewPosts || 0 }}</span>
+                <span class="detail-value text-success"
+                  >+{{ stats.postStats?.todayNewPosts || 0 }}</span
+                >
               </div>
               <div class="detail-row">
                 <span class="detail-label">本周新增</span>
@@ -186,13 +264,17 @@
               <div class="circle-stat-item">
                 <div class="circle-stat-value">{{ stats.circleStats?.totalPosts || 0 }}</div>
                 <div class="circle-stat-label">总动态</div>
-                <div class="circle-stat-growth text-success">+{{ stats.circleStats?.todayNewPosts || 0 }} 今日</div>
+                <div class="circle-stat-growth text-success">
+                  +{{ stats.circleStats?.todayNewPosts || 0 }} 今日
+                </div>
               </div>
               <div class="circle-stat-divider"></div>
               <div class="circle-stat-item">
                 <div class="circle-stat-value">{{ stats.circleStats?.totalComments || 0 }}</div>
                 <div class="circle-stat-label">总评论</div>
-                <div class="circle-stat-growth text-success">+{{ stats.circleStats?.todayNewComments || 0 }} 今日</div>
+                <div class="circle-stat-growth text-success">
+                  +{{ stats.circleStats?.todayNewComments || 0 }} 今日
+                </div>
               </div>
               <div class="circle-stat-divider"></div>
               <div class="circle-stat-item">
@@ -212,11 +294,15 @@
             <div class="stat-details">
               <div class="detail-row">
                 <span class="detail-label">总话题数</span>
-                <span class="detail-value">{{ stats.topicStats?.totalTopics || stats.topicCount || 0 }}</span>
+                <span class="detail-value">{{
+                  stats.topicStats?.totalTopics || stats.topicCount || 0
+                }}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">今日新增话题</span>
-                <span class="detail-value text-success">+{{ stats.topicStats?.todayNewTopics || 0 }}</span>
+                <span class="detail-value text-success"
+                  >+{{ stats.topicStats?.todayNewTopics || 0 }}</span
+                >
               </div>
               <div class="detail-row">
                 <span class="detail-label">活跃话题</span>
@@ -224,7 +310,9 @@
               </div>
               <div class="detail-row">
                 <span class="detail-label">总标签数</span>
-                <span class="detail-value" style="color: var(--purple);">{{ stats.tagCount || 0 }}</span>
+                <span class="detail-value" style="color: var(--purple)">{{
+                  stats.tagCount || 0
+                }}</span>
               </div>
             </div>
           </div>
@@ -235,7 +323,12 @@
               <div class="bar-item">
                 <div class="bar-label">点赞</div>
                 <div class="bar-wrapper">
-                  <div class="bar-fill gradient-primary" :style="{ width: getBarWidth(stats.postStats?.totalLikes, maxEngagement) + '%' }">
+                  <div
+                    class="bar-fill gradient-primary"
+                    :style="{
+                      width: getBarWidth(stats.postStats?.totalLikes, maxEngagement) + '%'
+                    }"
+                  >
                     <span class="bar-value">{{ stats.postStats?.totalLikes || 0 }}</span>
                   </div>
                 </div>
@@ -243,7 +336,12 @@
               <div class="bar-item">
                 <div class="bar-label">收藏</div>
                 <div class="bar-wrapper">
-                  <div class="bar-fill gradient-success" :style="{ width: getBarWidth(stats.postStats?.totalCollects, maxEngagement) + '%' }">
+                  <div
+                    class="bar-fill gradient-success"
+                    :style="{
+                      width: getBarWidth(stats.postStats?.totalCollects, maxEngagement) + '%'
+                    }"
+                  >
                     <span class="bar-value">{{ stats.postStats?.totalCollects || 0 }}</span>
                   </div>
                 </div>
@@ -251,7 +349,13 @@
               <div class="bar-item">
                 <div class="bar-label">关注</div>
                 <div class="bar-wrapper">
-                  <div class="bar-fill" style="background: linear-gradient(135deg, var(--purple), #7C3AED);" :style="{ width: getBarWidth(stats.engagementStats?.totalFollows, maxEngagement) + '%' }">
+                  <div
+                    class="bar-fill"
+                    style="background: linear-gradient(135deg, var(--purple), #7c3aed)"
+                    :style="{
+                      width: getBarWidth(stats.engagementStats?.totalFollows, maxEngagement) + '%'
+                    }"
+                  >
                     <span class="bar-value">{{ stats.engagementStats?.totalFollows || 0 }}</span>
                   </div>
                 </div>
@@ -259,8 +363,19 @@
               <div class="bar-item">
                 <div class="bar-label">评论</div>
                 <div class="bar-wrapper">
-                  <div class="bar-fill gradient-warning" :style="{ width: getBarWidth(stats.commentCount || stats.postStats?.totalComments, maxEngagement) + '%' }">
-                    <span class="bar-value">{{ stats.commentCount || stats.postStats?.totalComments || 0 }}</span>
+                  <div
+                    class="bar-fill gradient-warning"
+                    :style="{
+                      width:
+                        getBarWidth(
+                          stats.commentCount || stats.postStats?.totalComments,
+                          maxEngagement
+                        ) + '%'
+                    }"
+                  >
+                    <span class="bar-value">{{
+                      stats.commentCount || stats.postStats?.totalComments || 0
+                    }}</span>
                   </div>
                 </div>
               </div>
@@ -276,16 +391,31 @@
                   <span class="progress-value">{{ stats.reportStats?.pendingReports || 0 }}</span>
                 </div>
                 <div class="progress-bar">
-                  <div class="progress-fill gradient-warning" :style="{ width: getProgressPercent(stats.reportStats?.pendingReports, totalReports) + '%' }"></div>
+                  <div
+                    class="progress-fill gradient-warning"
+                    :style="{
+                      width:
+                        getProgressPercent(stats.reportStats?.pendingReports, totalReports) + '%'
+                    }"
+                  ></div>
                 </div>
               </div>
               <div class="progress-item">
                 <div class="progress-header">
                   <span class="progress-label">本月处理</span>
-                  <span class="progress-value">{{ stats.reportStats?.monthHandledReports || 0 }}</span>
+                  <span class="progress-value">{{
+                    stats.reportStats?.monthHandledReports || 0
+                  }}</span>
                 </div>
                 <div class="progress-bar">
-                  <div class="progress-fill gradient-success" :style="{ width: getProgressPercent(stats.reportStats?.monthHandledReports, totalReports) + '%' }"></div>
+                  <div
+                    class="progress-fill gradient-success"
+                    :style="{
+                      width:
+                        getProgressPercent(stats.reportStats?.monthHandledReports, totalReports) +
+                        '%'
+                    }"
+                  ></div>
                 </div>
               </div>
               <div class="progress-item">
@@ -305,7 +435,9 @@
               </div>
               <div class="summary-item">
                 <span class="summary-label">待处理</span>
-                <span class="summary-value warning">{{ stats.reportStats?.pendingReports || 0 }}</span>
+                <span class="summary-value warning">{{
+                  stats.reportStats?.pendingReports || 0
+                }}</span>
               </div>
             </div>
           </div>
@@ -313,11 +445,19 @@
 
         <div class="growth-section">
           <div class="glass growth-card">
-            <h3 class="chart-title">用户增长趋势 (近30天)</h3>
+            <h3 class="chart-title">用户增长趋势 (近{{ trendDays }}天)</h3>
             <div class="growth-chart">
               <div class="growth-bars">
-                <div v-for="(day, idx) in userGrowthData" :key="idx" class="growth-bar-item" :title="`${day.date}: +${day.count}`">
-                  <div class="growth-bar-fill gradient-info" :style="{ height: getGrowthBarHeight(day.count, maxUserGrowth) + '%' }"></div>
+                <div
+                  v-for="(day, idx) in userGrowthData"
+                  :key="idx"
+                  class="growth-bar-item"
+                  :title="`${day.date}: +${day.count}`"
+                >
+                  <div
+                    class="growth-bar-fill gradient-info"
+                    :style="{ height: getGrowthBarHeight(day.count, maxUserGrowth) + '%' }"
+                  ></div>
                 </div>
               </div>
               <div class="growth-axis">
@@ -328,11 +468,19 @@
           </div>
 
           <div class="glass growth-card">
-            <h3 class="chart-title">文章增长趋势 (近30天)</h3>
+            <h3 class="chart-title">文章增长趋势 (近{{ trendDays }}天)</h3>
             <div class="growth-chart">
               <div class="growth-bars">
-                <div v-for="(day, idx) in postGrowthData" :key="idx" class="growth-bar-item" :title="`${day.date}: +${day.count}`">
-                  <div class="growth-bar-fill gradient-success" :style="{ height: getGrowthBarHeight(day.count, maxPostGrowth) + '%' }"></div>
+                <div
+                  v-for="(day, idx) in postGrowthData"
+                  :key="idx"
+                  class="growth-bar-item"
+                  :title="`${day.date}: +${day.count}`"
+                >
+                  <div
+                    class="growth-bar-fill gradient-success"
+                    :style="{ height: getGrowthBarHeight(day.count, maxPostGrowth) + '%' }"
+                  ></div>
                 </div>
               </div>
               <div class="growth-axis">
@@ -358,6 +506,10 @@ const stats = ref<Record<string, any>>({})
 const loading = ref(true)
 const error = ref('')
 const timePeriod = ref('month')
+const trendDays = computed(() => {
+  const periodDays: Record<string, number> = { week: 7, month: 30, quarter: 90, year: 365 }
+  return periodDays[timePeriod.value] || 30
+})
 
 const userGrowthData = ref<any[]>([])
 const postGrowthData = ref<any[]>([])
@@ -409,18 +561,14 @@ const fetchStats = async () => {
   loading.value = true
   error.value = ''
   try {
-    const response = await adminApi.getStatistics()
+    const response = await adminApi.getStatistics({ days: trendDays.value })
     stats.value = response.data || {}
 
-    if (response.data?.userGrowthTrend?.length) {
-      userGrowthData.value = response.data.userGrowthTrend
-      maxUserGrowth.value = Math.max(...response.data.userGrowthTrend.map(d => d.count || 0), 1)
-    }
+    userGrowthData.value = response.data?.userGrowthTrend || []
+    maxUserGrowth.value = Math.max(...userGrowthData.value.map((d) => d.count || 0), 1)
 
-    if (response.data?.postGrowthTrend?.length) {
-      postGrowthData.value = response.data.postGrowthTrend
-      maxPostGrowth.value = Math.max(...response.data.postGrowthTrend.map(d => d.count || 0), 1)
-    }
+    postGrowthData.value = response.data?.postGrowthTrend || []
+    maxPostGrowth.value = Math.max(...postGrowthData.value.map((d) => d.count || 0), 1)
   } catch (err: any) {
     logger.error('Failed to fetch stats', { error: err.message })
     error.value = '加载失败，请重试'
@@ -533,7 +681,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   pointer-events: none;
 }
 
@@ -627,7 +775,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
   pointer-events: none;
 }
 
@@ -651,7 +799,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-xs) 0;
-  border-bottom: 1px solid rgba(0,0,0,0.03);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
 }
 
 .detail-row:last-child {
@@ -669,7 +817,9 @@ onMounted(() => {
   color: var(--text-primary);
 }
 
-.text-success { color: var(--success); }
+.text-success {
+  color: var(--success);
+}
 
 .bar-chart {
   display: flex;
@@ -929,7 +1079,12 @@ onMounted(() => {
 .sk-title {
   width: 80px;
   height: 16px;
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 4px;
@@ -939,7 +1094,12 @@ onMounted(() => {
 .sk-label {
   width: 60px;
   height: 14px;
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 4px;
@@ -948,7 +1108,12 @@ onMounted(() => {
 .sk-value {
   width: 50px;
   height: 20px;
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 4px;

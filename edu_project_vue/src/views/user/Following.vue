@@ -1,22 +1,65 @@
 <template>
   <div class="follow-page">
     <button class="back-btn" @click="router.back()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
       返回
     </button>
     <div class="page-header">
       <h1>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="header-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          class="header-icon"
+        >
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
         我的关注
       </h1>
       <span class="page-count">{{ total }} 人</span>
     </div>
 
     <div class="search-bar card">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        class="search-icon"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
       <input v-model="searchQuery" type="text" class="search-input" placeholder="搜索关注..." />
       <button v-if="searchQuery" class="clear-btn" @click="searchQuery = ''">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
       </button>
     </div>
 
@@ -36,7 +79,20 @@
     </div>
 
     <div v-else-if="filteredFollowing.length === 0" class="empty-state card">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="empty-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <svg
+        width="64"
+        height="64"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1"
+        class="empty-icon"
+      >
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
       <p class="empty-title" v-if="searchQuery">未找到匹配的关注</p>
       <p class="empty-title" v-else>还没有关注任何人</p>
       <p class="empty-text" v-if="!searchQuery">去发现感兴趣的用户吧</p>
@@ -46,23 +102,54 @@
     <div v-else class="user-list">
       <div v-for="user in filteredFollowing" :key="user.id" class="user-card card">
         <router-link :to="`/user/${user.id}`" class="user-card-left">
-          <img :src="user.avatar || '/default-avatar.png'" :alt="user.nickname" class="user-avatar" @error="(e: Event) => (e.target as HTMLImageElement).src = '/default-avatar.png'" />
+          <img
+            :src="resolveAssetUrl(user.avatar) || DEFAULT_AVATAR_URL"
+            :alt="user.nickname"
+            class="user-avatar"
+            @error="(e: Event) => ((e.target as HTMLImageElement).src = DEFAULT_AVATAR_URL)"
+          />
           <div class="user-info">
             <span class="user-name">{{ user.nickname || user.username }}</span>
             <span class="user-bio">{{ user.bio || '这个人很懒，什么都没写' }}</span>
           </div>
         </router-link>
         <button class="btn btn-sm btn-secondary" @click="confirmUnfollow(user)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="18" y1="8" x2="23" y2="13" />
+            <line x1="23" y1="8" x2="18" y2="13" />
+          </svg>
           取消关注
         </button>
       </div>
 
       <div v-if="totalPages > 1" class="pagination-section">
         <div class="pagination">
-          <button class="pagination-btn" :disabled="page <= 1" @click="page--; fetchData()">上一页</button>
-          <button v-for="p in totalPages" :key="p" class="pagination-btn" :class="{ active: p === page }" @click="page = p; fetchData()">{{ p }}</button>
-          <button class="pagination-btn" :disabled="page >= totalPages" @click="page++; fetchData()">下一页</button>
+          <button class="pagination-btn" :disabled="page <= 1" @click="(page--, fetchData())">
+            上一页
+          </button>
+          <button
+            v-for="p in totalPages"
+            :key="p"
+            class="pagination-btn"
+            :class="{ active: p === page }"
+            @click="((page = p), fetchData())"
+          >
+            {{ p }}
+          </button>
+          <button
+            class="pagination-btn"
+            :disabled="page >= totalPages"
+            @click="(page++, fetchData())"
+          >
+            下一页
+          </button>
         </div>
         <span class="pagination-info">共 {{ total }} 人</span>
       </div>
@@ -73,6 +160,7 @@
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/user'
@@ -97,10 +185,11 @@ const searchQuery = ref('')
 const filteredFollowing = computed(() => {
   if (!searchQuery.value.trim()) return following.value
   const query = searchQuery.value.toLowerCase()
-  return following.value.filter(u =>
-    (u.nickname || '').toLowerCase().includes(query) ||
-    (u.username || '').toLowerCase().includes(query) ||
-    (u.bio || '').toLowerCase().includes(query)
+  return following.value.filter(
+    (u) =>
+      (u.nickname || '').toLowerCase().includes(query) ||
+      (u.username || '').toLowerCase().includes(query) ||
+      (u.bio || '').toLowerCase().includes(query)
   )
 })
 
@@ -114,7 +203,10 @@ async function fetchData() {
   loading.value = true
   error.value = ''
   try {
-    const response = await followApi.getFollowing(userStore.userId!, { pageNum: page.value, pageSize })
+    const response = await followApi.getFollowing(userStore.userId!, {
+      pageNum: page.value,
+      pageSize
+    })
     const data = response.data || {}
     following.value = data.records || []
     total.value = data.total || 0
@@ -128,7 +220,7 @@ async function fetchData() {
 }
 
 async function unfollow(user: any) {
-  const item = following.value.find(f => f.id === user.id)
+  const item = following.value.find((f) => f.id === user.id)
   const idx = following.value.indexOf(item)
   if (idx === -1) return
 
@@ -226,7 +318,9 @@ onMounted(() => {
 
 .search-bar:focus-within {
   border-color: var(--primary);
-  box-shadow: var(--shadow-md), 0 0 0 3px var(--primary-light);
+  box-shadow:
+    var(--shadow-md),
+    0 0 0 3px var(--primary-light);
 }
 
 .search-icon {
@@ -334,7 +428,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
   pointer-events: none;
 }
 

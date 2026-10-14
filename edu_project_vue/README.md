@@ -16,7 +16,7 @@ npm run test:ui
 npm run build
 ```
 
-The dev server listens on port 3000. `VITE_API_TARGET` controls its `/api` proxy and the `/uploads` to `/api/uploads` rewrite. Axios uses `/api` directly; production proxying is configured separately in `vercel.json` or your reverse proxy.
+The dev server listens on port 3000. `VITE_API_TARGET` controls its `/api` proxy and the `/uploads` to `/api/uploads` rewrite. Axios uses `/api` directly; production proxying is configured separately in `vercel.json` or your reverse proxy. Production builds use `/` as the default SPA base; set `VITE_APP_BASE` only when deploying under a subpath.
 
 ## Structure
 

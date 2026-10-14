@@ -32,7 +32,10 @@ export const collectApi = {
   /**
    * 获取我的收藏
    */
-  getMyCollections(params: { pageNum?: number; pageSize?: number }): Promise<PaginatedResponse<Post>> {
+  getMyCollections(params: {
+    pageNum?: number
+    pageSize?: number
+  }): Promise<PaginatedResponse<Post>> {
     return api.get('/collect/my', { params })
   }
 }

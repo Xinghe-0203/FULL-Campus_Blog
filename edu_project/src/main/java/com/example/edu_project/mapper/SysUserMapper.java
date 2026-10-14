@@ -32,6 +32,9 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      */
     int decrementFollowerCount(@Param("userId") Long userId);
 
+    /** Count distinct users active across articles, comments, and circle posts since a timestamp. */
+    Long countDistinctActiveUsersSince(@Param("since") LocalDateTime since);
+
     /**
      * 原子性增加关注数
      */

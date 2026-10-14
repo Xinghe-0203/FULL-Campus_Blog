@@ -7,9 +7,16 @@
       </div>
       <div class="header-meta">
         <span class="auto-refresh" :class="{ active: loading }">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="23 4 23 10 17 10"/>
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
           </svg>
           {{ loading ? '刷新中' : '60s 自动刷新' }}
         </span>
@@ -29,8 +36,17 @@
 
     <!-- Error -->
     <div v-else-if="error" class="error-block">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      <svg
+        width="40"
+        height="40"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
       </svg>
       <p>{{ error }}</p>
       <button class="btn btn-sm btn-primary" @click="fetchStats">重试</button>
@@ -57,7 +73,12 @@
         <section class="panel">
           <h3 class="panel-title">快捷操作</h3>
           <div class="actions-row">
-            <router-link v-for="action in quickActions" :key="action.label" :to="action.to" class="action-chip">
+            <router-link
+              v-for="action in quickActions"
+              :key="action.label"
+              :to="action.to"
+              class="action-chip"
+            >
               <component :is="action.icon" />
               <span>{{ action.label }}</span>
             </router-link>
@@ -116,57 +137,205 @@ onUnmounted(() => {
 })
 
 // Inline SVG icon components
-const IconUsers = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
-  h('path', { d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2' }),
-  h('circle', { cx: 9, cy: 7, r: 4 })
-])
+const IconUsers = () =>
+  h(
+    'svg',
+    {
+      width: 20,
+      height: 20,
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': 2
+    },
+    [
+      h('path', { d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2' }),
+      h('circle', { cx: 9, cy: 7, r: 4 })
+    ]
+  )
 
-const IconPosts = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
-  h('path', { d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' }),
-  h('polyline', { points: '14 2 14 8 20 8' })
-])
+const IconPosts = () =>
+  h(
+    'svg',
+    {
+      width: 20,
+      height: 20,
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': 2
+    },
+    [
+      h('path', { d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' }),
+      h('polyline', { points: '14 2 14 8 20 8' })
+    ]
+  )
 
-const IconCircle = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
-  h('path', { d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' })
-])
+const IconCircle = () =>
+  h(
+    'svg',
+    {
+      width: 20,
+      height: 20,
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': 2
+    },
+    [h('path', { d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' })]
+  )
 
-const IconComment = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
-  h('path', { d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' }),
-  h('line', { x1: 12, y1: 7, x2: 12, y2: 13 }),
-  h('line', { x1: 12, y1: 17, x2: 12.01, y2: 17 })
-])
+const IconComment = () =>
+  h(
+    'svg',
+    {
+      width: 20,
+      height: 20,
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': 2
+    },
+    [
+      h('path', { d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' }),
+      h('line', { x1: 12, y1: 7, x2: 12, y2: 13 }),
+      h('line', { x1: 12, y1: 17, x2: 12.01, y2: 17 })
+    ]
+  )
 
-const IconTag = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
-  h('path', { d: 'M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z' }),
-  h('line', { x1: 7, y1: 7, x2: 7.01, y2: 7 })
-])
+const IconTag = () =>
+  h(
+    'svg',
+    {
+      width: 20,
+      height: 20,
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': 2
+    },
+    [
+      h('path', {
+        d: 'M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z'
+      }),
+      h('line', { x1: 7, y1: 7, x2: 7.01, y2: 7 })
+    ]
+  )
 
-const IconTopic = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
-  h('circle', { cx: 12, cy: 12, r: 10 }),
-  h('path', { d: 'M2 12h20' }),
-  h('path', { d: 'M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z' })
-])
+const IconTopic = () =>
+  h(
+    'svg',
+    {
+      width: 20,
+      height: 20,
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': 2
+    },
+    [
+      h('circle', { cx: 12, cy: 12, r: 10 }),
+      h('path', { d: 'M2 12h20' }),
+      h('path', {
+        d: 'M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'
+      })
+    ]
+  )
 
-const IconAlert = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
-  h('path', { d: 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z' })
-])
+const IconAlert = () =>
+  h(
+    'svg',
+    {
+      width: 20,
+      height: 20,
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': 2
+    },
+    [
+      h('path', {
+        d: 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'
+      })
+    ]
+  )
 
-const IconActiveUser = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
-  h('path', { d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2' }),
-  h('circle', { cx: 9, cy: 7, r: 4 }),
-  h('path', { d: 'M23 21v-2a4 4 0 0 0-3-3.87' }),
-  h('path', { d: 'M16 3.13a4 4 0 0 1 0 7.75' })
-])
+const IconActiveUser = () =>
+  h(
+    'svg',
+    {
+      width: 20,
+      height: 20,
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': 2
+    },
+    [
+      h('path', { d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2' }),
+      h('circle', { cx: 9, cy: 7, r: 4 }),
+      h('path', { d: 'M23 21v-2a4 4 0 0 0-3-3.87' }),
+      h('path', { d: 'M16 3.13a4 4 0 0 1 0 7.75' })
+    ]
+  )
 
 const statCards = computed(() => [
-  { label: '用户总数', value: stats.value.userCount || 0, icon: IconUsers, bg: 'rgba(13, 148, 136, 0.1)', fg: '#0D9488' },
-  { label: '文章总数', value: stats.value.postCount || 0, icon: IconPosts, bg: 'rgba(5, 150, 105, 0.1)', fg: '#059669' },
-  { label: '校友圈动态', value: stats.value.circlePostCount || 0, icon: IconCircle, bg: 'rgba(139, 92, 246, 0.1)', fg: '#8B5CF6' },
-  { label: '评论总数', value: stats.value.commentCount || 0, icon: IconComment, bg: 'rgba(217, 119, 6, 0.1)', fg: '#D97706' },
-  { label: '标签总数', value: stats.value.tagCount || 0, icon: IconTag, bg: 'rgba(37, 99, 235, 0.1)', fg: '#2563EB' },
-  { label: '话题总数', value: stats.value.topicCount || 0, icon: IconTopic, bg: 'rgba(249, 115, 22, 0.1)', fg: '#F97316' },
-  { label: '待处理举报', value: stats.value.pendingReportCount || 0, icon: IconAlert, bg: 'rgba(220, 38, 38, 0.1)', fg: '#DC2626' },
-  { label: '活跃用户', value: stats.value.userStats?.activeUsers || 0, icon: IconActiveUser, bg: 'rgba(5, 150, 105, 0.1)', fg: '#059669' },
+  {
+    label: '用户总数',
+    value: stats.value.userCount || 0,
+    icon: IconUsers,
+    bg: 'rgba(13, 148, 136, 0.1)',
+    fg: '#0D9488'
+  },
+  {
+    label: '文章总数',
+    value: stats.value.postCount || 0,
+    icon: IconPosts,
+    bg: 'rgba(5, 150, 105, 0.1)',
+    fg: '#059669'
+  },
+  {
+    label: '校友圈动态',
+    value: stats.value.circlePostCount || 0,
+    icon: IconCircle,
+    bg: 'rgba(139, 92, 246, 0.1)',
+    fg: '#8B5CF6'
+  },
+  {
+    label: '评论总数',
+    value: stats.value.commentCount || 0,
+    icon: IconComment,
+    bg: 'rgba(217, 119, 6, 0.1)',
+    fg: '#D97706'
+  },
+  {
+    label: '标签总数',
+    value: stats.value.tagCount || 0,
+    icon: IconTag,
+    bg: 'rgba(37, 99, 235, 0.1)',
+    fg: '#2563EB'
+  },
+  {
+    label: '话题总数',
+    value: stats.value.topicCount || 0,
+    icon: IconTopic,
+    bg: 'rgba(249, 115, 22, 0.1)',
+    fg: '#F97316'
+  },
+  {
+    label: '待处理举报',
+    value: stats.value.pendingReportCount || 0,
+    icon: IconAlert,
+    bg: 'rgba(220, 38, 38, 0.1)',
+    fg: '#DC2626'
+  },
+  {
+    label: '活跃用户',
+    value: stats.value.userStats?.activeUsers || 0,
+    icon: IconActiveUser,
+    bg: 'rgba(5, 150, 105, 0.1)',
+    fg: '#059669'
+  }
 ])
 
 const quickActions = [
@@ -175,14 +344,26 @@ const quickActions = [
   { label: '校友圈', to: '/admin/circle', icon: IconCircle },
   { label: '标签管理', to: '/admin/tags', icon: IconTag },
   { label: '话题管理', to: '/admin/topics', icon: IconTopic },
-  { label: '举报管理', to: '/admin/reports', icon: IconAlert },
+  { label: '举报管理', to: '/admin/reports', icon: IconAlert }
 ]
 
 const todayItems = computed(() => [
-  { label: '今日新增用户', value: `+${stats.value.userStats?.todayNewUsers || 0}`, color: '#2563EB' },
-  { label: '今日新增文章', value: `+${stats.value.postStats?.todayNewPosts || 0}`, color: '#059669' },
-  { label: '今日新增动态', value: `+${stats.value.circleStats?.todayNewPosts || 0}`, color: '#8B5CF6' },
-  { label: '待处理举报', value: `${stats.value.pendingReportCount || 0}`, color: '#DC2626' },
+  {
+    label: '今日新增用户',
+    value: `+${stats.value.userStats?.todayNewUsers || 0}`,
+    color: '#2563EB'
+  },
+  {
+    label: '今日新增文章',
+    value: `+${stats.value.postStats?.todayNewPosts || 0}`,
+    color: '#059669'
+  },
+  {
+    label: '今日新增动态',
+    value: `+${stats.value.circleStats?.todayNewPosts || 0}`,
+    color: '#8B5CF6'
+  },
+  { label: '待处理举报', value: `${stats.value.pendingReportCount || 0}`, color: '#DC2626' }
 ])
 </script>
 
@@ -237,7 +418,9 @@ const todayItems = computed(() => [
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Stats grid */
@@ -332,8 +515,13 @@ const todayItems = computed(() => [
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 /* Panels */

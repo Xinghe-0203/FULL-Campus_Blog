@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DEFAULT_AVATAR_URL, resolveAssetUrl } from '@/constants'
 import { ref, reactive, computed, watch, nextTick } from 'vue'
 import { circleApi } from '../../api/circle'
 import { topicApi } from '../../api/topic'
@@ -74,14 +75,20 @@ const handleTextareaInput = () => {
 }
 
 const searchMentionUsers = async (keyword: string) => {
-  if (!keyword.trim()) { mentionResults.value = []; return }
+  if (!keyword.trim()) {
+    mentionResults.value = []
+    return
+  }
   mentionLoading.value = true
   try {
     const res = await userApi.searchUsers({ keyword, pageNum: 1, pageSize: 10 })
     const data = res.data as any
-    mentionResults.value = Array.isArray(data) ? data : (data?.records || [])
-  } catch { mentionResults.value = [] }
-  finally { mentionLoading.value = false }
+    mentionResults.value = Array.isArray(data) ? data : data?.records || []
+  } catch {
+    mentionResults.value = []
+  } finally {
+    mentionLoading.value = false
+  }
 }
 
 const selectMention = (user: any) => {
@@ -92,7 +99,8 @@ const selectMention = (user: any) => {
   const textAfterCursor = newPost.content.substring(cursorPos)
   const matchPos = textBeforeCursor.lastIndexOf('@')
   if (matchPos === -1) return
-  const newTextBefore = textBeforeCursor.substring(0, matchPos) + `@${user.nickname || user.username} `
+  const newTextBefore =
+    textBeforeCursor.substring(0, matchPos) + `@${user.nickname || user.username} `
   newPost.content = newTextBefore + textAfterCursor
   showMentionDropdown.value = false
   mentionResults.value = []
@@ -126,11 +134,11 @@ void debouncedSearchTopics
 const filteredTopics = computed(() => {
   if (!topicSearch.value) return allTopics.value
   const q = topicSearch.value.toLowerCase()
-  return allTopics.value.filter(t => t.name.toLowerCase().includes(q))
+  return allTopics.value.filter((t) => t.name.toLowerCase().includes(q))
 })
 
 const selectTopic = (topic: any) => {
-  if (!selectedTopics.value.find(t => t.id === topic.id)) {
+  if (!selectedTopics.value.find((t) => t.id === topic.id)) {
     selectedTopics.value.push(topic)
   }
   topicSearch.value = ''
@@ -138,11 +146,13 @@ const selectTopic = (topic: any) => {
 }
 
 const removeTopic = (topic: any) => {
-  selectedTopics.value = selectedTopics.value.filter(t => t.id !== topic.id)
+  selectedTopics.value = selectedTopics.value.filter((t) => t.id !== topic.id)
 }
 
 const hideTopicDropdown = () => {
-  setTimeout(() => { showTopicDropdown.value = false }, 200)
+  setTimeout(() => {
+    showTopicDropdown.value = false
+  }, 200)
 }
 
 const openCreateTopicModal = () => {
@@ -168,7 +178,7 @@ const confirmCreateTopic = async () => {
       postCount: 0
     }
     allTopics.value.unshift(createdTopic)
-    if (!selectedTopics.value.find(t => t.id === createdTopic.id)) {
+    if (!selectedTopics.value.find((t) => t.id === createdTopic.id)) {
       selectedTopics.value.push(createdTopic)
     }
     topicSearch.value = ''
@@ -259,7 +269,7 @@ const publishPost = async () => {
       videos: newPost.videos,
       visibility: newPost.visibility,
       location: newPost.location || undefined,
-      topicIds: selectedTopics.value.length > 0 ? selectedTopics.value.map(t => t.id) : null,
+      topicIds: selectedTopics.value.length > 0 ? selectedTopics.value.map((t) => t.id) : null,
       allowComment: 1,
       allowRepost: 1
     })
@@ -271,7 +281,9 @@ const publishPost = async () => {
       if (draftId && draft?.title === '[校友圈]') {
         await postApi.deleteDraft(draftId)
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     toast.success('发布成功')
     resetForm()
     emit('published')
@@ -301,9 +313,11 @@ const saveCircleDraft = async () => {
       title: '[校友圈]',
       content: newPost.content,
       coverImage: newPost.images[0] || undefined,
-      tagNames: selectedTopics.value.map(t => t.name)
+      tagNames: selectedTopics.value.map((t) => t.name)
     } as any)
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 const loadCircleDraft = async () => {
@@ -318,7 +332,9 @@ const loadCircleDraft = async () => {
         selectedTopics.value = res.data.tags.map((t: any) => ({ id: t.id, name: t.name }))
       }
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 const closeModal = async () => {
@@ -334,10 +350,11 @@ const closeModal = async () => {
 const loadTopics = () => {
   if (allTopics.value.length === 0) {
     topicsLoading.value = true
-    topicApi.getTopicList({ pageNum: 1, pageSize: 100 })
-      .then(res => {
+    topicApi
+      .getTopicList({ pageNum: 1, pageSize: 100 })
+      .then((res) => {
         const data = res.data
-        allTopics.value = Array.isArray(data) ? data : (data?.records || [])
+        allTopics.value = Array.isArray(data) ? data : data?.records || []
       })
       .catch(() => {})
       .finally(() => {
@@ -352,13 +369,16 @@ const visibilityIcon = (v: number) => {
   return 'lock'
 }
 
-watch(() => props.show, (val) => {
-  if (val) {
-    nextTick(() => autoResize())
-    loadCircleDraft()
-    loadTopics()
+watch(
+  () => props.show,
+  (val) => {
+    if (val) {
+      nextTick(() => autoResize())
+      loadCircleDraft()
+      loadTopics()
+    }
   }
-})
+)
 </script>
 
 <template>
@@ -369,30 +389,136 @@ watch(() => props.show, (val) => {
           <div class="cpm-header">
             <h3>发布动态</h3>
             <button class="cpm-close" @click="closeModal">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
             </button>
           </div>
 
           <div class="cpm-body">
             <!-- Author Row -->
             <div class="cpm-author">
-              <img :src="userStore.avatar || '/default-avatar.png'" class="cpm-avatar" />
+              <img
+                :src="resolveAssetUrl(userStore.avatar) || DEFAULT_AVATAR_URL"
+                class="cpm-avatar"
+              />
               <div class="cpm-author-meta">
                 <span class="cpm-nickname">{{ userStore.nickname }}</span>
                 <div class="cpm-vis-wrap">
                   <button class="cpm-vis-btn" @click="showVisibilityPicker = !showVisibilityPicker">
-                    <svg v-if="visibilityIcon(newPost.visibility) === 'globe'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                    <svg v-else-if="visibilityIcon(newPost.visibility) === 'users'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
-                    <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <svg
+                      v-if="visibilityIcon(newPost.visibility) === 'globe'"
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="2" y1="12" x2="22" y2="12" />
+                      <path
+                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                      />
+                    </svg>
+                    <svg
+                      v-else-if="visibilityIcon(newPost.visibility) === 'users'"
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="8.5" cy="7" r="4" />
+                      <path d="M20 8v6" />
+                      <path d="M23 11h-6" />
+                    </svg>
+                    <svg
+                      v-else
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
                     {{ visibilityOptions[newPost.visibility] }}
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
                   </button>
                   <transition name="cpm-drop">
                     <div v-if="showVisibilityPicker" class="cpm-vis-dropdown">
-                      <div v-for="(label, key) in visibilityOptions" :key="key" class="cpm-vis-option" :class="{ 'is-active': newPost.visibility === Number(key) }" @click="newPost.visibility = Number(key); showVisibilityPicker = false">
-                        <svg v-if="Number(key) === 0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                        <svg v-else-if="Number(key) === 1" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
-                        <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      <div
+                        v-for="(label, key) in visibilityOptions"
+                        :key="key"
+                        class="cpm-vis-option"
+                        :class="{ 'is-active': newPost.visibility === Number(key) }"
+                        @click="
+                          ((newPost.visibility = Number(key)), (showVisibilityPicker = false))
+                        "
+                      >
+                        <svg
+                          v-if="Number(key) === 0"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        >
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="2" y1="12" x2="22" y2="12" />
+                          <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                          />
+                        </svg>
+                        <svg
+                          v-else-if="Number(key) === 1"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        >
+                          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                          <circle cx="8.5" cy="7" r="4" />
+                          <path d="M20 8v6" />
+                          <path d="M23 11h-6" />
+                        </svg>
+                        <svg
+                          v-else
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        >
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
                         <span>{{ label }}</span>
                       </div>
                     </div>
@@ -414,10 +540,20 @@ watch(() => props.show, (val) => {
               ></textarea>
               <transition name="cpm-drop">
                 <div v-if="showMentionDropdown" class="cpm-mention-dropdown">
-                  <div v-if="mentionLoading" class="cpm-dropdown-status"><span class="cpm-spinner"></span> 搜索中...</div>
+                  <div v-if="mentionLoading" class="cpm-dropdown-status">
+                    <span class="cpm-spinner"></span> 搜索中...
+                  </div>
                   <div v-else-if="mentionResults.length">
-                    <div v-for="user in mentionResults" :key="user.id" class="cpm-mention-item" @mousedown.prevent="selectMention(user)">
-                      <img :src="user.avatar || '/default-avatar.png'" class="cpm-mention-avatar" />
+                    <div
+                      v-for="user in mentionResults"
+                      :key="user.id"
+                      class="cpm-mention-item"
+                      @mousedown.prevent="selectMention(user)"
+                    >
+                      <img
+                        :src="resolveAssetUrl(user.avatar) || DEFAULT_AVATAR_URL"
+                        class="cpm-mention-avatar"
+                      />
                       <span class="cpm-mention-name">{{ user.nickname || user.username }}</span>
                     </div>
                   </div>
@@ -425,7 +561,9 @@ watch(() => props.show, (val) => {
                 </div>
               </transition>
             </div>
-            <div class="cpm-char" :class="{ 'is-warn': newPost.content.length > 1800 }">{{ newPost.content.length }}/2000</div>
+            <div class="cpm-char" :class="{ 'is-warn': newPost.content.length > 1800 }">
+              {{ newPost.content.length }}/2000
+            </div>
 
             <!-- Topics -->
             <div class="cpm-topics">
@@ -433,31 +571,86 @@ watch(() => props.show, (val) => {
                 <span v-for="topic in selectedTopics" :key="topic.id" class="cpm-topic-badge">
                   #{{ topic.name }}
                   <button class="cpm-topic-remove" @click="removeTopic(topic)">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
                   </button>
                 </span>
               </div>
               <div class="cpm-topic-input-wrap">
                 <div class="cpm-topic-input">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                  <input v-model="topicSearch" placeholder="添加话题..." @focus="showTopicDropdown = true" @blur="hideTopicDropdown" />
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <input
+                    v-model="topicSearch"
+                    placeholder="添加话题..."
+                    @focus="showTopicDropdown = true"
+                    @blur="hideTopicDropdown"
+                  />
                 </div>
                 <transition name="cpm-drop">
                   <div v-if="showTopicDropdown" class="cpm-topic-dropdown">
-                    <div v-if="topicsLoading" class="cpm-dropdown-status"><span class="cpm-spinner"></span> 加载中...</div>
+                    <div v-if="topicsLoading" class="cpm-dropdown-status">
+                      <span class="cpm-spinner"></span> 加载中...
+                    </div>
                     <div v-else-if="filteredTopics.length">
-                      <div v-for="topic in filteredTopics" :key="topic.id" class="cpm-topic-option" @mousedown.prevent="selectTopic(topic)">
+                      <div
+                        v-for="topic in filteredTopics"
+                        :key="topic.id"
+                        class="cpm-topic-option"
+                        @mousedown.prevent="selectTopic(topic)"
+                      >
                         <span class="cpm-topic-option-name">#{{ topic.name }}</span>
                         <span class="cpm-topic-option-count">{{ topic.postCount || 0 }} 篇</span>
                       </div>
                       <div class="cpm-dropdown-divider"></div>
-                      <div class="cpm-topic-option cpm-topic-create" @mousedown.prevent="openCreateTopicModal">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                      <div
+                        class="cpm-topic-option cpm-topic-create"
+                        @mousedown.prevent="openCreateTopicModal"
+                      >
+                        <svg
+                          width="13"
+                          height="13"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        >
+                          <line x1="12" y1="5" x2="12" y2="19" />
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
                         <span>创建话题 "{{ topicSearch || '新话题' }}"</span>
                       </div>
                     </div>
                     <div v-else class="cpm-topic-create" @mousedown.prevent="openCreateTopicModal">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                      <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                      </svg>
                       <span>创建话题 "{{ topicSearch || '新话题' }}"</span>
                     </div>
                   </div>
@@ -468,14 +661,38 @@ watch(() => props.show, (val) => {
             <!-- Location -->
             <div class="cpm-location">
               <button class="cpm-loc-btn" @click="showLocationInput = !showLocationInput">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
                 {{ newPost.location || '添加位置' }}
               </button>
               <transition name="cpm-drop">
                 <div v-if="showLocationInput" class="cpm-loc-input">
                   <input v-model="newPost.location" placeholder="输入位置信息..." maxlength="100" />
-                  <button v-if="newPost.location" class="cpm-loc-clear" @click="newPost.location = ''; showLocationInput = false">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  <button
+                    v-if="newPost.location"
+                    class="cpm-loc-clear"
+                    @click="((newPost.location = ''), (showLocationInput = false))"
+                  >
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
                   </button>
                 </div>
               </transition>
@@ -484,19 +701,44 @@ watch(() => props.show, (val) => {
             <!-- Uploaded Images -->
             <div v-if="newPost.images.length" class="cpm-images">
               <div v-for="(img, idx) in newPost.images" :key="idx" class="cpm-image-item">
-                <img :src="img" alt="" />
+                <img :src="resolveAssetUrl(img)" alt="" />
                 <button class="cpm-image-remove" @click="newPost.images.splice(idx, 1)">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
                 </button>
               </div>
             </div>
 
             <!-- Uploaded Videos -->
             <div v-if="newPost.videos.length" class="cpm-videos">
-              <div v-for="(video, idx) in newPost.videos" :key="'v-'+idx" class="cpm-video-item">
-                <video :src="video" class="cpm-video-preview" muted preload="metadata"></video>
+              <div v-for="(video, idx) in newPost.videos" :key="'v-' + idx" class="cpm-video-item">
+                <video
+                  :src="resolveAssetUrl(video)"
+                  class="cpm-video-preview"
+                  muted
+                  preload="metadata"
+                ></video>
                 <button class="cpm-image-remove" @click="newPost.videos.splice(idx, 1)">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
                 </button>
               </div>
             </div>
@@ -510,16 +752,63 @@ watch(() => props.show, (val) => {
           <!-- Toolbar & Footer -->
           <div class="cpm-footer">
             <div class="cpm-tools">
-              <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple @change="handleImageUpload" ref="imageInput" hidden />
-              <input type="file" accept="video/mp4,video/webm" @change="handleVideoUpload" ref="videoInput" hidden />
-              <button class="cpm-tool" title="图片" @click="(imageInput as HTMLInputElement)?.click()" :disabled="newPost.images.length >= 9">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                multiple
+                @change="handleImageUpload"
+                ref="imageInput"
+                hidden
+              />
+              <input
+                type="file"
+                accept="video/mp4,video/webm"
+                @change="handleVideoUpload"
+                ref="videoInput"
+                hidden
+              />
+              <button
+                class="cpm-tool"
+                title="图片"
+                @click="(imageInput as HTMLInputElement)?.click()"
+                :disabled="newPost.images.length >= 9"
+              >
+                <svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
               </button>
-              <button class="cpm-tool" title="视频" @click="(videoInput as HTMLInputElement)?.click()">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+              <button
+                class="cpm-tool"
+                title="视频"
+                @click="(videoInput as HTMLInputElement)?.click()"
+              >
+                <svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polygon points="23 7 16 12 23 17 23 7" />
+                  <rect x="1" y="5" width="15" height="14" rx="2" />
+                </svg>
               </button>
             </div>
-            <button class="btn btn-primary btn-sm" @click="publishPost" :disabled="!newPost.content.trim() || publishing">
+            <button
+              class="btn btn-primary btn-sm"
+              @click="publishPost"
+              :disabled="!newPost.content.trim() || publishing"
+            >
               {{ publishing ? '发布中...' : '发布' }}
             </button>
           </div>
@@ -531,29 +820,58 @@ watch(() => props.show, (val) => {
   <!-- Create Topic Modal -->
   <teleport to="body">
     <transition name="cpm-fade">
-      <div v-if="showCreateTopicModal" class="cpm-overlay" @click.self="showCreateTopicModal = false">
+      <div
+        v-if="showCreateTopicModal"
+        class="cpm-overlay"
+        @click.self="showCreateTopicModal = false"
+      >
         <div class="cpm-modal cpm-modal--sm">
           <div class="cpm-header">
             <h3>创建新话题</h3>
             <button class="cpm-close" @click="showCreateTopicModal = false">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
             </button>
           </div>
           <div class="cpm-body">
             <div class="cpm-field">
               <label class="cpm-label">话题名称</label>
-              <input v-model="newTopic.name" class="cpm-input" placeholder="请输入话题名称" maxlength="20" />
+              <input
+                v-model="newTopic.name"
+                class="cpm-input"
+                placeholder="请输入话题名称"
+                maxlength="20"
+              />
               <div class="cpm-char">{{ newTopic.name.length }}/20</div>
             </div>
             <div class="cpm-field">
               <label class="cpm-label">话题描述（可选）</label>
-              <textarea v-model="newTopic.description" class="cpm-textarea-sm" placeholder="简单描述一下这个话题..." rows="3" maxlength="200"></textarea>
+              <textarea
+                v-model="newTopic.description"
+                class="cpm-textarea-sm"
+                placeholder="简单描述一下这个话题..."
+                rows="3"
+                maxlength="200"
+              ></textarea>
               <div class="cpm-char">{{ newTopic.description.length }}/200</div>
             </div>
           </div>
           <div class="cpm-footer cpm-footer--end">
             <button class="btn btn-ghost" @click="showCreateTopicModal = false">取消</button>
-            <button class="btn btn-primary" @click="confirmCreateTopic" :disabled="!newTopic.name.trim() || creatingTopic">
+            <button
+              class="btn btn-primary"
+              @click="confirmCreateTopic"
+              :disabled="!newTopic.name.trim() || creatingTopic"
+            >
               {{ creatingTopic ? '创建中...' : '创建' }}
             </button>
           </div>
@@ -829,7 +1147,9 @@ watch(() => props.show, (val) => {
 }
 
 @keyframes cpmSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Topics */

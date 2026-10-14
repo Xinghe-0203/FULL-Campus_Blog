@@ -4,7 +4,12 @@
     <Navbar v-if="!isAuthPage" />
     <main id="main-content" class="main-content">
       <router-view v-slot="{ Component, route }">
-        <Transition :name="transitionName" mode="out-in" @before-enter="onBeforeEnter" @after-enter="onAfterEnter">
+        <Transition
+          :name="transitionName"
+          mode="out-in"
+          @before-enter="onBeforeEnter"
+          @after-enter="onAfterEnter"
+        >
           <div :key="route.path" class="page-wrapper">
             <component :is="Component" />
           </div>
@@ -31,7 +36,9 @@ const route = useRoute()
 const themeStore = useThemeStore()
 
 const isDarkMode = computed(() => themeStore.isDarkMode)
-const isAuthPage = computed(() => ['Login', 'Register', 'PasswordReset'].includes(route.name as string))
+const isAuthPage = computed(() =>
+  ['Login', 'Register', 'PasswordReset'].includes(route.name as string)
+)
 const isAdminPage = computed(() => route.path.startsWith('/admin'))
 
 // Track transition direction based on route depth
@@ -117,13 +124,15 @@ onUnmounted(() => {
 
 /* Standard page transition */
 .page-enter-active {
-  transition: opacity 280ms cubic-bezier(0.16, 1, 0.3, 1),
-              transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    opacity 280ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .page-leave-active {
-  transition: opacity 160ms ease-out,
-              transform 160ms ease-out;
+  transition:
+    opacity 160ms ease-out,
+    transform 160ms ease-out;
 }
 
 .page-enter-from {
@@ -138,13 +147,15 @@ onUnmounted(() => {
 
 /* Forward navigation (deeper) — slide from right */
 .page-forward-enter-active {
-  transition: opacity 300ms cubic-bezier(0.16, 1, 0.3, 1),
-              transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    opacity 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .page-forward-leave-active {
-  transition: opacity 200ms ease-out,
-              transform 200ms ease-out;
+  transition:
+    opacity 200ms ease-out,
+    transform 200ms ease-out;
 }
 
 .page-forward-enter-from {
@@ -159,13 +170,15 @@ onUnmounted(() => {
 
 /* Back navigation (shallower) — slide from left */
 .page-back-enter-active {
-  transition: opacity 300ms cubic-bezier(0.16, 1, 0.3, 1),
-              transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    opacity 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .page-back-leave-active {
-  transition: opacity 200ms ease-out,
-              transform 200ms ease-out;
+  transition:
+    opacity 200ms ease-out,
+    transform 200ms ease-out;
 }
 
 .page-back-enter-from {

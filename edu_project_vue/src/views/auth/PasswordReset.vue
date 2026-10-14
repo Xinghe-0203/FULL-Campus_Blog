@@ -7,15 +7,22 @@
       <div class="auth-card">
         <div class="auth-header">
           <div class="auth-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
           </div>
           <h1>找回密码</h1>
           <p>通过邮箱重置密码</p>
         </div>
-        
+
         <form class="auth-form" @submit.prevent="handleSubmit">
           <template v-if="step === 1">
             <div class="step-indicator">
@@ -25,29 +32,36 @@
               <div class="step-line"></div>
               <div class="step">3</div>
             </div>
-            
+
             <div class="form-group">
               <label class="form-label">注册邮箱</label>
-              <input 
-                v-model="form.email" 
-                type="email" 
+              <input
+                v-model="form.email"
+                type="email"
                 class="form-input"
                 placeholder="请输入注册时使用的邮箱"
                 required
               />
             </div>
-            
+
             <button type="submit" class="btn btn-primary btn-block" :disabled="loading">
               <span v-if="loading" class="loading-spinner"></span>
               <span v-else>发送验证码</span>
             </button>
           </template>
-          
+
           <template v-if="step === 2">
             <div class="step-indicator">
               <div class="step completed">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                  <polyline points="20 6 9 17 4 12"/>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                >
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
               <div class="step-line active"></div>
@@ -55,19 +69,19 @@
               <div class="step-line"></div>
               <div class="step">3</div>
             </div>
-            
+
             <div class="form-group">
               <label class="form-label">验证码</label>
               <div class="code-input-group">
-                <input 
-                  v-model="form.code" 
-                  type="text" 
+                <input
+                  v-model="form.code"
+                  type="text"
                   class="form-input"
                   placeholder="请输入邮箱收到的验证码"
                   required
                 />
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   class="btn btn-secondary btn-code"
                   @click="resendCode"
                   :disabled="sendingCode || codeSent"
@@ -77,12 +91,12 @@
                 </button>
               </div>
             </div>
-            
+
             <div class="form-group">
               <label class="form-label">新密码</label>
-              <input 
-                v-model="form.newPassword" 
-                type="password" 
+              <input
+                v-model="form.newPassword"
+                type="password"
                 class="form-input"
                 placeholder="请输入新密码（至少8位）"
                 required
@@ -91,71 +105,109 @@
               />
               <div v-if="form.newPassword" class="strength-meter">
                 <div class="strength-bar">
-                  <div class="strength-fill" :style="{ width: strengthPercent + '%', background: strengthColor }"></div>
+                  <div
+                    class="strength-fill"
+                    :style="{ width: strengthPercent + '%', background: strengthColor }"
+                  ></div>
                 </div>
-                <span class="strength-text">强度：<span :style="{ color: strengthColor, fontWeight: 600 }">{{ strengthText }}</span></span>
+                <span class="strength-text"
+                  >强度：<span :style="{ color: strengthColor, fontWeight: 600 }">{{
+                    strengthText
+                  }}</span></span
+                >
               </div>
             </div>
-            
+
             <div class="form-group">
               <label class="form-label">确认新密码</label>
-              <input 
-                v-model="form.confirmPassword" 
-                type="password" 
+              <input
+                v-model="form.confirmPassword"
+                type="password"
                 class="form-input"
-                :class="{ 'input-error': form.confirmPassword && form.confirmPassword !== form.newPassword }"
+                :class="{
+                  'input-error': form.confirmPassword && form.confirmPassword !== form.newPassword
+                }"
                 placeholder="请再次输入新密码"
                 required
               />
-              <span v-if="form.confirmPassword && form.confirmPassword !== form.newPassword" class="error-hint">
+              <span
+                v-if="form.confirmPassword && form.confirmPassword !== form.newPassword"
+                class="error-hint"
+              >
                 两次输入的密码不一致
               </span>
             </div>
-            
+
             <button type="submit" class="btn btn-primary btn-block" :disabled="loading">
               <span v-if="loading" class="loading-spinner"></span>
               <span v-else>重置密码</span>
             </button>
           </template>
-          
+
           <template v-if="step === 3">
             <div class="step-indicator">
               <div class="step completed">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                  <polyline points="20 6 9 17 4 12"/>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                >
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
               <div class="step-line active"></div>
               <div class="step completed">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                  <polyline points="20 6 9 17 4 12"/>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                >
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
               <div class="step-line active"></div>
               <div class="step completed">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                  <polyline points="20 6 9 17 4 12"/>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                >
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
             </div>
-            
+
             <div class="success-message">
               <div class="success-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                  <polyline points="22 4 12 14.01 9 11.01"/>
+                <svg
+                  width="48"
+                  height="48"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
               </div>
               <h3>密码重置成功</h3>
               <p>请使用新密码登录</p>
             </div>
-            
-            <router-link to="/login" class="btn btn-primary btn-block">
-              立即登录
-            </router-link>
+
+            <router-link to="/login" class="btn btn-primary btn-block"> 立即登录 </router-link>
           </template>
         </form>
-        
+
         <div class="auth-footer">
           <p>想起密码了？<router-link to="/login">返回登录</router-link></p>
         </div>
@@ -356,10 +408,19 @@ const handleSubmit = async () => {
 }
 
 @keyframes orb-float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(30px, -30px) scale(1.1); }
-  50% { transform: translate(-20px, 20px) scale(0.95); }
-  75% { transform: translate(20px, 10px) scale(1.05); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(30px, -30px) scale(1.1);
+  }
+  50% {
+    transform: translate(-20px, 20px) scale(0.95);
+  }
+  75% {
+    transform: translate(20px, 10px) scale(1.05);
+  }
 }
 
 .auth-container {
@@ -389,7 +450,7 @@ const handleSubmit = async () => {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
 }
 
 .auth-card:hover {
@@ -515,7 +576,9 @@ const handleSubmit = async () => {
 .form-input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light), var(--glass-shadow);
+  box-shadow:
+    0 0 0 3px var(--primary-light),
+    var(--glass-shadow);
   background: var(--glass-hover);
 }
 
@@ -528,7 +591,9 @@ const handleSubmit = async () => {
 }
 
 .form-input.input-error:focus {
-  box-shadow: 0 0 0 3px var(--error-light), var(--glass-shadow);
+  box-shadow:
+    0 0 0 3px var(--error-light),
+    var(--glass-shadow);
 }
 
 .strength-meter {
@@ -546,7 +611,9 @@ const handleSubmit = async () => {
 .strength-fill {
   height: 100%;
   border-radius: var(--radius-full);
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease;
+  transition:
+    width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.4s ease;
 }
 
 .strength-text {
@@ -613,7 +680,9 @@ const handleSubmit = async () => {
 
 .btn-block:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md), 0 0 20px rgba(59, 130, 246, 0.4);
+  box-shadow:
+    var(--shadow-md),
+    0 0 20px rgba(59, 130, 246, 0.4);
 }
 
 .btn-block:active:not(:disabled) {
@@ -635,7 +704,9 @@ const handleSubmit = async () => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .success-message {
@@ -658,8 +729,14 @@ const handleSubmit = async () => {
 }
 
 @keyframes success-pop {
-  0% { transform: scale(0); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .success-message h3 {
@@ -701,45 +778,56 @@ const handleSubmit = async () => {
   .auth-page {
     padding: var(--spacing-md);
   }
-  
+
   .auth-card {
     padding: var(--spacing-xl);
     border-radius: var(--radius-lg);
   }
-  
+
   .auth-header h1 {
     font-size: 1.5rem;
   }
-  
+
   .auth-icon {
     width: 60px;
     height: 60px;
   }
-  
+
   .auth-icon svg {
     width: 32px;
     height: 32px;
   }
-  
+
   .step-line {
     width: 40px;
   }
-  
+
   .code-input-group {
     flex-direction: column;
   }
-  
+
   .btn-code {
     width: 100%;
   }
-  
-  .orb-1, .orb-2, .orb-3 {
+
+  .orb-1,
+  .orb-2,
+  .orb-3 {
     filter: blur(60px);
     opacity: 0.3;
   }
-  
-  .orb-1 { width: 250px; height: 250px; }
-  .orb-2 { width: 200px; height: 200px; }
-  .orb-3 { width: 180px; height: 180px; }
+
+  .orb-1 {
+    width: 250px;
+    height: 250px;
+  }
+  .orb-2 {
+    width: 200px;
+    height: 200px;
+  }
+  .orb-3 {
+    width: 180px;
+    height: 180px;
+  }
 }
 </style>
