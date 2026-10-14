@@ -72,6 +72,7 @@ services:
         condition: service_healthy
     environment:
       # 数据库连接配置
+      DB_TYPE: mysql
       DB_HOST: mysql
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-campus_blog}

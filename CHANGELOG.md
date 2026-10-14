@@ -4,6 +4,19 @@
 
 ---
 
+## Unreleased (2026-10-14)
+
+### 修复与清理
+
+- Docker Compose 明确设置 `DB_TYPE=mysql`，避免应用继承 `.env.example` 的 SQLite 默认值却连接 MySQL。
+- `.env.example` 同时配置文件和 multipart 请求大小，修复单文件上限大于请求上限的问题；Vite 配置改用 ESM 文件 URL 解析路径。
+- 删除无路由引用且与 `HotPosts.vue` 重复的 `PostSearch.vue`；清理未使用的前端环境变量声明。
+- 删除未被使用的分页 composable、后端响应类型副本及路由辅助函数的冗余导出。
+- 更新 Vue/Vite/Vitest 依赖以处理已知 npm 安全告警，并补齐覆盖率和 Vitest UI 脚本依赖。
+- 精简并更正重复、过时的项目说明与部署指南；`CLAUDE.md` 保留为 `AGENTS.md` 指引。
+
+---
+
 ## v2.0.24 (2026-06-24)
 
 ### Bug 修复

@@ -12,8 +12,6 @@ import userRoutes from './modules/user'
 import discoverRoutes from './modules/discover'
 import adminRoutes from './modules/admin'
 
-export { lazyLoad } from './helpers'
-
 const routes: RouteRecordRaw[] = [
   ...homeRoutes,
   ...authRoutes,

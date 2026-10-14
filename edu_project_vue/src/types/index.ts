@@ -126,17 +126,3 @@ export type {
   TrendingContent,
   TrendingParams
 } from './trending'
-
-// 后端 VO 对应类型
-export type {
-  TagVO,
-  PostListResponse,
-  PostDetailResponse,
-  CommentVO,
-  CirclePostVO,
-  NotificationVO,
-  ConversationVO,
-  MessageVO,
-  HotContentVO,
-  MediaVO
-} from './vo'
